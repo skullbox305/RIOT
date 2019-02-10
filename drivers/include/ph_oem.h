@@ -149,8 +149,8 @@ int ph_oem_init(ph_oem_t *dev, const ph_oem_params_t *params);
  *          Settings are retained in the sensor if the power is cut.
  *
  *          The address in the device descriptor will reverse to the default
- *          address you provided thru @ref PH_OEM_I2C_ADDRESS or
- *          PH_OEM_PARAM_ADDR CFLAGS after the microcontroller restarts
+ *          address you provided thru PH_OEM_PARAM_ADDR after the
+ *          microcontroller restarts
  *
  * @param[in] dev   device descriptor
  * @param[in] addr  new address for the device. Range: 0x01 - 0x7f
