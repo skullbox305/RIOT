@@ -29,15 +29,15 @@
  * Once the pH OEM is powered on it will be ready to receive commands and take
  * readings after 1ms.
  *
- * Communication is done using SMBus/I2C protocol at speeds
- * of 10-100 kHz. Set your I2C speed to @ref I2C_SPEED_LOW or
- * @ref I2C_SPEED_NORMAL
- *
- * This driver provides @ref drivers_saul capabilities.
+ * @note This driver provides @ref drivers_saul capabilities.
  * Reading (@ref saul_driver_t.read) from the device returns the current pH value.
  * Writing (@ref saul_driver_t.write) a temperature value in celsius to the
  * device sets the temperature compensation. A valid temperature range is
  * 1 - 20000 (0.01 °C  to  200.0 °C)
+ *
+ * @note Communication is done using SMBus/I2C protocol at speeds
+ * of 10-100 kHz. Set your board I2C speed to @ref I2C_SPEED_LOW or
+ * @ref I2C_SPEED_NORMAL
  *
  * @{
  *
@@ -91,7 +91,6 @@ typedef enum {
  * @brief   Interrupt pin option values
  */
 typedef enum {
-    PH_OEM_IRQ_DISABLED = 0x00, /**< Interrupt pin option disabled */
     PH_OEM_IRQ_RISING   = 0x02, /**< Pin high on new reading (manually reset) */
     PH_OEM_IRQ_FALLING  = 0x04, /**< Pin low on new reading (manually reset) */
     PH_OEM_IRQ_BOTH     = 0x08, /**< Invert state on new reading (automatically reset) */
@@ -110,9 +109,10 @@ typedef enum {
  * @brief   pH OEM sensor params
  */
 typedef struct ph_oem_params {
-    i2c_t i2c;              /**< I2C device the sensor is connected to */
-    uint8_t addr;           /**< the slave address of the sensor on the I2C bus */
-    gpio_t interrupt_pin;   /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
+    i2c_t i2c;                      /**< I2C device the sensor is connected to */
+    uint8_t addr;                   /**< the slave address of the sensor on the I2C bus */
+    gpio_t interrupt_pin;           /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
+    ph_oem_irq_option_t irq_option; /**< behavior of the interrupt pin, disabled by default*/
 } ph_oem_params_t;
 
 /**
@@ -152,7 +152,7 @@ int ph_oem_init(ph_oem_t *dev, const ph_oem_params_t *params);
  *          Settings are retained in the sensor if the power is cut.
  *
  *          The address in the device descriptor will reverse to the default
- *          address you provided thru PH_OEM_PARAM_ADDR after the
+ *          address you provided through PH_OEM_PARAM_ADDR after the
  *          microcontroller restarts
  *
  * @param[in] dev   device descriptor
@@ -164,15 +164,17 @@ int ph_oem_init(ph_oem_t *dev, const ph_oem_params_t *params);
 int ph_oem_set_i2c_address(ph_oem_t *dev, uint8_t addr);
 
 /**
- * @brief   Enable the interrupt gpio pin if @ref ph_oem_params_t.interrupt_pin
- *          is defined
+ * @brief   Enable the pH OEM interrupt pin if @ref ph_oem_params_t.interrupt_pin
+ *          is defined.
+ *          @note Provide the PH_OEM_PARAM_INTERRUPT_OPTION flag in your
+ *          makefile. Valid options see: @ref ph_oem_irq_option_t.
+ *          The default is @ref PH_OEM_IRQ_BOTH
  *
  * @param[in] dev       device descriptor
  * @param[in] cb        callback called when the pH OEM interrupt pin fires
  * @param[in] arg       callback argument
- * @param[in] option    @ref ph_oem_irq_option_t
  * @param[in] gpio_mode @ref gpio_mode_t <br>
- *                      most likely @ref GPIO_IN, else probably
+ *                      most likely @ref GPIO_IN. If the pin is to sensitive use
  *                      @ref GPIO_IN_PU for @ref PH_OEM_IRQ_FALLING or <br>
  *                      @ref GPIO_IN_PD for @ref PH_OEM_IRQ_RISING and
  *                      @ref PH_OEM_IRQ_BOTH
@@ -183,29 +185,22 @@ int ph_oem_set_i2c_address(ph_oem_t *dev, uint8_t addr);
  * @return @ref PH_OEM_GPIO_INIT_ERR if initializing the interrupt gpio pin failed
  */
 int ph_oem_enable_interrupt(ph_oem_t *dev, ph_oem_interrupt_pin_cb_t cb,
-                            void *arg, ph_oem_irq_option_t option,
-                            gpio_mode_t gpio_mode);
+                            void *arg, gpio_mode_t gpio_mode);
 
 /**
- * @brief   Set the behavior of the interrupt pin of the pH OEM by setting the
- *          @ref PH_OEM_REG_INTERRUPT register.
- *          Pin is disabled by default.
- *
- *          The pin will not auto reset on option @ref PH_OEM_IRQ_RISING
+ * @brief   The interrupt pin will not auto reset on option @ref PH_OEM_IRQ_RISING
  *          and @ref PH_OEM_IRQ_FALLING after interrupt fires,
- *          so call this function again to reset the pin state, providing the
- *          same option (@ref PH_OEM_IRQ_RISING or @ref PH_OEM_IRQ_FALLING).
+ *          so call this function again to reset the pin state.
  *
- *          Settings are not retained if the power is cut, so you have to call
- *          this function again after powering on the device.
+ * @note    The interrupt settings are not retained if the power is cut,
+ *          so you have to call this function again after powering on the device.
  *
  * @param[in] dev    device descriptor
- * @param[in] option @ref ph_oem_irq_option_t
  *
  * @return @ref PH_OEM_OK on success
  * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
  */
-int ph_oem_set_interrupt_pin(const ph_oem_t *dev, ph_oem_irq_option_t option);
+int ph_oem_reset_interrupt_pin(const ph_oem_t *dev);
 
 /**
  * @brief   Set the LED state of the pH OEM sensor by writing to the
@@ -222,9 +217,10 @@ int ph_oem_set_led_state(const ph_oem_t *dev, ph_oem_led_state_t state);
 /**
  * @brief   Sets the device state (active/hibernate) of the pH OEM sensor by
  *          writing to the @ref PH_OEM_REG_HIBERNATE register.
- *          Once the device has been woken up it will continuously take readings
- *          every 420ms. Waking the device is the only way to take a reading.
- *          Hibernating the device is the only way to stop taking readings.
+ *
+ *          @note Once the device has been woken up it will continuously take
+ *          readings every 420ms. Waking the device is the only way to take a
+ *          reading. Hibernating the device is the only way to stop taking readings.
  *
  * @param[in] dev   device descriptor
  * @param[in] state @ref ph_oem_device_state_t
@@ -238,7 +234,7 @@ int ph_oem_set_device_state(const ph_oem_t *dev, ph_oem_device_state_t state);
  * @brief   Starts a new reading by setting the device state to
  *          @ref PH_OEM_TAKE_READINGS.
  *
- *          If the @ref ph_oem_params_t.interrupt_pin is @ref GPIO_UNDEF
+ * @note    If the @ref ph_oem_params_t.interrupt_pin is @ref GPIO_UNDEF
  *          this function will poll every 20ms till a reading is done (~420ms)
  *          and stop the device from taking further readings
  *
@@ -270,13 +266,13 @@ int ph_oem_clear_calibration(const ph_oem_t *dev);
  *          The calibration value will be saved based on the given
  *          @ref ph_oem_calibration_option_t and retained after the power is cut.
  *
- *          Calibrating with @ref PH_OEM_CALIBRATE_MID_POINT will reset the
+ * @note    Calibrating with @ref PH_OEM_CALIBRATE_MID_POINT will reset the
  *          previous calibrations.
  *          Always start with @ref PH_OEM_CALIBRATE_MID_POINT if you doing
  *          2 or 3 point calibration
  *
  * @param[in] dev                 device descriptor
- * @param[in] calibration_value   pH value multiplied by 1000 e.g 7.002 * 1000 = 7002
+ * @param[in] calibration_value   pH value multiplied by 1000 e.g 7,002 * 1000 = 7002
  * @param[in] option              @ref ph_oem_calibration_option_t
  *
  * @return @ref PH_OEM_OK on success
@@ -308,7 +304,7 @@ int ph_oem_read_calibration_state(const ph_oem_t *dev, uint16_t *calibration_sta
  *          Multiply the floating point temperature value by 100
  *          e.g. temperature in degree Celsius = 34.26 * 100 = 3426
  *
- *          The temperature compensation will not be retained if the power is cut.
+ *  @note   The temperature compensation will not be retained if the power is cut.
  *
  * @param[in] dev                        device descriptor
  * @param[in] temperature_compensation   valid temperature range is
@@ -327,12 +323,9 @@ int ph_oem_set_compensation(const ph_oem_t *dev,
  *          the temperature compensation value that was used to take the pH
  *          reading is set to the correct temperature.
  *
- *          Divide the read temperature value by 100 to get the floating point
- *          e.g. temperature raw = 3426 / 100 = 34.26
- *
  * @param[in]  dev                       device descriptor
- * @param[out] temperature_compensation  raw temperature compensation value <br>
- *                                       Devide by 100 for floating point <br>
+ * @param[out] temperature_compensation  raw temperature compensation value. <br>
+ *                                       Divide by 100 for floating point <br>
  *                                       e.g 3426 / 100 = 34.26
  *
  * @return @ref PH_OEM_OK on success
@@ -344,9 +337,6 @@ int ph_oem_read_compensation(const ph_oem_t *dev,
 /**
  * @brief   Reads the @ref PH_OEM_REG_PH_READING_BASE register to get the current
  *          pH reading.
- *
- *          Divide the raw pH value by 1000 to get the floating point
- *          e.g. pH raw = 8347 / 1000 = 8.347
  *
  * @param[in]  dev        device descriptor
  * @param[out] ph_value   raw pH value <br>

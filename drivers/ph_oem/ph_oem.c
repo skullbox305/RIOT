@@ -31,7 +31,7 @@
 
 #define I2C (dev->params.i2c)
 #define ADDR (dev->params.addr)
-#define EN_PIN (dev->params.enable_pin)
+#define IRQ_OPTION (dev->params.irq_option)
 
 static int ph_oem_init_test(const ph_oem_t *dev);
 
@@ -117,63 +117,63 @@ int ph_oem_set_i2c_address(ph_oem_t *dev, uint8_t addr)
     return PH_OEM_OK;
 }
 
-int ph_oem_enable_interrupt(ph_oem_t *dev, ph_oem_interrupt_pin_cb_t cb,
-                            void *arg, ph_oem_irq_option_t option, gpio_mode_t gpio_mode)
-{
-    if (dev->params.interrupt_pin == GPIO_UNDEF) {
-        return PH_OEM_INTERRUPT_GPIO_UNDEF;
-    }
-
-    if (ph_oem_set_interrupt_pin(dev, option) < 0) {
-        return PH_OEM_WRITE_ERR;
-    }
-
-    int gpio_flank = 0;
-
-    dev->arg = arg;
-    dev->cb = cb;
-
-    switch (option) {
-        case PH_OEM_IRQ_DISABLED:
-            break;
-        case PH_OEM_IRQ_FALLING:
-            gpio_flank = GPIO_FALLING;
-            //gpio_mode = GPIO_IN_PU;
-            break;
-        case PH_OEM_IRQ_RISING:
-            gpio_flank = GPIO_RISING;
-            //gpio_mode = GPIO_IN_PD;
-            break;
-        case PH_OEM_IRQ_BOTH:
-            gpio_flank = GPIO_BOTH;
-            //gpio_mode = GPIO_IN_PD;
-            break;
-    }
-
-    if (option != PH_OEM_IRQ_DISABLED) {
-        if (gpio_init_int(dev->params.interrupt_pin,
-                          gpio_mode, gpio_flank, cb, arg) < 0) {
-
-            DEBUG("\n[ph_oem debug] Initilizing enable gpio pin failed.\n");
-            return PH_OEM_GPIO_INIT_ERR;
-        }
-    }
-    return PH_OEM_OK;
-}
-
-int ph_oem_set_interrupt_pin(const ph_oem_t *dev, ph_oem_irq_option_t option)
+static int ph_oem_set_interrupt_pin(const ph_oem_t *dev)
 {
     assert(dev);
     i2c_acquire(I2C);
 
-    if (i2c_write_reg(I2C, ADDR, PH_OEM_REG_INTERRUPT, option, 0x0) < 0) {
-        DEBUG("\n[ph_oem debug] Setting interrupt pin to option %d failed.\n", option);
+    if (i2c_write_reg(I2C, ADDR, PH_OEM_REG_INTERRUPT, IRQ_OPTION, 0x0) < 0) {
+        DEBUG("\n[ph_oem debug] Setting interrupt pin to option %d failed.\n", IRQ_OPTION);
         i2c_release(I2C);
         return PH_OEM_WRITE_ERR;
     }
 
     i2c_release(I2C);
 
+    return PH_OEM_OK;
+}
+
+int ph_oem_enable_interrupt(ph_oem_t *dev, ph_oem_interrupt_pin_cb_t cb,
+                            void *arg, gpio_mode_t gpio_mode)
+{
+    if (dev->params.interrupt_pin == GPIO_UNDEF) {
+        return PH_OEM_INTERRUPT_GPIO_UNDEF;
+    }
+
+    if (ph_oem_set_interrupt_pin(dev) < 0) {
+        return PH_OEM_WRITE_ERR;
+    }
+
+    int gpio_flank = 0;
+
+    switch (IRQ_OPTION) {
+        case PH_OEM_IRQ_FALLING:
+            gpio_flank = GPIO_FALLING;
+            break;
+        case PH_OEM_IRQ_RISING:
+            gpio_flank = GPIO_RISING;
+            break;
+        case PH_OEM_IRQ_BOTH:
+            gpio_flank = GPIO_BOTH;
+            break;
+    }
+
+    dev->arg = arg;
+    dev->cb = cb;
+    if (gpio_init_int(dev->params.interrupt_pin,
+                      gpio_mode, gpio_flank, cb, arg) < 0) {
+        DEBUG("\n[ph_oem debug] Initializing interrupt gpio pin failed.\n");
+        return PH_OEM_GPIO_INIT_ERR;
+    }
+
+    return PH_OEM_OK;
+}
+
+int ph_oem_reset_interrupt_pin(const ph_oem_t *dev)
+{
+    if (ph_oem_set_interrupt_pin(dev) < 0) {
+        return PH_OEM_WRITE_ERR;
+    }
     return PH_OEM_OK;
 }
 

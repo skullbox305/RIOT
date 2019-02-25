@@ -33,19 +33,23 @@ extern "C" {
  * @{
  */
 #ifndef PH_OEM_PARAM_I2C
-#define PH_OEM_PARAM_I2C            (I2C_DEV(0))
+#define PH_OEM_PARAM_I2C               (I2C_DEV(0))
 #endif
 #ifndef PH_OEM_PARAM_ADDR
-#define PH_OEM_PARAM_ADDR           (0x65)
+#define PH_OEM_PARAM_ADDR              (0x65)
 #endif
 #ifndef PH_OEM_PARAM_INTERRUPT_PIN
-#define PH_OEM_PARAM_INTERRUPT_PIN  (GPIO_UNDEF)
+#define PH_OEM_PARAM_INTERRUPT_PIN     (GPIO_UNDEF)
+#endif
+#ifndef PH_OEM_PARAM_INTERRUPT_OPTION
+#define PH_OEM_PARAM_INTERRUPT_OPTION  (PH_OEM_IRQ_BOTH)
 #endif
 
 #ifndef PH_OEM_PARAMS
 #define PH_OEM_PARAMS       { .i2c = PH_OEM_PARAM_I2C,        \
                               .addr = PH_OEM_PARAM_ADDR,       \
-                              .interrupt_pin = PH_OEM_PARAM_INTERRUPT_PIN }
+                              .interrupt_pin = PH_OEM_PARAM_INTERRUPT_PIN, \
+                              .irq_option = PH_OEM_PARAM_INTERRUPT_OPTION }
 #endif
 #ifndef PH_OEM_SAUL_INFO
 #define PH_OEM_SAUL_INFO       { .name = "pH OEM sensor" }
