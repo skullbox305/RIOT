@@ -26,7 +26,6 @@
 #include "ph_oem_regs.h"
 
 #define SLEEP_SEC                   (5)
-#define PH_OEM_IRQ_FLANK            (PH_OEM_IRQ_BOTH)
 
 /* off by default, so it won't reset your previous calibration */
 #define CALIBRATION_TEST_ENABLED    (false)
@@ -41,8 +40,8 @@ static void interrupt_pin_cb(void *arg)
     ph_oem_set_device_state(&dev, PH_OEM_STOP_READINGS);
 
     /* reset interrupt pin in case of falling or rising flank */
-    if (PH_OEM_IRQ_FLANK != PH_OEM_IRQ_BOTH) {
-        ph_oem_set_interrupt_pin(&dev, PH_OEM_IRQ_FLANK);
+    if (dev.params.irq_option != PH_OEM_IRQ_BOTH) {
+        ph_oem_reset_interrupt_pin(&dev);
     }
 
     ph_oem_read_ph(&dev, (uint16_t *)arg);
@@ -135,7 +134,7 @@ int main(void)
         }
 
         /* Don't forget to provide temperature compensation for the calibration */
-        printf("Setting temperature compensation to 22 Celcius... ");
+        printf("Setting temperature compensation to 22 Celsius... ");
         if (ph_oem_set_compensation(&dev, 2200)) {
             puts("[OK]");
         }
@@ -210,7 +209,7 @@ int main(void)
         /* Setting up and enabling the interrupt pin of the pH OEM */
         printf("Enabling interrupt pin... ");
         if (ph_oem_enable_interrupt(&dev, interrupt_pin_cb,
-                                    &data, PH_OEM_IRQ_FLANK, GPIO_IN_PD) == PH_OEM_OK) {
+                                    &data, GPIO_IN_PD) == PH_OEM_OK) {
             puts("[OK]");
         }
         else {
