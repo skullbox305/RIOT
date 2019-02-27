@@ -112,7 +112,8 @@ typedef struct ph_oem_params {
     i2c_t i2c;                      /**< I2C device the sensor is connected to */
     uint8_t addr;                   /**< the slave address of the sensor on the I2C bus */
     gpio_t interrupt_pin;           /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
-    ph_oem_irq_option_t irq_option; /**< behavior of the interrupt pin, disabled by default*/
+    gpio_mode_t gpio_mode;          /**< gpio mode of the interrupt pin */
+    ph_oem_irq_option_t irq_option; /**< behavior of the interrupt pin, disabled by default */
 } ph_oem_params_t;
 
 /**
@@ -166,18 +167,23 @@ int ph_oem_set_i2c_address(ph_oem_t *dev, uint8_t addr);
 /**
  * @brief   Enable the pH OEM interrupt pin if @ref ph_oem_params_t.interrupt_pin
  *          is defined.
+ *          @note @ref ph_oem_reset_interrupt_pin needs to be called in the
+ *          callback if you use @ref PH_OEM_IRQ_FALLING or @ref PH_OEM_IRQ_RISING
+ *
  *          @note Provide the PH_OEM_PARAM_INTERRUPT_OPTION flag in your
  *          makefile. Valid options see: @ref ph_oem_irq_option_t.
- *          The default is @ref PH_OEM_IRQ_BOTH
+ *          The default is @ref PH_OEM_IRQ_BOTH.
+ *
+ *          @note Also provide the @ref gpio_mode_t as a CFLAG in your makefile.
+ *          Most likely @ref GPIO_IN. If the pin is to sensitive use
+ *          @ref GPIO_IN_PU for @ref PH_OEM_IRQ_FALLING or
+ *          @ref GPIO_IN_PD for @ref PH_OEM_IRQ_RISING and
+ *          @ref PH_OEM_IRQ_BOTH. The default is @ref GPIO_IN_PD
+ *
  *
  * @param[in] dev       device descriptor
  * @param[in] cb        callback called when the pH OEM interrupt pin fires
  * @param[in] arg       callback argument
- * @param[in] gpio_mode @ref gpio_mode_t <br>
- *                      most likely @ref GPIO_IN. If the pin is to sensitive use
- *                      @ref GPIO_IN_PU for @ref PH_OEM_IRQ_FALLING or <br>
- *                      @ref GPIO_IN_PD for @ref PH_OEM_IRQ_RISING and
- *                      @ref PH_OEM_IRQ_BOTH
  *
  * @return @ref PH_OEM_OK on success
  * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
@@ -185,7 +191,7 @@ int ph_oem_set_i2c_address(ph_oem_t *dev, uint8_t addr);
  * @return @ref PH_OEM_GPIO_INIT_ERR if initializing the interrupt gpio pin failed
  */
 int ph_oem_enable_interrupt(ph_oem_t *dev, ph_oem_interrupt_pin_cb_t cb,
-                            void *arg, gpio_mode_t gpio_mode);
+                            void *arg);
 
 /**
  * @brief   The interrupt pin will not auto reset on option @ref PH_OEM_IRQ_RISING
