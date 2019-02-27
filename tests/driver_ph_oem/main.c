@@ -19,7 +19,10 @@
  */
 
 #include "xtimer.h"
-#include "timex.h"
+#include "thread.h"
+#include "event.h"
+#include "event/callback.h"
+//#include "timex.h"
 
 #include "ph_oem.h"
 #include "ph_oem_params.h"
@@ -27,28 +30,64 @@
 
 #define SLEEP_SEC                   (5)
 
-/* off by default, so it won't reset your previous calibration */
+/* calibration test is off by default, so it won't reset your previous calibration */
 #define CALIBRATION_TEST_ENABLED    (false)
+
+#define STACKSIZE       THREAD_STACKSIZE_DEFAULT
+#define PRIO            (THREAD_PRIORITY_MAIN - 1)
+
+static char stack[STACKSIZE];
+
+static void reading_available_event_callback(event_t *event);
 
 static ph_oem_t dev;
 
-static void interrupt_pin_cb(void *arg)
+static event_queue_t event_queue;
+static event_t event = { .handler = reading_available_event_callback };
+
+
+static void reading_available_event_callback(event_t *event)
 {
-    puts("\n[IRQ - Reading done]");
+    (void)event;
+    uint16_t data;
+
+    puts("\n[EVENT - reading pH value from the device]");
 
     /* stop pH sensor from taking further readings*/
     ph_oem_set_device_state(&dev, PH_OEM_STOP_READINGS);
 
     /* reset interrupt pin in case of falling or rising flank */
-    if (dev.params.irq_option != PH_OEM_IRQ_BOTH) {
-        ph_oem_reset_interrupt_pin(&dev);
-    }
+    ph_oem_reset_interrupt_pin(&dev);
 
-    ph_oem_read_ph(&dev, (uint16_t *)arg);
-    printf("pH value raw: %d\n", *((uint16_t *)arg));
+    ph_oem_read_ph(&dev, &data);
+    printf("pH value raw: %d\n", data);
 
-    ph_oem_read_compensation(&dev, (uint16_t *)arg);
-    printf("pH reading was taken at %d Celsius\n", *((uint16_t *)arg));
+    ph_oem_read_compensation(&dev, &data);
+    printf("pH reading was taken at %d Celsius\n", data);
+
+    /* read data can be transmitted to another thread e.g. via the RIOT
+     * Messaging / IPC API */
+}
+
+static void *irq_event_handler_thread(void *arg)
+{
+    event_queue_t *dq = (event_queue_t *)arg;
+
+    event_queue_claim(dq);
+    event_loop(dq);
+
+    return NULL;
+}
+
+static void interrupt_pin_callback(void *arg)
+{
+    puts("\n[IRQ - Reading done. Writing read-event to event queue]");
+    (void)arg;
+
+    /* Writing "reading_available_event_callback" event to the event queue,
+       let the "irq_event_handler_thread" pick it from the queue
+       and execute the event callback */
+    event_post(&event_queue, (event_t *)&event);
 
     /* initiate new reading with "ph_oem_start_new_reading()" for this callback
        to be called again */
@@ -208,14 +247,26 @@ int main(void)
     if (dev.params.interrupt_pin != GPIO_UNDEF) {
         /* Setting up and enabling the interrupt pin of the pH OEM */
         printf("Enabling interrupt pin... ");
-        if (ph_oem_enable_interrupt(&dev, interrupt_pin_cb,
-                                    &data, GPIO_IN_PD) == PH_OEM_OK) {
+        if (ph_oem_enable_interrupt(&dev, interrupt_pin_callback,
+                                    &data) == PH_OEM_OK) {
             puts("[OK]");
         }
         else {
             puts("[Failed]");
             return -1;
         }
+
+        /* initiate an event-queue which is detached and gets claimed by a thread */
+        event_queue_init_detached(&event_queue);
+
+        /* starting a thread that claims the event_queue and executes the
+         * "reading_available_event_callback" when this event was posted to the
+         * queue. An event is posted when an interrupt occurs and
+         * the "interrupt_pin_callback" is called
+         */
+        printf("running event handler thread that will claim the event_queue \n");
+        thread_create(stack, sizeof(stack), PRIO, 0, irq_event_handler_thread,
+                      &event_queue, "irq_event");
     }
     else {
         puts("Interrupt pin undefined");
@@ -231,8 +282,8 @@ int main(void)
     }
 
     while (1) {
-
         /* blocking for ~420ms till reading is done if no interrupt pin defined */
+        puts("\n[MAIN - Initiate reading]");
         ph_oem_start_new_reading(&dev);
 
         if (dev.params.interrupt_pin == GPIO_UNDEF) {
