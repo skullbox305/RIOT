@@ -256,6 +256,8 @@ int main(void)
 
         /* blocking for ~420ms till reading is done if no interrupt pin defined */
         puts("\n[MAIN - Initiate reading]");
+
+        /* blocking for ~420ms till reading is done if no interrupt pin defined */
         ph_oem_start_new_reading(&dev);
 
         if (dev.params.interrupt_pin != GPIO_UNDEF) {
