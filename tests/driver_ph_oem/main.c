@@ -33,18 +33,12 @@
 /* calibration test is off by default, so it won't reset your previous calibration */
 #define CALIBRATION_TEST_ENABLED    (false)
 
-#define STACKSIZE       THREAD_STACKSIZE_DEFAULT
-#define PRIO            (THREAD_PRIORITY_MAIN - 1)
-
-static char stack[STACKSIZE];
-
 static void reading_available_event_callback(event_t *event);
 
 static ph_oem_t dev;
 
 static event_queue_t event_queue;
 static event_t event = { .handler = reading_available_event_callback };
-
 
 static void reading_available_event_callback(event_t *event)
 {
@@ -64,30 +58,17 @@ static void reading_available_event_callback(event_t *event)
 
     ph_oem_read_compensation(&dev, &data);
     printf("pH reading was taken at %d Celsius\n", data);
-
-    /* read data can be transmitted to another thread e.g. via the RIOT
-     * Messaging / IPC API */
 }
 
-static void *irq_event_handler_thread(void *arg)
-{
-    event_queue_t *dq = (event_queue_t *)arg;
-
-    event_queue_claim(dq);
-    event_loop(dq);
-
-    return NULL;
-}
 
 static void interrupt_pin_callback(void *arg)
 {
     puts("\n[IRQ - Reading done. Writing read-event to event queue]");
     (void)arg;
 
-    /* Writing "reading_available_event_callback" event to the event queue,
-       let the "irq_event_handler_thread" pick it from the queue
-       and execute the event callback */
-    event_post(&event_queue, (event_t *)&event);
+    /* Posting event to the event queue. Main is blocking with "event_wait"
+     * and will execute the event callback after posting */
+    event_post(&event_queue, &event);
 
     /* initiate new reading with "ph_oem_start_new_reading()" for this callback
        to be called again */
@@ -256,17 +237,9 @@ int main(void)
             return -1;
         }
 
-        /* initiate an event-queue which is detached and gets claimed by a thread */
-        event_queue_init_detached(&event_queue);
-
-        /* starting a thread that claims the event_queue and executes the
-         * "reading_available_event_callback" when this event was posted to the
-         * queue. An event is posted when an interrupt occurs and
-         * the "interrupt_pin_callback" is called
-         */
-        printf("running event handler thread that will claim the event_queue \n");
-        thread_create(stack, sizeof(stack), PRIO, 0, irq_event_handler_thread,
-                      &event_queue, "irq_event");
+        /* initiate an event-queue. An event will be posted by the
+         * "interrupt_pin_callback" after an IRQ occurs. */
+        event_queue_init(&event_queue);
     }
     else {
         puts("Interrupt pin undefined");
@@ -282,9 +255,18 @@ int main(void)
     }
 
     while (1) {
-        /* blocking for ~420ms till reading is done if no interrupt pin defined */
         puts("\n[MAIN - Initiate reading]");
+
+        /* blocking for ~420ms till reading is done if no interrupt pin defined */
         ph_oem_start_new_reading(&dev);
+
+        if (dev.params.interrupt_pin != GPIO_UNDEF) {
+            /* when interrupt is defined, wait for the IRQ to fire and
+             * the event to be posted, so the "reading_available_event_callback"
+             * can be executed after */
+            event_t *ev = event_wait(&event_queue);
+            ev->handler(ev);
+        }
 
         if (dev.params.interrupt_pin == GPIO_UNDEF) {
 
