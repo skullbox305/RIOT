@@ -19,10 +19,7 @@
  */
 
 #include "xtimer.h"
-#include "thread.h"
-#include "event.h"
 #include "event/callback.h"
-//#include "timex.h"
 
 #include "ph_oem.h"
 #include "ph_oem_params.h"

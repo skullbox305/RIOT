@@ -120,7 +120,6 @@ static int _unlock_address_reg(ph_oem_t *dev)
 {
     uint8_t reg_value = 1;
 
-    assert(dev);
     i2c_acquire(I2C);
 
     i2c_write_reg(I2C, ADDR, PH_OEM_REG_UNLOCK, 0x55, 0x0);
@@ -140,11 +139,12 @@ static int _unlock_address_reg(ph_oem_t *dev)
 
 int ph_oem_set_i2c_address(ph_oem_t *dev, uint8_t addr)
 {
+    assert(dev);
+
     if (_unlock_address_reg(dev) != PH_OEM_OK) {
         return PH_OEM_WRITE_ERR;
     }
 
-    assert(dev);
     i2c_acquire(I2C);
 
     if (i2c_write_reg(I2C, ADDR, PH_OEM_REG_ADDRESS, addr, 0x0) < 0) {
