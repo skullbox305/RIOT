@@ -414,6 +414,12 @@ ifneq (,$(filter rn2%3,$(USEMODULE)))
   USEMODULE += fmt
 endif
 
+ifneq (,$(filter rtd_oem,$(USEMODULE)))
+  FEATURES_REQUIRED += periph_gpio_irq
+  FEATURES_REQUIRED += periph_i2c
+  USEMODULE += xtimer
+endif
+
 ifneq (,$(filter sdcard_spi,$(USEMODULE)))
   FEATURES_REQUIRED += periph_gpio
   FEATURES_REQUIRED += periph_spi
