@@ -506,6 +506,10 @@ void auto_init(void)
     extern void auto_init_pulse_counter(void);
     auto_init_pulse_counter();
 #endif
+#ifdef MODULE_RTD_OEM
+    extern void auto_init_rtd_oem(void);
+    auto_init_rtd_oem();
+#endif
 #ifdef MODULE_SHT2X
     extern void auto_init_sht2x(void);
     auto_init_sht2x();
