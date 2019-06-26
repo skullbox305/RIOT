@@ -61,3 +61,5 @@ scan-build/
 
 # compile_and_test_for_boards default "results" directory
 results/
+
+tests/driver_ph_oem/

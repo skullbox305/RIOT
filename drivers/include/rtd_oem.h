@@ -35,58 +35,49 @@ extern "C"
  * @brief   Named return values
  */
 typedef enum {
-    RTD_OEM_OK                   =  0,   /**< Everything was fine */
-    RTD_OEM_NODEV                = -1,   /**< No device found on the bus */
-    RTD_OEM_READ_ERR             = -2,   /**< Reading to device failed*/
-    RTD_OEM_WRITE_ERR            = -3,   /**< Writing to device failed */
-    RTD_OEM_NOT_RTD              = -4,   /**< Not an Atlas Scientific RTD OEM device */
-    RTD_OEM_INTERRUPT_GPIO_UNDEF = -5,   /**< Interrupt pin is @ref GPIO_UNDEF */
-    RTD_OEM_GPIO_INIT_ERR        = -6,   /**< Error while initializing GPIO PIN */
+    RTD_OEM_OK                      = 0,    /**< Everything was fine */
+    RTD_OEM_NODEV                   = -1,   /**< No device found on the bus */
+    RTD_OEM_READ_ERR                = -2,   /**< Reading to device failed*/
+    RTD_OEM_WRITE_ERR               = -3,   /**< Writing to device failed */
+    RTD_OEM_NOT_RTD                 = -4,   /**< Not an Atlas Scientific RTD OEM device */
+    RTD_OEM_INTERRUPT_GPIO_UNDEF    = -5,   /**< Interrupt pin is @ref GPIO_UNDEF */
+    RTD_OEM_GPIO_INIT_ERR           = -6,   /**< Error while initializing GPIO PIN */
 } rtd_oem_named_returns_t;
 
 /**
  * @brief   LED state values
  */
 typedef enum {
-    RTD_OEM_LED_ON   = 0x01, /**< LED on state */
-    RTD_OEM_LED_OFF  = 0x00, /**< LED off state */
+    RTD_OEM_LED_ON  = 0x01, /**< LED on state */
+    RTD_OEM_LED_OFF = 0x00, /**< LED off state */
 } rtd_oem_led_state_t;
 
 /**
  * @brief   Device state values
  */
 typedef enum {
-    PH_OEM_TAKE_READINGS    = 0x01, /**< Device active state */
-    PH_OEM_STOP_READINGS    = 0x00, /**< Device hibernate state */
+    RTD_OEM_TAKE_READINGS   = 0x01, /**< Device active state */
+    RTD_OEM_STOP_READINGS   = 0x00, /**< Device hibernate state */
 } rtd_oem_device_state_t;
 
 /**
  * @brief   Interrupt pin option values
  */
 typedef enum {
-    RTD_OEM_IRQ_RISING   = 0x02, /**< Pin high on new reading (manually reset) */
-    RTD_OEM_IRQ_FALLING  = 0x04, /**< Pin low on new reading (manually reset) */
-    RTD_OEM_IRQ_BOTH     = 0x08, /**< Invert state on new reading (automatically reset) */
+    RTD_OEM_IRQ_RISING  = 0x02, /**< Pin high on new reading (manually reset) */
+    RTD_OEM_IRQ_FALLING = 0x04, /**< Pin low on new reading (manually reset) */
+    RTD_OEM_IRQ_BOTH    = 0x08, /**< Invert state on new reading (automatically reset) */
 } rtd_oem_irq_option_t;
 
 /**
- * @brief   Calibration option values
- */
-typedef enum {
-    RTD_OEM_CALIBRATE_LOW_POINT  = 0x02,     /**< Low point calibration option */
-    RTD_OEM_CALIBRATE_MID_POINT  = 0x03,     /**< Mid point calibration option */
-    RTD_OEM_CALIBRATE_HIGH_POINT = 0x04,     /**< High point calibration option */
-} rtd_oem_calibration_option_t;
-
-/**
- * @brief   pH OEM sensor params
+ * @brief   RTD OEM sensor params
  */
 typedef struct rtd_oem_params {
-    i2c_t i2c;                      /**< I2C device the sensor is connected to */
-    uint8_t addr;                   /**< the slave address of the sensor on the I2C bus */
-    gpio_t interrupt_pin;           /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
-    gpio_mode_t gpio_mode;          /**< gpio mode of the interrupt pin */
-    rtd_oem_irq_option_t irq_option; /**< behavior of the interrupt pin, disabled by default */
+    i2c_t i2c;                          /**< I2C device the sensor is connected to */
+    uint8_t addr;                       /**< the slave address of the sensor on the I2C bus */
+    gpio_t interrupt_pin;               /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
+    gpio_mode_t gpio_mode;              /**< gpio mode of the interrupt pin */
+    rtd_oem_irq_option_t irq_option;    /**< behavior of the interrupt pin, disabled by default */
 } rtd_oem_params_t;
 
 /**
@@ -98,8 +89,8 @@ typedef void (*rtd_oem_interrupt_pin_cb_t)(void *);
  * @brief   RTD OEM device descriptor
  */
 typedef struct rtd_oem {
-    rtd_oem_params_t params;         /**< device driver configuration */
-    rtd_oem_interrupt_pin_cb_t cb;   /**< interrupt pin callback */
+    rtd_oem_params_t params;        /**< device driver configuration */
+    rtd_oem_interrupt_pin_cb_t cb;  /**< interrupt pin callback */
     void *arg;                      /**< interrupt pin callback param */
 } rtd_oem_t;
 
@@ -111,34 +102,10 @@ typedef struct rtd_oem {
  *
  * @return @ref RTD_OEM_OK on success
  * @return @ref RTD_OEM_NODEV if no device is found on the bus
- * @return @ref RTD_OEM_NOT_RTD if the device found at the address is not a pH OEM device
+ * @return @ref RTD_OEM_NOT_RTD if the device found at the address is not a RTD OEM device
  * @return
  */
 int rtd_oem_init(rtd_oem_t *dev, const rtd_oem_params_t *params);
-
-/**
- * @brief   Sets a new address to the RTD OEM device by unlocking the
- *          @ref RTD_OEM_REG_UNLOCK register and  writing a new address to
- *          the @ref PH_OEM_REG_ADDRESS register.
- *          The device address will also be updated in the device descriptor so
- *          it is still usable.
- *
- *          Settings are retained in the sensor if the power is cut.
- *
- *          The address in the device descriptor will reverse to the default
- *          address you provided through RTD_OEM_PARAM_ADDR after the
- *          microcontroller restarts
- *
- * @param[in] dev   device descriptor
- * @param[in] addr  new address for the device. Range: 0x01 - 0x7f
- *
- * @return @ref RTD_OEM_OK on success
- * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
- */
-int ph_oem_set_i2c_address(rtd_oem_t *dev, uint8_t addr);
-
-...
-
 
 #ifdef __cplusplus
 }
