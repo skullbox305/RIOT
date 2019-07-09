@@ -14,6 +14,7 @@
  * @brief       RTD OEM adaption to the sensor/actuator abstraction layer
  *
  * @author      Ting XU <your-email@placeholder.com>
+ * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  *
  * @}
  */

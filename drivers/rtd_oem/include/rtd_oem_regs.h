@@ -14,6 +14,7 @@
  * @brief       Register definitions for the Atlas Scientific RTD OEM sensor.
  *
  * @author      Ting XU <your-email@placeholder.com>
+ * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  */
 
 #ifndef RTD_OEM_REGS_H
@@ -41,10 +42,7 @@ typedef enum rtd_oem_reg {
     RTD_OEM_REG_CALIBRATION_BASE         = 0x08, /**< Calibration value register base address. Register order is: MSB, high byte, low byte, LSB (0x08-0x0B) (read/write) */
     RTD_OEM_REG_CALIBRATION_REQUEST      = 0x0C, /**< Calibration request register (read/write) */
     RTD_OEM_REG_CALIBRATION_CONFIRM      = 0x0D, /**< Calibration confirm register (read/write) */
-    RTD_OEM_REG_TEMP_COMPENSATION_BASE   = 0x0E, /**< Temperature compensation register base address. Register order is: MSB, high byte, low byte, LSB (0x0E-0x11) (read/write) */
-    RTD_OEM_REG_TEMP_CONFIRMATION_BASE   = 0x12, /**< Temperature confirm register base address. Register order is: MSB, high byte, low byte, LSB (0x12-0x15) (read only) */
-    RTD_OEM_REG_RTD_READING_BASE         = 0x16, /**< RTD reading register base address, order= MSB, high byte, low byte, LSB (0x16-0x19) (read only) */
-
+    RTD_OEM_REG_RTD_READING_BASE         = 0x0E, /**< RTD reading register base address, order= MSB, high byte, low byte, LSB (0x16-0x19) (read only) */
 } rtd_oem_reg_t;
 
 

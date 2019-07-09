@@ -14,6 +14,7 @@
  * @brief       Default configuration for Atlas Scientific RTD OEM sensors
  *
  * @author      Ting XU <your-email@placeholder.com>
+ * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  */
 
 #ifndef RTD_OEM_PARAMS_H
