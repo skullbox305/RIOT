@@ -169,6 +169,7 @@ int rtd_oem_read_calibration_state(const rtd_oem_t *dev, uint16_t *calibration_s
     return RTD_OEM_OK;
 }
 
+
 int rtd_oem_set_calibration(const rtd_oem_t *dev, uint16_t calibration_value,
                            rtd_oem_calibration_option_t option)
 {

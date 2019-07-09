@@ -112,7 +112,7 @@ int main(void)
     }
 
     printf("Single point calibration... ");
-    if (ph_oem_set_calibration(&dev, 100, RTD_OEM_CALIBRATE_SINGLE_POINT) == PH_OEM_OK) {
+    if (rtd_oem_set_calibration(&dev, 10000, RTD_OEM_CALIBRATE_SINGLE_POINT) == RTD_OEM_OK) {
         puts("[OK]");
     }
     else {
