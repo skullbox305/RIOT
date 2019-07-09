@@ -73,7 +73,9 @@ static void interrupt_pin_callback(void *arg)
 
 int main(void)
 {
-    uint16_t data;
+	xtimer_sleep(2);
+
+    uint16_t data = 0;
 
     puts("Atlas Scientific pH OEM sensor driver test application\n");
 

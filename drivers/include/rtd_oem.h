@@ -18,6 +18,7 @@
  * @brief       Device driver for Atlas Scientific RTD OEM Sensor with SMBus/I2C interface
 
  * @author      Ting XU <your-email@placeholder.com>
+ * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  */
 
 #ifndef RTD_OEM_H
@@ -35,7 +36,7 @@ extern "C"
  * @brief   Named return values
  */
 typedef enum {
-    RTD_OEM_OK                      = 0,    /**< Everything was fine */
+    RTD_OEM_OK                      =  0,    /**< Everything was fine */
     RTD_OEM_NODEV                   = -1,   /**< No device found on the bus */
     RTD_OEM_READ_ERR                = -2,   /**< Reading to device failed*/
     RTD_OEM_WRITE_ERR               = -3,   /**< Writing to device failed */
@@ -59,6 +60,14 @@ typedef enum {
     RTD_OEM_TAKE_READINGS   = 0x01, /**< Device active state */
     RTD_OEM_STOP_READINGS   = 0x00, /**< Device hibernate state */
 } rtd_oem_device_state_t;
+
+/**
+ * @brief   Calibration option values
+ */
+typedef enum {
+    RTD_OEM_CALIBRATE_CLEAR         = 0x01, /**< Clear calibration */
+    RTD_OEM_CALIBRATE_SINGLE_POINT  = 0x02, /**< Single point calibration */
+} rtd_oem_calibration_option_t;
 
 /**
  * @brief   Interrupt pin option values
@@ -106,6 +115,84 @@ typedef struct rtd_oem {
  * @return
  */
 int rtd_oem_init(rtd_oem_t *dev, const rtd_oem_params_t *params);
+
+/**
+ * @brief   Set the LED state of the RTD OEM sensor by writing to the
+ *          @ref RTD_OEM_REG_LED register
+ *
+ * @param[in] dev       device descriptor
+ * @param[in] state     @ref ph_oem_led_state_t
+ *
+ * @return @ref RTD_OEM_OK on success
+ * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
+ */
+int rtd_oem_set_led_state(const rtd_oem_t *dev, rtd_oem_led_state_t state);
+
+/**
+ * @brief   Sets a new address to the RTD OEM device by unlocking the
+ *          @ref RTD_OEM_REG_UNLOCK register and  writing a new address to
+ *          the @ref RTD_OEM_REG_ADDRESS register.
+ *          The device address will also be updated in the device descriptor so
+ *          it is still usable.
+ *
+ *          Settings are retained in the sensor if the power is cut.
+ *
+ *          The address in the device descriptor will reverse to the default
+ *          address you provided through RTD_OEM_PARAM_ADDR after the
+ *          microcontroller restarts
+ *
+ * @param[in] dev   device descriptor
+ * @param[in] addr  new address for the device. Range: 0x01 - 0x7f
+ *
+ * @return @ref RTD_OEM_OK on success
+ * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
+ */
+int rtd_oem_set_i2c_address(rtd_oem_t *dev, uint8_t addr);
+
+/**
+ * @brief   Clears all calibrations previously done
+ *
+ * @param[in] dev   device descriptor
+ *
+ * @return @ref RTD_OEM_OK on success
+ * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
+ * @return @ref RTD_OEM_READ_ERR if reading from the device failed
+ */
+int rtd_oem_clear_calibration(const rtd_oem_t *dev);
+
+/**
+ * @brief   Read the @ref RTD_OEM_REG_CALIBRATION_CONFIRM register.
+ *          After a calibration event has been successfully carried out, the
+ *          calibration confirmation register will reflect what calibration has
+ *          been done, by setting bits 0 - 2.
+ *
+ * @param[in]  dev                 device descriptor
+ * @param[out] calibration_state   calibration state reflected by bits 0 - 2 <br>
+ *                                 (0 = low, 1 = mid, 2 = high)
+ *
+ * @return @ref RTD_OEM_OK on success
+ * @return @ref RTD_OEM_READ_ERR if reading from the device failed
+ */
+int rtd_oem_read_calibration_state(const rtd_oem_t *dev, uint16_t *calibration_state);
+
+/**
+ * @brief   Sets the @ref RTD_OEM_REG_CALIBRATION_BASE register to the
+ *          calibration_value which the rtd OEM sensor will be
+ *          calibrated to. Multiply the floating point calibration value of your
+ *          solution by 1000 e.g. rtd calibration solution => 50,5 * 1000 = 50500 = 0x0000C544
+ *          The calibration value will be saved based on the given
+ *          @ref rtd_oem_calibration_option_t and retained after the power is cut.
+ *
+ * @param[in] dev                 device descriptor
+ * @param[in] calibration_value   rtd value multiplied by 1000 e.g 50,5 * 1000 = 50500
+ * @param[in] option              @ref rtd_oem_calibration_option_t
+ *
+ * @return @ref RTD_OEM_OK on success
+ * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
+ * @return @ref RTD_OEM_READ_ERR if reading from the device failed
+ */
+int rtd_oem_set_calibration(const rtd_oem_t *dev, uint16_t calibration_value,
+                           rtd_oem_calibration_option_t option);
 
 #ifdef __cplusplus
 }
