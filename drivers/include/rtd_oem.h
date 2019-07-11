@@ -150,6 +150,22 @@ int rtd_oem_set_led_state(const rtd_oem_t *dev, rtd_oem_led_state_t state);
 int rtd_oem_set_i2c_address(rtd_oem_t *dev, uint8_t addr);
 
 /**
+ * @brief   Starts a new reading by setting the device state to
+ *          @ref RTD_OEM_TAKE_READINGS.
+ *
+ * @note    If the @ref rtd_oem_params_t.interrupt_pin is @ref GPIO_UNDEF
+ *          this function will poll every 20ms till a reading is done (~420ms)
+ *          and stop the device from taking further readings
+ *
+ * @param[in] dev   device descriptor
+ *
+ * @return @ref RTD_OEM_OK on success
+ * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
+ * @return @ref RTD_OEM_READ_ERR if reading from the device failed
+ */
+int rtd_oem_start_new_reading(const rtd_oem_t *dev);
+
+/**
  * @brief   Clears all calibrations previously done
  *
  * @param[in] dev   device descriptor
@@ -191,8 +207,82 @@ int rtd_oem_read_calibration_state(const rtd_oem_t *dev, uint16_t *calibration_s
  * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
  * @return @ref RTD_OEM_READ_ERR if reading from the device failed
  */
-int rtd_oem_set_calibration(const rtd_oem_t *dev, uint16_t calibration_value,
+int rtd_oem_set_calibration(const rtd_oem_t *dev, uint32_t calibration_value,
                            rtd_oem_calibration_option_t option);
+
+/**
+ * @brief   The interrupt pin will not auto reset on option @ref RTD_OEM_IRQ_RISING
+ *          and @ref RTD_OEM_IRQ_FALLING after interrupt fires,
+ *          so call this function again to reset the pin state.
+ *
+ * @note    The interrupt settings are not retained if the power is cut,
+ *          so you have to call this function again after powering on the device.
+ *
+ * @param[in] dev    device descriptor
+ *
+ * @return @ref RTD_OEM_OK on success
+ * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
+ */
+int rtd_oem_reset_interrupt_pin(const rtd_oem_t *dev);
+
+/**
+ * @brief   Enable the RTD OEM interrupt pin if @ref RTD_oem_params_t.interrupt_pin
+ *          is defined.
+ *          @note @ref RTD_oem_reset_interrupt_pin needs to be called in the
+ *          callback if you use @ref RTD_OEM_IRQ_FALLING or @ref RTD_OEM_IRQ_RISING
+ *
+ *          @note Provide the RTD_OEM_PARAM_INTERRUPT_OPTION flag in your
+ *          makefile. Valid options see: @ref rtd_oem_irq_option_t.
+ *          The default is @ref RTD_OEM_IRQ_BOTH.
+ *
+ *          @note Also provide the @ref gpio_mode_t as a CFLAG in your makefile.
+ *          Most likely @ref GPIO_IN. If the pin is to sensitive use
+ *          @ref GPIO_IN_PU for @ref RTD_OEM_IRQ_FALLING or
+ *          @ref GPIO_IN_PD for @ref RTD_OEM_IRQ_RISING and
+ *          @ref RTD_OEM_IRQ_BOTH. The default is @ref GPIO_IN_PD
+ *
+ *
+ * @param[in] dev       device descriptor
+ * @param[in] cb        callback called when the RTD OEM interrupt pin fires
+ * @param[in] arg       callback argument
+ *
+ * @return @ref RTD_OEM_OK on success
+ * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
+ * @return @ref RTD_OEM_INTERRUPT_GPIO_UNDEF if the interrupt pin is undefined
+ * @return @ref RTD_OEM_GPIO_INIT_ERR if initializing the interrupt gpio pin failed
+ */
+int rtd_oem_enable_interrupt(rtd_oem_t *dev, rtd_oem_interrupt_pin_cb_t cb,
+                            void *arg);
+
+/**
+ * @brief   Sets the device state (active/hibernate) of the RTD OEM sensor by
+ *          writing to the @ref RTD_OEM_REG_HIBERNATE register.
+ *
+ *          @note Once the device has been woken up it will continuously take
+ *          readings every 420ms. Waking the device is the only way to take a
+ *          reading. Hibernating the device is the only way to stop taking readings.
+ *
+ * @param[in] dev   device descriptor
+ * @param[in] state @ref rtd_oem_device_state_t
+ *
+ * @return @ref RTD_OEM_OK on success
+ * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
+ */
+int rtd_oem_set_device_state(const rtd_oem_t *dev, rtd_oem_device_state_t state);
+
+/**
+ * @brief   Reads the @ref RTD_OEM_REG_RTD_READING_BASE register to get the current
+ *          rtd reading.
+ *
+ * @param[in]  dev        device descriptor
+ * @param[out] rtd_value   raw rtd value <br>
+ *                        divide by 1000 for floating point <br>
+ *                        e.g 25761 / 1000 = 25.761
+ *
+ * @return @ref RTD_OEM_OK on success
+ * @return @ref RTD_OEM_READ_ERR if reading from the device failed
+ */
+int rtd_oem_read_rtd(const rtd_oem_t *dev, uint16_t *rtd_value);
 
 #ifdef __cplusplus
 }
