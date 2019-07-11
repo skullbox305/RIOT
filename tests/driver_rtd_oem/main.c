@@ -13,7 +13,7 @@
  * @file
  * @brief       Test application for the Atlas Scientific RTD OEM sensor driver
  *
- * @author      Ting XU <your-email@placeholder.com>
+ * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  *
  * @}
@@ -28,7 +28,43 @@
 
 #define SLEEP_SEC                   (5)
 
+static void reading_available_event_callback(event_t *event);
+
 static rtd_oem_t dev;
+
+static event_queue_t event_queue;
+static event_t event = { .handler = reading_available_event_callback };
+
+static void reading_available_event_callback(event_t *event)
+{
+    (void)event;
+    uint16_t data;
+
+    puts("\n[EVENT - reading RTD value from the device]");
+
+    /* stop rtd sensor from taking further readings*/
+    rtd_oem_set_device_state(&dev, RTD_OEM_STOP_READINGS);
+
+    /* reset interrupt pin in case of falling or rising flank */
+    rtd_oem_reset_interrupt_pin(&dev);
+
+    rtd_oem_read_rtd(&dev, &data);
+    printf("rtd value raw: %d\n", data);
+
+}
+
+static void interrupt_pin_callback(void *arg)
+{
+    puts("\n[IRQ - Reading done. Writing read-event to event queue]");
+    (void)arg;
+
+    /* Posting event to the event queue. Main is blocking with "event_wait"
+     * and will execute the event callback after posting */
+    event_post(&event_queue, &event);
+
+    /* initiate new reading with "rtd_oem_start_new_reading()" for this callback
+       to be called again */
+}
 
 int main(void)
 {
@@ -111,20 +147,72 @@ int main(void)
         return -1;
     }
 
-    printf("Single point calibration... ");
-    if (rtd_oem_set_calibration(&dev, 10000, RTD_OEM_CALIBRATE_SINGLE_POINT) == RTD_OEM_OK) {
-        puts("[OK]");
+//    printf("Single point calibration... ");
+//    if (rtd_oem_set_calibration(&dev, 100000,
+//                                RTD_OEM_CALIBRATE_SINGLE_POINT) == RTD_OEM_OK) {
+//        puts("[OK]");
+//    }
+//    else {
+//        puts("[Failed]");
+//        return -1;
+//    }
+
+//    printf("Reading calibration state, should be 1... ");
+//    if (rtd_oem_read_calibration_state(&dev, &data) == RTD_OEM_OK
+//        && data == 1) {
+//        puts("[OK]");
+//    }
+//    else {
+//        puts("[Failed]");
+//        return -1;
+//    }
+
+    if (dev.params.interrupt_pin != GPIO_UNDEF) {
+        /* Setting up and enabling the interrupt pin of the rtd OEM */
+        printf("Enabling interrupt pin... ");
+        if (rtd_oem_enable_interrupt(&dev, interrupt_pin_callback,
+                                     &data) == RTD_OEM_OK) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
+
+        /* initiate an event-queue. An event will be posted by the
+         * "interrupt_pin_callback" after an IRQ occurs. */
+        event_queue_init(&event_queue);
     }
     else {
-        puts("[Failed]");
-        return -1;
+        puts("Interrupt pin undefined");
     }
-
-
 
 
     while (1) {
+        puts("\n[MAIN - Initiate reading]");
 
+        /* blocking for ~420ms till reading is done if no interrupt pin defined */
+        rtd_oem_start_new_reading(&dev);
+
+        if (dev.params.interrupt_pin != GPIO_UNDEF) {
+            /* when interrupt is defined, wait for the IRQ to fire and
+             * the event to be posted, so the "reading_available_event_callback"
+             * can be executed after */
+            event_t *ev = event_wait(&event_queue);
+            ev->handler(ev);
+        }
+
+        if (dev.params.interrupt_pin == GPIO_UNDEF) {
+
+            if (rtd_oem_read_rtd(&dev, &data) == RTD_OEM_OK) {
+                printf("RTD value raw: %d\n", data);
+            }
+            else {
+                puts("[Reading RTD failed]");
+            }
+
+
+        }
         xtimer_sleep(SLEEP_SEC);
     }
     return 0;
