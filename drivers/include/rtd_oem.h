@@ -282,7 +282,7 @@ int rtd_oem_set_device_state(const rtd_oem_t *dev, rtd_oem_device_state_t state)
  * @return @ref RTD_OEM_OK on success
  * @return @ref RTD_OEM_READ_ERR if reading from the device failed
  */
-int rtd_oem_read_rtd(const rtd_oem_t *dev, uint16_t *rtd_value);
+int rtd_oem_read_temp(const rtd_oem_t *dev, uint32_t *rtd_value);
 
 #ifdef __cplusplus
 }

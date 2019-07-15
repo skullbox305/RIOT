@@ -38,7 +38,7 @@ static event_t event = { .handler = reading_available_event_callback };
 static void reading_available_event_callback(event_t *event)
 {
     (void)event;
-    uint16_t data;
+    uint32_t data;
 
     puts("\n[EVENT - reading RTD value from the device]");
 
@@ -48,8 +48,8 @@ static void reading_available_event_callback(event_t *event)
     /* reset interrupt pin in case of falling or rising flank */
     rtd_oem_reset_interrupt_pin(&dev);
 
-    rtd_oem_read_rtd(&dev, &data);
-    printf("rtd value raw: %d\n", data);
+    rtd_oem_read_temp(&dev, &data);
+    printf("rtd value raw: %ld\n", data);
 
 }
 
@@ -72,6 +72,7 @@ int main(void)
     xtimer_sleep(2);
 
     uint16_t data = 0;
+    uint32_t reading = 0;
 
     puts("Atlas Scientific RTD OEM sensor driver test application\n");
 
@@ -204,7 +205,7 @@ int main(void)
 
         if (dev.params.interrupt_pin == GPIO_UNDEF) {
 
-            if (rtd_oem_read_rtd(&dev, &data) == RTD_OEM_OK) {
+            if (rtd_oem_read_temp(&dev, &reading) == RTD_OEM_OK) {
                 printf("RTD value raw: %d\n", data);
             }
             else {

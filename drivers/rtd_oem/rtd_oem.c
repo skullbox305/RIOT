@@ -408,7 +408,7 @@ int rtd_oem_start_new_reading(const rtd_oem_t *dev)
     return RTD_OEM_OK;
 }
 
-int rtd_oem_read_rtd(const rtd_oem_t *dev, uint16_t *rtd_value)
+int rtd_oem_read_temp(const rtd_oem_t *dev, uint32_t *rtd_value)
 {
     uint8_t reg_value[4];
 
