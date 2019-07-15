@@ -23,20 +23,37 @@
 #include <stdio.h>
 
 #include "saul.h"
-#include "ph_oem.h"
+#include "rtd_oem.h"
 
 #include "rtd_oem_regs.h"
 
 static int read_temp(const void *dev, phydat_t *res)
 {
-	(void) dev;
-	(void) res;
+    const rtd_oem_t *mydev = dev;
+    uint32_t rtd_reading;
+
+    if (mydev->params.interrupt_pin != GPIO_UNDEF) {
+        puts("interrupt pin not supported with SAUL yet");
+        return -ENOTSUP;
+    }
+
+    if (rtd_oem_start_new_reading(mydev) < 0) {
+        return -ECANCELED;
+    }
+
+    /* Read raw RTD value */
+    if (rtd_oem_read_temp(mydev, &rtd_reading) < 0) {
+        return -ECANCELED;
+    }
+    res->val[0] = (int16_t)rtd_reading;
+    res->unit = UNIT_TEMP_C;
+    res->scale = -3;
 
     return 1;
 }
 
 
-const saul_driver_t ph_oem_saul_driver = {
+const saul_driver_t rtd_oem_saul_driver = {
     .read = read_temp,
     .write = saul_notsup,
     .type = SAUL_SENSE_TEMP,
