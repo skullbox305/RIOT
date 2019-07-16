@@ -42,7 +42,6 @@ void phydat_dump(phydat_t *data, uint8_t dim)
             case UNIT_PERCENT:
             case UNIT_TEMP_C:
             case UNIT_PH:
-            case UNIT_ORP:
             case UNIT_TEMP_F:
             case UNIT_DBM:
                 /* no string conversion */

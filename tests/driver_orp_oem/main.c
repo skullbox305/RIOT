@@ -41,7 +41,7 @@ static event_t event = { .handler = reading_available_event_callback };
 static void reading_available_event_callback(event_t *event)
 {
     (void)event;
-    uint16_t data;
+    int16_t data;
 
     puts("\n[EVENT - reading ORP value from the device]");
 
@@ -75,6 +75,7 @@ int main(void)
     xtimer_sleep(2);
 
     uint16_t data = 0;
+    int16_t reading = 0;
 
     puts("Atlas Scientific ORP OEM sensor driver test application\n");
 
@@ -130,47 +131,54 @@ int main(void)
         return -1;
     }
 
-    /* Test the calibration */
-    printf("Clearing all previous calibrations... ");
-    if (orp_oem_clear_calibration(&dev) == ORP_OEM_OK) {
-        puts("[OK]");
-    }
-    else {
-        puts("[Failed]");
-        return -1;
-    }
+    if (CALIBRATION_TEST_ENABLED) {
+        /* Test the calibration */
+        printf("Clearing all previous calibrations... ");
+        if (orp_oem_clear_calibration(&dev) == ORP_OEM_OK) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
 
-    printf("Reading calibration state, should be 0... ");
-    if (orp_oem_read_calibration_state(&dev, &data) == ORP_OEM_OK
-        && data == 0) {
-        puts("[OK]");
-    }
-    else {
-        puts("[Failed]");
-        return -1;
-    }
+        printf("Reading calibration state, should be 0... ");
+        if (orp_oem_read_calibration_state(&dev, &data) == ORP_OEM_OK
+            && data == 0) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
 
-    //    printf("Single point calibration... ");
-    //    if (rtd_oem_set_calibration(&dev, 100000,
-    //                                RTD_OEM_CALIBRATE_SINGLE_POINT) == RTD_OEM_OK) {
-    //        puts("[OK]");
-    //    }
-    //    else {
-    //        puts("[Failed]");
-    //        return -1;
-    //    }
+        printf("Single point calibration... ");
+        if (orp_oem_set_calibration(&dev, 10000,
+                                    ORP_OEM_CALIBRATE_SINGLE_POINT) ==
+            ORP_OEM_OK) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
 
-    //    printf("Reading calibration state, should be 1... ");
-    //    if (rtd_oem_read_calibration_state(&dev, &data) == RTD_OEM_OK
-    //        && data == 1) {
-    //        puts("[OK]");
-    //    }
-    //    else {
-    //        puts("[Failed]");
-    //        return -1;
-    //    }
+        printf("Reading calibration state, should be 1... ");
+        if (orp_oem_read_calibration_state(&dev, &data) == ORP_OEM_OK
+            && data == 1) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
+    }
 
     if (dev.params.interrupt_pin != GPIO_UNDEF) {
+        /* initiate an event-queue. An event will be posted by the
+         * "interrupt_pin_callback" after an IRQ occurs. */
+        event_queue_init(&event_queue);
+
         /* Setting up and enabling the interrupt pin of the ORP OEM */
         printf("Enabling interrupt pin... ");
         if (orp_oem_enable_interrupt(&dev, interrupt_pin_callback,
@@ -181,10 +189,6 @@ int main(void)
             puts("[Failed]");
             return -1;
         }
-
-        /* initiate an event-queue. An event will be posted by the
-         * "interrupt_pin_callback" after an IRQ occurs. */
-        event_queue_init(&event_queue);
     }
     else {
         puts("Interrupt pin undefined");
@@ -206,13 +210,12 @@ int main(void)
 
         if (dev.params.interrupt_pin == GPIO_UNDEF) {
 
-            if (orp_oem_read_orp(&dev, &data) == ORP_OEM_OK) {
-                printf("ORP value raw: %d\n", data);
+            if (orp_oem_read_orp(&dev, &reading) == ORP_OEM_OK) {
+                printf("ORP value raw: %d\n", reading);
             }
             else {
                 puts("[Reading ORP failed]");
             }
-
         }
         xtimer_sleep(SLEEP_SEC);
     }

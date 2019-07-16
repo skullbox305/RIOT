@@ -29,7 +29,7 @@
 static int read_orp(const void *dev, phydat_t *res)
 {
     const orp_oem_t *mydev = dev;
-    uint16_t orp_reading;
+    int16_t orp_reading;
 
     if (mydev->params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
@@ -45,7 +45,7 @@ static int read_orp(const void *dev, phydat_t *res)
         return -ECANCELED;
     }
     res->val[0] = (int16_t)orp_reading;
-    res->unit = UNIT_MV;
+    res->unit = UNIT_ORP;
     res->scale = -1;
 
     return 1;
