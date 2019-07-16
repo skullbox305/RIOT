@@ -28,7 +28,7 @@
 static int read_ph(const void *dev, phydat_t *res)
 {
     const ph_oem_t *mydev = dev;
-    uint16_t ph_reading;
+    uint16_t ph_reading = 0;
 
     if (mydev->params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
