@@ -40,10 +40,9 @@ typedef enum {
     ORP_OEM_NODEV                = -1,   /**< No device found on the bus */
     ORP_OEM_READ_ERR             = -2,   /**< Reading to device failed*/
     ORP_OEM_WRITE_ERR            = -3,   /**< Writing to device failed */
-    ORP_OEM_NOT_PH               = -4,   /**< Not an Atlas Scientific pH OEM device */
+    ORP_OEM_NOT_ORP              = -4,   /**< Not an Atlas Scientific ORP OEM device */
     ORP_OEM_INTERRUPT_GPIO_UNDEF = -5,   /**< Interrupt pin is @ref GPIO_UNDEF */
     ORP_OEM_GPIO_INIT_ERR        = -6,   /**< Error while initializing GPIO PIN */
-//    ORP_OEM_TEMP_OUT_OF_RANGE    = -7    /**< Temperature is out of range */
 } orp_oem_named_returns_t;
 
 /**
@@ -74,9 +73,8 @@ typedef enum {
  * @brief   Calibration option values
  */
 typedef enum {
-    ORP_OEM_CALIBRATE_LOW_POINT  = 0x02,     /**< Low point calibration option */
-    ORP_OEM_CALIBRATE_MID_POINT  = 0x03,     /**< Mid point calibration option */
-    ORP_OEM_CALIBRATE_HIGH_POINT = 0x04,     /**< High point calibration option */
+	 ORP_OEM_CALIBRATE_CLEAR         = 0x01, /**< Clear calibration */
+	 ORP_OEM_CALIBRATE_SINGLE_POINT  = 0x02, /**< Single point calibration */
 } orp_oem_calibration_option_t;
 
 /**
@@ -105,14 +103,14 @@ typedef struct orp_oem {
 } orp_oem_t;
 
 /**
- * @brief   Initialize a pH OEM sensor
+ * @brief   Initialize a ORP OEM sensor
  *
  * @param[in,out]   dev      device descriptor
  * @param[in]       params   device configuration
  *
  * @return @ref ORP_OEM_OK on success
  * @return @ref ORP_OEM_NODEV if no device is found on the bus
- * @return @ref ORP_OEM_NOT_PH if the device found at the address is not a pH OEM device
+ * @return @ref ORP_OEM_NOT_ORP if the device found at the address is not a ORP OEM device
  * @return
  */
 int orp_oem_init(orp_oem_t *dev, const orp_oem_params_t *params);
@@ -187,7 +185,7 @@ int orp_oem_reset_interrupt_pin(const orp_oem_t *dev);
  *          @ref ORP_OEM_REG_LED register
  *
  * @param[in] dev       device descriptor
- * @param[in] state     @ref ph_oem_led_state_t
+ * @param[in] state     @ref orp_oem_led_state_t
  *
  * @return @ref ORP_OEM_OK on success
  * @return @ref ORP_OEM_WRITE_ERR if writing to the device failed
@@ -271,7 +269,7 @@ int orp_oem_set_calibration(const orp_oem_t *dev, uint16_t calibration_value,
 int orp_oem_read_calibration_state(const orp_oem_t *dev, uint16_t *calibration_state);
 
 /**
- * @brief   Reads the @ref ORP_OEM_REG_PH_READING_BASE register to get the current
+ * @brief   Reads the @ref ORP_OEM_REG_ORP_READING_BASE register to get the current
  *          ORP reading.
  *
  * @param[in]  dev        device descriptor
@@ -282,7 +280,7 @@ int orp_oem_read_calibration_state(const orp_oem_t *dev, uint16_t *calibration_s
  * @return @ref ORP_OEM_OK on success
  * @return @ref ORP_OEM_READ_ERR if reading from the device failed
  */
-int orp_oem_read_ph(const orp_oem_t *dev, uint16_t *orp_value);
+int orp_oem_read_orp(const orp_oem_t *dev, uint16_t *orp_value);
 
 #ifdef __cplusplus
 }

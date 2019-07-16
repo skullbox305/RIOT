@@ -13,7 +13,7 @@
  * @file
  * @brief       RTD OEM device driver
  *
- * @author      Ting XU <your-email@placeholder.com>
+ * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  * @}
  */

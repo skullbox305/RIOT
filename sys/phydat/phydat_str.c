@@ -41,6 +41,8 @@ void phydat_dump(phydat_t *data, uint8_t dim)
             case UNIT_M3:
             case UNIT_PERCENT:
             case UNIT_TEMP_C:
+            case UNIT_PH:
+            case UNIT_ORP:
             case UNIT_TEMP_F:
             case UNIT_DBM:
                 /* no string conversion */
@@ -105,6 +107,7 @@ const char *phydat_unit_to_str(uint8_t unit)
         case UNIT_GPM3:     return "g/m^3";
         case UNIT_F:        return "F";
         case UNIT_PH:       return "pH";
+        case UNIT_ORP:      return "mV";
         default:            return "";
     }
 }
