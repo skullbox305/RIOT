@@ -443,7 +443,7 @@ void auto_init(void)
 #ifdef MODULE_LTC4150
     extern void auto_init_ltc4150(void);
     auto_init_ltc4150();
- #endif
+#endif
 #ifdef MODULE_MAG3110
     extern void auto_init_mag3110(void);
     auto_init_mag3110();
@@ -463,6 +463,10 @@ void auto_init(void)
 #ifdef MODULE_MPU9150
     extern void auto_init_mpu9150(void);
     auto_init_mpu9150();
+#endif
+#ifdef MODULE_ORP_OEM
+    extern void auto_init_orp_oem(void);
+    auto_init_orp_oem();
 #endif
 #ifdef MODULE_PH_OEM
     extern void auto_init_ph_oem(void);

@@ -14,7 +14,8 @@
  * @file
  * @brief       Auto initialization of Atlas Scientific RTD OEM sensor
  *
- * @author      Ting XU <your-email@placeholder.com>
+ * @author      Ting XU <timtsui@outlook.com.com>
+ * @author		Igor Knippenberg <igor.knippenberg@gmail.com>
  *
  * @}
  */
