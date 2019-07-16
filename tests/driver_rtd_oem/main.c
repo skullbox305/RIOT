@@ -41,7 +41,7 @@ static event_t event = { .handler = reading_available_event_callback };
 static void reading_available_event_callback(event_t *event)
 {
     (void)event;
-    uint32_t data;
+    int32_t data;
 
     puts("\n[EVENT - reading RTD value from the device]");
 
@@ -75,7 +75,7 @@ int main(void)
     xtimer_sleep(2);
 
     uint16_t data = 0;
-    uint32_t reading = 0;
+    int32_t reading = 0;
 
     puts("Atlas Scientific RTD OEM sensor driver test application\n");
 
@@ -189,8 +189,6 @@ int main(void)
             puts("[Failed]");
             return -1;
         }
-
-
     }
     else {
         puts("Interrupt pin undefined");

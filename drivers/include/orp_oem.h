@@ -280,7 +280,7 @@ int orp_oem_read_calibration_state(const orp_oem_t *dev, uint16_t *calibration_s
  * @return @ref ORP_OEM_OK on success
  * @return @ref ORP_OEM_READ_ERR if reading from the device failed
  */
-int orp_oem_read_orp(const orp_oem_t *dev, uint16_t *orp_value);
+int orp_oem_read_orp(const orp_oem_t *dev, int16_t *orp_value);
 
 #ifdef __cplusplus
 }

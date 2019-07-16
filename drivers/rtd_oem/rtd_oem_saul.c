@@ -30,7 +30,7 @@
 static int read_temp(const void *dev, phydat_t *res)
 {
     const rtd_oem_t *mydev = dev;
-    uint32_t rtd_reading;
+    int32_t rtd_reading;
 
     if (mydev->params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
