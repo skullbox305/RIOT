@@ -28,6 +28,9 @@
 
 #define SLEEP_SEC                   (5)
 
+/* calibration test is off by default, so it won't reset your previous calibration */
+#define CALIBRATION_TEST_ENABLED    (false)
+
 static void reading_available_event_callback(event_t *event);
 
 static rtd_oem_t dev;
@@ -55,7 +58,7 @@ static void reading_available_event_callback(event_t *event)
 
 static void interrupt_pin_callback(void *arg)
 {
-    puts("\n[IRQ - Reading done. Writing read-event to event queue]");
+    puts("\n[IRQ - Reading done]");
     (void)arg;
 
     /* Posting event to the event queue. Main is blocking with "event_wait"
@@ -128,47 +131,54 @@ int main(void)
         return -1;
     }
 
-    /* Test the calibration */
-    printf("Clearing all previous calibrations... ");
-    if (rtd_oem_clear_calibration(&dev) == RTD_OEM_OK) {
-        puts("[OK]");
-    }
-    else {
-        puts("[Failed]");
-        return -1;
-    }
+    if (CALIBRATION_TEST_ENABLED) {
+        /* Test the calibration */
+        printf("Clearing all previous calibrations... ");
+        if (rtd_oem_clear_calibration(&dev) == RTD_OEM_OK) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
 
-    printf("Reading calibration state, should be 0... ");
-    if (rtd_oem_read_calibration_state(&dev, &data) == RTD_OEM_OK
-        && data == 0) {
-        puts("[OK]");
-    }
-    else {
-        puts("[Failed]");
-        return -1;
-    }
+        printf("Reading calibration state, should be 0... ");
+        if (rtd_oem_read_calibration_state(&dev, &data) == RTD_OEM_OK
+            && data == 0) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
 
-//    printf("Single point calibration... ");
-//    if (rtd_oem_set_calibration(&dev, 100000,
-//                                RTD_OEM_CALIBRATE_SINGLE_POINT) == RTD_OEM_OK) {
-//        puts("[OK]");
-//    }
-//    else {
-//        puts("[Failed]");
-//        return -1;
-//    }
+        printf("Single point calibration... ");
+        if (rtd_oem_set_calibration(&dev, 100000,
+                                    RTD_OEM_CALIBRATE_SINGLE_POINT) ==
+            RTD_OEM_OK) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
 
-//    printf("Reading calibration state, should be 1... ");
-//    if (rtd_oem_read_calibration_state(&dev, &data) == RTD_OEM_OK
-//        && data == 1) {
-//        puts("[OK]");
-//    }
-//    else {
-//        puts("[Failed]");
-//        return -1;
-//    }
+        printf("Reading calibration state, should be 1... ");
+        if (rtd_oem_read_calibration_state(&dev, &data) == RTD_OEM_OK
+            && data == 1) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
+    }
 
     if (dev.params.interrupt_pin != GPIO_UNDEF) {
+        /* initiate an event-queue. An event will be posted by the
+         * "interrupt_pin_callback" after an IRQ occurs. */
+        event_queue_init(&event_queue);
+
         /* Setting up and enabling the interrupt pin of the rtd OEM */
         printf("Enabling interrupt pin... ");
         if (rtd_oem_enable_interrupt(&dev, interrupt_pin_callback,
@@ -180,9 +190,7 @@ int main(void)
             return -1;
         }
 
-        /* initiate an event-queue. An event will be posted by the
-         * "interrupt_pin_callback" after an IRQ occurs. */
-        event_queue_init(&event_queue);
+
     }
     else {
         puts("Interrupt pin undefined");
