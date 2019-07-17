@@ -107,6 +107,10 @@ const char *phydat_unit_to_str(uint8_t unit)
         case UNIT_F:        return "F";
         case UNIT_PH:       return "pH";
         case UNIT_ORP:      return "mV";
+        case UNIT_TIME:     return "s";
+        case UNIT_EC:      	return "siemens";
+        case UNIT_TDS:      return "mg/L";
+        case UNIT_PSS:      return "IDK";
         default:            return "";
     }
 }

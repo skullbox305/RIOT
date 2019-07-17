@@ -82,6 +82,10 @@ ifneq (,$(filter dynamixel,$(USEMODULE)))
   USEMODULE_INCLUDES += $(RIOTBASE)/drivers/dynamixel/include
 endif
 
+ifneq (,$(filter ec_oem,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(RIOTBASE)/drivers/ec_oem/include
+endif
+
 ifneq (,$(filter enc28j60,$(USEMODULE)))
   USEMODULE_INCLUDES += $(RIOTBASE)/drivers/enc28j60/include
 endif

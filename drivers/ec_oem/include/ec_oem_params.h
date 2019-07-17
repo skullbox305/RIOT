@@ -7,11 +7,11 @@
  */
 
 /**
- * @ingroup     drivers_ph_oem
+ * @ingroup     drivers_ec_oem
  * @{
  *
  * @file
- * @brief       Default configuration for Atlas Scientific pH OEM sensors
+ * @brief       Default configuration for Atlas Scientific EC OEM sensors
  *
  * @author      Ting Xu <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
@@ -21,29 +21,29 @@
 #define EC_OEM_PARAMS_H
 
 #include "board.h" /* THIS INCLUDE IS MANDATORY */
+#include "ec_oem_regs.h"
 #include "saul_reg.h"
-#include "ph_oem.h"
-#include "ph_oem_regs.h"
+#include "ec_oem.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @name    Set default configuration parameters for the Atlas Scientific pH OEM driver
+ * @name    Set default configuration parameters for the Atlas Scientific EC OEM driver
  * @{
  */
 #ifndef EC_OEM_PARAM_I2C
 #define EC_OEM_PARAM_I2C                  (I2C_DEV(0))
 #endif
 #ifndef EC_OEM_PARAM_ADDR
-#define EC_OEM_PARAM_ADDR                 (0x65)
+#define EC_OEM_PARAM_ADDR                 (0x64)
 #endif
 #ifndef EC_OEM_PARAM_INTERRUPT_PIN
 #define EC_OEM_PARAM_INTERRUPT_PIN        (GPIO_UNDEF)
 #endif
 #ifndef EC_OEM_PARAM_INTERRUPT_OPTION
-#define EC_OEM_PARAM_INTERRUPT_OPTION     (PH_OEM_IRQ_BOTH)
+#define EC_OEM_PARAM_INTERRUPT_OPTION     (EC_OEM_IRQ_BOTH)
 #endif
 #ifndef EC_OEM_PARAM_INTERRUPT_GPIO_MODE
 #define EC_OEM_PARAM_INTERRUPT_GPIO_MODE  (GPIO_IN_PD)
@@ -61,9 +61,9 @@ extern "C" {
 #endif
 /** @} */
 /**
- * @brief   pH OEM defaults if not defined for a board or application
+ * @brief   EC OEM defaults if not defined for a board or application
  */
-static const ph_oem_params_t ph_oem_params[] =
+static const ec_oem_params_t ec_oem_params[] =
 {
     EC_OEM_PARAMS
 };
@@ -71,9 +71,9 @@ static const ph_oem_params_t ph_oem_params[] =
 /**
  * @brief   Additional meta information to keep in the SAUL registry
  */
-static const saul_reg_info_t ph_oem_saul_info[] =
+static const saul_reg_info_t ec_oem_saul_info[] =
 {
-    PH_OEM_SAUL_INFO
+    EC_OEM_SAUL_INFO
 };
 
 #ifdef __cplusplus

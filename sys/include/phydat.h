@@ -99,7 +99,10 @@ enum {
     UNIT_F,         /**< Farad */
     /* electrochemical */
     UNIT_PH,        /**< pH  */
-	UNIT_ORP,       /**< ORP  */
+	UNIT_ORP,       /**< ORP */
+	UNIT_TDS,		/**< TDS */
+	UNIT_PSS,		/**< PSS */
+	UNIT_EC,		/**< EC */
     /* pressure */
     UNIT_BAR,       /**< Beer? */
     UNIT_PA,        /**< Pascal */
