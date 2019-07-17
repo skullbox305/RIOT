@@ -18,12 +18,12 @@
  * @}
  */
 
+#include "../../drivers/ec_oem/include/ec_oem_params.h"
+#include "../../drivers/ec_oem/include/ec_oem_regs.h"
 #include "xtimer.h"
 #include "event/callback.h"
 
 #include "ph_oem.h"
-#include "ph_oem_params.h"
-#include "ph_oem_regs.h"
 
 #define SLEEP_SEC                   (5)
 
