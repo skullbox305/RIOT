@@ -58,8 +58,8 @@ ifneq (,$(filter dht,$(USEMODULE)))
   USEMODULE_INCLUDES += $(RIOTBASE)/drivers/dht/include
 endif
 
-ifneq (,$(filter sht1x,$(USEMODULE)))
-  USEMODULE_INCLUDES += $(RIOTBASE)/drivers/sht1x/include
+ifneq (,$(filter do_oem,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(RIOTBASE)/drivers/do_oem/include
 endif
 
 ifneq (,$(filter ds1307,$(USEMODULE)))
@@ -244,6 +244,10 @@ endif
 
 ifneq (,$(filter sdcard_spi,$(USEMODULE)))
   USEMODULE_INCLUDES += $(RIOTBASE)/drivers/sdcard_spi/include
+endif
+
+ifneq (,$(filter sht1x,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(RIOTBASE)/drivers/sht1x/include
 endif
 
 ifneq (,$(filter sht2x,$(USEMODULE)))
