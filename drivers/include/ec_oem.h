@@ -11,8 +11,35 @@
  * @ingroup     drivers_sensors
  * @ingroup     drivers_saul
  * @brief       Device driver for Atlas Scientific EC OEM sensor with SMBus/I2C interface
+*
+ * The Atlas Scientific EC OEM sensor can be used with or without the interrupt
+ * pin. Per default this pin is mapped to @ref GPIO_UNDEF if not otherwise defined
+ * in your makefile.
  *
-
+ * If you use an electrical isolation for most accurate readings
+ * e.g. with the ADM3260, keep in mind that its not recommended to use the
+ * interrupt pin without also isolating it somehow. The preferred method,
+ * if not using an isolation on the interrupt line, would be polling. In this case
+ * leave the interrupt pin undefined.
+ *
+ * The Sensor has no integrated temperature sensor and for the highest possible
+ * precision it requires another device to provide the temperature for error
+ * compensation.
+ *
+ * Once the EC OEM is powered on it will be ready to receive commands and take
+ * readings after 1ms.
+ *
+ * @note This driver provides @ref drivers_saul capabilities.
+ * Reading (@ref saul_driver_t.read) from the device returns the current EC,TDS
+ * and PSS value.
+ * Writing (@ref saul_driver_t.write) a temperature value in celsius to the
+ * device sets the temperature compensation. A valid temperature range is
+ * 1 - 20000 (0.01 °C  to  200.0 °C)
+ *
+ * @note Communication is done using SMBus/I2C protocol at speeds
+ * of 10-100 kHz. Set your board I2C speed to @ref I2C_SPEED_LOW or
+ * @ref I2C_SPEED_NORMAL
+ *
  * @{
  *
  * @file
@@ -42,7 +69,7 @@ typedef enum {
     EC_OEM_NODEV                = -1,   /**< No device found on the bus */
     EC_OEM_READ_ERR             = -2,   /**< Reading to device failed*/
     EC_OEM_WRITE_ERR            = -3,   /**< Writing to device failed */
-    EC_OEM_NOT_PH               = -4,   /**< Not an Atlas Scientific EC OEM device */
+    EC_OEM_NOT_EC               = -4,   /**< Not an Atlas Scientific EC OEM device */
     EC_OEM_INTERRUPT_GPIO_UNDEF = -5,   /**< Interrupt pin is @ref GPIO_UNDEF */
     EC_OEM_GPIO_INIT_ERR        = -6,   /**< Error while initializing GPIO PIN */
     EC_OEM_TEMP_OUT_OF_RANGE    = -7    /**< Temperature is out of range */
@@ -115,19 +142,20 @@ typedef struct ec_oem {
  *
  * @return @ref EC_OEM_OK on success
  * @return @ref EC_OEM_NODEV if no device is found on the bus
- * @return @ref EC_OEM_NOT_PH if the device found at the address is not a EC OEM device
+ * @return @ref EC_OEM_NOT_EC if the device found at the address is not a EC OEM
+ * device
  * @return
  */
 int ec_oem_init(ec_oem_t *dev, const ec_oem_params_t *params);
 
 /**
- * @brief   Sets a the probe type to the EC OEM device by writing the probe type to
- *          the @ref EC_OEM_REG_SET_PROBE_TYPE register.
+ * @brief   Sets the probe type to the EC OEM device by writing the probe type to
+ *          the @ref EC_OEM_REG_SET_PROBE_TYPE register. Example: K 0.01 - K 600
  *
  *          Settings are retained in the sensor if the power is cut.
  *
- * @param[in] dev   device descriptor
- * @param[in] probe_type  new probe type for the device. Range: 0,01-600
+ * @param[in] dev         device descriptor
+ * @param[in] probe_type  probe type for the device. Range: 0,01-600
  *
  * @return @ref EC_OEM_OK on success
  * @return @ref EC_OEM_WRITE_ERR if writing to the device failed
@@ -263,11 +291,6 @@ int ec_oem_clear_calibration(const ec_oem_t *dev);
  *          The calibration value will be saved based on the given
  *          @ref ec_oem_calibration_option_t and retained after the power is cut.
  *
-// * @note    Calibrating with @ref EC_OEM_CALIBRATE_MID_POINT will reset the
-// *          previous calibrations.
-// *          Always start with @ref EC_OEM_CALIBRATE_MID_POINT if you doing
-// *          2 or 3 point calibration
- *
  * @param[in] dev                 device descriptor
  * @param[in] calibration_value   EC value multiplied by 100 e.g 150000,00 * 100 = 15000000
  * @param[in] option              @ref ec_oem_calibration_option_t
@@ -276,7 +299,7 @@ int ec_oem_clear_calibration(const ec_oem_t *dev);
  * @return @ref EC_OEM_WRITE_ERR if writing to the device failed
  * @return @ref EC_OEM_READ_ERR if reading from the device failed
  */
-int ec_oem_set_calibration(const ec_oem_t *dev, uint16_t calibration_value,
+int ec_oem_set_calibration(const ec_oem_t *dev, uint32_t calibration_value,
                            ec_oem_calibration_option_t option);
 
 /**
@@ -350,7 +373,7 @@ int ec_oem_read_ec(const ec_oem_t *dev, uint16_t *ec_value);
  *          EC reading.
  *
  * @param[in]  dev        device descriptor
- * @param[out] ec_value   raw TDS value <br>
+ * @param[out] tds_value  raw TDS value <br>
  *                        divide by 100 for floating point <br>
  *                        e.g 2250,00 / 100 = 22,5
  *
@@ -364,14 +387,14 @@ int ec_oem_read_tds(const ec_oem_t *dev, uint16_t *tds_value);
  *          EC reading.
  *
  * @param[in]  dev        device descriptor
- * @param[out] ec_value   raw PSS value <br>
+ * @param[out] tds_value  raw PSS value <br>
  *                        divide by 100 for floating point <br>
  *                        e.g 730 / 100 = 7,30
  *
  * @return @ref EC_OEM_OK on success
  * @return @ref EC_OEM_READ_ERR if reading from the device failed
  */
-int ec_oem_read_pss(const ec_oem_t *dev, uint16_t *pss_value);
+int ec_oem_read_pss(const ec_oem_t *dev, uint16_t *tds_value);
 
 #ifdef __cplusplus
 }

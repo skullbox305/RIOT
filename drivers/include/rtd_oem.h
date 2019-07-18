@@ -11,13 +11,28 @@
  * @ingroup     drivers_sensors
  * @ingroup     drivers_saul
  * @brief       Device driver for Atlas Scientific RTD OEM sensor with SMBus/I2C interface
+
+ * The Atlas Scientific RTD OEM sensor can be used with or without the interrupt
+ * pin. Per default this pin is mapped to @ref GPIO_UNDEF if not otherwise defined
+ * in your makefile.
+ *
+ * Once the RTD OEM is powered on it will be ready to receive commands and take
+ * readings after 1ms.
+ *
+ * @note This driver provides @ref drivers_saul capabilities.
+ * Reading (@ref saul_driver_t.read) from the device returns the current temperature
+ * value.
+ *
+ * @note Communication is done using SMBus/I2C protocol at speeds
+ * of 10-100 kHz. Set your board I2C speed to @ref I2C_SPEED_LOW or
+ * @ref I2C_SPEED_NORMAL
  *
  * @{
  *
  * @file
  * @brief       Device driver for Atlas Scientific RTD OEM Sensor with SMBus/I2C interface
 
- * @author      Ting XU <your-email@placeholder.com>
+ * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  */
 
@@ -36,7 +51,7 @@ extern "C"
  * @brief   Named return values
  */
 typedef enum {
-    RTD_OEM_OK                      =  0,    /**< Everything was fine */
+    RTD_OEM_OK                      =  0,   /**< Everything was fine */
     RTD_OEM_NODEV                   = -1,   /**< No device found on the bus */
     RTD_OEM_READ_ERR                = -2,   /**< Reading to device failed*/
     RTD_OEM_WRITE_ERR               = -3,   /**< Writing to device failed */
@@ -121,7 +136,7 @@ int rtd_oem_init(rtd_oem_t *dev, const rtd_oem_params_t *params);
  *          @ref RTD_OEM_REG_LED register
  *
  * @param[in] dev       device descriptor
- * @param[in] state     @ref ph_oem_led_state_t
+ * @param[in] state     @ref rtd_oem_led_state_t
  *
  * @return @ref RTD_OEM_OK on success
  * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
@@ -180,16 +195,17 @@ int rtd_oem_clear_calibration(const rtd_oem_t *dev);
  * @brief   Read the @ref RTD_OEM_REG_CALIBRATION_CONFIRM register.
  *          After a calibration event has been successfully carried out, the
  *          calibration confirmation register will reflect what calibration has
- *          been done, by setting bits 0 - 2.
+ *          been done, by setting bits 0 - 1.
  *
  * @param[in]  dev                 device descriptor
- * @param[out] calibration_state   calibration state reflected by bits 0 - 2 <br>
- *                                 (0 = low, 1 = mid, 2 = high)
+ * @param[out] calibration_state   calibration state reflected by bits 0 - 1 <br>
+ *                                 (0 = no calibration, 1 = calibration)
  *
  * @return @ref RTD_OEM_OK on success
  * @return @ref RTD_OEM_READ_ERR if reading from the device failed
  */
-int rtd_oem_read_calibration_state(const rtd_oem_t *dev, uint16_t *calibration_state);
+int rtd_oem_read_calibration_state(const rtd_oem_t *dev,
+                                   uint16_t *calibration_state);
 
 /**
  * @brief   Sets the @ref RTD_OEM_REG_CALIBRATION_BASE register to the
@@ -208,7 +224,7 @@ int rtd_oem_read_calibration_state(const rtd_oem_t *dev, uint16_t *calibration_s
  * @return @ref RTD_OEM_READ_ERR if reading from the device failed
  */
 int rtd_oem_set_calibration(const rtd_oem_t *dev, uint32_t calibration_value,
-                           rtd_oem_calibration_option_t option);
+                            rtd_oem_calibration_option_t option);
 
 /**
  * @brief   The interrupt pin will not auto reset on option @ref RTD_OEM_IRQ_RISING
@@ -226,9 +242,9 @@ int rtd_oem_set_calibration(const rtd_oem_t *dev, uint32_t calibration_value,
 int rtd_oem_reset_interrupt_pin(const rtd_oem_t *dev);
 
 /**
- * @brief   Enable the RTD OEM interrupt pin if @ref RTD_oem_params_t.interrupt_pin
+ * @brief   Enable the RTD OEM interrupt pin if @ref rtd_oem_params_t.interrupt_pin
  *          is defined.
- *          @note @ref RTD_oem_reset_interrupt_pin needs to be called in the
+ *          @note @ref rtd_oem_reset_interrupt_pin needs to be called in the
  *          callback if you use @ref RTD_OEM_IRQ_FALLING or @ref RTD_OEM_IRQ_RISING
  *
  *          @note Provide the RTD_OEM_PARAM_INTERRUPT_OPTION flag in your
@@ -252,7 +268,7 @@ int rtd_oem_reset_interrupt_pin(const rtd_oem_t *dev);
  * @return @ref RTD_OEM_GPIO_INIT_ERR if initializing the interrupt gpio pin failed
  */
 int rtd_oem_enable_interrupt(rtd_oem_t *dev, rtd_oem_interrupt_pin_cb_t cb,
-                            void *arg);
+                             void *arg);
 
 /**
  * @brief   Sets the device state (active/hibernate) of the RTD OEM sensor by
@@ -268,7 +284,8 @@ int rtd_oem_enable_interrupt(rtd_oem_t *dev, rtd_oem_interrupt_pin_cb_t cb,
  * @return @ref RTD_OEM_OK on success
  * @return @ref RTD_OEM_WRITE_ERR if writing to the device failed
  */
-int rtd_oem_set_device_state(const rtd_oem_t *dev, rtd_oem_device_state_t state);
+int rtd_oem_set_device_state(const rtd_oem_t *dev,
+                             rtd_oem_device_state_t state);
 
 /**
  * @brief   Reads the @ref RTD_OEM_REG_RTD_READING_BASE register to get the current

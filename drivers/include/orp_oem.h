@@ -12,6 +12,26 @@
  * @ingroup     drivers_saul
  * @brief       Device driver for Atlas Scientific ORP OEM sensor with SMBus/I2C interface
  *
+ * The Atlas Scientific ORP OEM sensor can be used with or without the interrupt
+ * pin. Per default this pin is mapped to @ref GPIO_UNDEF if not otherwise defined
+ * in your makefile.
+ *
+ * If you use an electrical isolation for most accurate readings
+ * e.g. with the ADM3260, keep in mind that its not recommended to use the
+ * interrupt pin without also isolating it somehow. The preferred method,
+ * if not using an isolation on the interrupt line, would be polling. In this case
+ * leave the interrupt pin undefined.
+ *
+ * Once the ORP OEM is powered on it will be ready to receive commands and take
+ * readings after 1ms.
+ *
+ * @note This driver provides @ref drivers_saul capabilities.
+ * Reading (@ref saul_driver_t.read) from the device returns the current ORP value.
+ *
+ * @note Communication is done using SMBus/I2C protocol at speeds
+ * of 10-100 kHz. Set your board I2C speed to @ref I2C_SPEED_LOW or
+ * @ref I2C_SPEED_NORMAL
+ *
  * @{
  *
  * @file
@@ -60,6 +80,7 @@ typedef enum {
     ORP_OEM_TAKE_READINGS    = 0x01, /**< Device active state */
     ORP_OEM_STOP_READINGS    = 0x00, /**< Device hibernate state */
 } orp_oem_device_state_t;
+
 /**
  * @brief   Interrupt pin option values
  */
@@ -140,7 +161,7 @@ int orp_oem_set_i2c_address(orp_oem_t *dev, uint8_t addr);
  * @brief   Enable the ORP OEM interrupt pin if @ref orp_oem_params_t.interrupt_pin
  *          is defined.
  *          @note @ref orp_oem_reset_interrupt_pin needs to be called in the
- *          callback if you use @ref _ORP_IRQ_FALLING or @ref ORP_OEM_IRQ_RISING
+ *          callback if you use @ref ORP_OEM_IRQ_FALLING or @ref ORP_OEM_IRQ_RISING
  *
  *          @note Provide the ORP_OEM_PARAM_INTERRUPT_OPTION flag in your
  *          makefile. Valid options see: @ref orp_oem_irq_option_t.
@@ -218,7 +239,7 @@ int orp_oem_set_device_state(const orp_oem_t *dev, orp_oem_device_state_t state)
  *
  * @param[in] dev   device descriptor
  *
- * @return @ref ORp_OEM_OK on success
+ * @return @ref ORP_OEM_OK on success
  * @return @ref ORP_OEM_WRITE_ERR if writing to the device failed
  * @return @ref ORP_OEM_READ_ERR if reading from the device failed
  */
@@ -261,7 +282,7 @@ int orp_oem_set_calibration(const orp_oem_t *dev, uint16_t calibration_value,
  *          calibration confirmation register will by setting bit 1.
  *
  * @param[in]  dev                 device descriptor
-// * @param[out] calibration_state   calibration state reflected 1.
+ * @param[out] calibration_state   calibration state reflected 1.
  *
  * @return @ref ORP_OEM_OK on success
  * @return @ref ORP_OEM_READ_ERR if reading from the device failed
@@ -273,7 +294,7 @@ int orp_oem_read_calibration_state(const orp_oem_t *dev, uint16_t *calibration_s
  *          ORP reading.
  *
  * @param[in]  dev        device descriptor
- * @param[out] orp_value   raw ORP value <br>
+ * @param[out] orp_value  raw ORP value <br>
  *                        divide by 10 for floating point <br>
  *                        e.g 834 / 10 = 83.4
  *

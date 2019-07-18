@@ -51,8 +51,39 @@ static int read_orp(const void *dev, phydat_t *res)
     return 1;
 }
 
+//static int read_tds(const void *dev, phydat_t *res)
+//{
+//    const orp_oem_t *mydev = dev;
+//    int16_t orp_reading;
+//
+//    if (mydev->params.interrupt_pin != GPIO_UNDEF) {
+//        puts("interrupt pin not supported with SAUL yet");
+//        return -ENOTSUP;
+//    }
+//
+//    if (orp_oem_start_new_reading(mydev) < 0) {
+//        return -ECANCELED;
+//    }
+//
+//    /* Read raw ORP value */
+//    if (orp_oem_read_orp(mydev, &orp_reading) < 0) {
+//        return -ECANCELED;
+//    }
+//    res->val[0] = (int16_t)orp_reading;
+//    res->unit = UNIT_ORP;
+//    res->scale = -1;
+//
+//    return 1;
+//}
+
 const saul_driver_t orp_oem_saul_driver = {
     .read = read_orp,
     .write = saul_notsup,
     .type = SAUL_SENSE_ORP,
 };
+
+//const saul_driver_t orp_oem_saul_driver_orp2 = {
+//    .read = read_tds,
+//    .write = saul_notsup,
+//    .type = SAUL_SENSE_TDS,
+//};

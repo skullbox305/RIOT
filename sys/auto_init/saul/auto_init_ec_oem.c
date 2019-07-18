@@ -20,7 +20,7 @@
  * @}
  */
 
-#ifdef MODULE_PH_OEM
+#ifdef MODULE_EC_OEM
 
 #include "assert.h"
 #include "log.h"
@@ -40,9 +40,14 @@
 static ec_oem_t ec_oem_devs[EC_OEM_NUM];
 
 /**
+ * @brief EC OEM provides three sensor measurments (EC, TDS, PSS)
+ */
+#define SENSORS_NUMOF 3
+
+/**
  * @brief   Memory for the SAUL registry entries
  */
-static saul_reg_t saul_entries[EC_OEM_NUM];
+static saul_reg_t saul_entries[EC_OEM_NUM * SENSORS_NUMOF];
 
 /**
  * @brief   Define the number of saul info
@@ -52,24 +57,43 @@ static saul_reg_t saul_entries[EC_OEM_NUM];
 /**
  * @brief   Reference the driver struct
  */
-extern saul_driver_t ec_oem_saul_driver;
+extern saul_driver_t ec_oem_ec_saul_driver;
+extern saul_driver_t ec_oem_tds_saul_driver;
+extern saul_driver_t ec_oem_pss_saul_driver;
 
 void auto_init_ec_oem(void)
 {
-    assert(EC_OEM_INFO_NUM == EC_OEM_NUM);
+	assert(EC_OEM_INFO_NUM == EC_OEM_NUM);
+	unsigned ix = 0;
+	for (unsigned i = 0; i < EC_OEM_NUM; i++)
+	{
+		LOG_DEBUG("[auto_init_saul] initializing ec_oem #%d\n", i);
+		if (ec_oem_init(&ec_oem_devs[i], &ec_oem_params[i]) < 0)
+		{
+			LOG_ERROR("[auto_init_saul] error initializing ec_oem #%d\n", i);
+			continue;
+		}
 
-    for (unsigned i = 0; i < EC_OEM_NUM; i++) {
-        LOG_DEBUG("[auto_init_saul] initializing ec_oem #%d\n", i);
-        if (ec_oem_init(&ec_oem_devs[i], &ec_oem_params[i]) < 0) {
-            LOG_ERROR("[auto_init_saul] error initializing ec_oem #%d\n", i);
-            continue;
-        }
+		/* EC value */
+		saul_entries[ix].dev = &(ec_oem_devs[i]);
+		saul_entries[ix].name = ec_oem_saul_info[i].name;
+		saul_entries[ix].driver = &ec_oem_ec_saul_driver;
+		saul_reg_add(&(saul_entries[ix]));
+		ix++;
 
-        saul_entries[i].dev = &(ec_oem_devs[i]);
-        saul_entries[i].name = ec_oem_saul_info[i].name;
-        saul_entries[i].driver = &ec_oem_saul_driver;
-        saul_reg_add(&(saul_entries[i]));
-    }
+		/* TDS value */
+		saul_entries[ix].dev = &(ec_oem_devs[i]);
+		saul_entries[ix].name = ec_oem_saul_info[i].name;
+		saul_entries[ix].driver = &ec_oem_tds_saul_driver;
+		saul_reg_add(&(saul_entries[ix]));
+		ix++;
+
+		/* PSS value */
+		saul_entries[ix].dev = &(ec_oem_devs[i]);
+		saul_entries[ix].name = ec_oem_saul_info[i].name;
+		saul_entries[ix].driver = &ec_oem_pss_saul_driver;
+		saul_reg_add(&(saul_entries[ix]));
+	}
 }
 
 #else

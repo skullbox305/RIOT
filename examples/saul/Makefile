@@ -18,10 +18,8 @@ USEMODULE += shell_commands
 # additional modules for debugging:
 USEMODULE += ps
 USEMODULE += rtd_oem
-USEMODULE += ph_oem
+USEMODULE += ec_oem
 
-USEMODULE += orp_oem
-USEMODULE += rtd_oem
 
 
 # Comment this out to disable code in RIOT that does safety checking
