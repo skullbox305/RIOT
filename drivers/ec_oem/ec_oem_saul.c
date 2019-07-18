@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup     drivers_ph_oem
+ * @ingroup     drivers_ec_oem
  * @{
  *
  * @file
@@ -66,7 +66,7 @@ static int read_tds(const void *dev, phydat_t *res)
     }
 
     /* Read raw TDS value */
-    if (tds_oem_read_tds(mydev, &tds_reading) < 0) {
+    if (ec_oem_read_tds(mydev, &tds_reading) < 0) {
         return -ECANCELED;
     }
     res->val[0] = (int16_t)tds_reading;
@@ -91,7 +91,7 @@ static int read_pss(const void *dev, phydat_t *res)
     }
 
     /* Read raw PSS value */
-    if (pss_oem_read_pss(mydev, &pss_reading) < 0) {
+    if (ec_oem_read_pss(mydev, &pss_reading) < 0) {
         return -ECANCELED;
     }
     res->val[0] = (int16_t)pss_reading;
@@ -117,20 +117,20 @@ static int set_temp_compensation(const void *dev, phydat_t *res)
     return 1;
 }
 
-const saul_driver_t ec_oem_saul_driver = {
+const saul_driver_t ec_oem_ec_saul_driver = {
     .read = read_ec,
     .write = set_temp_compensation ,
     .type = SAUL_SENSE_EC,
 };
 
-const saul_driver_t ec_oem_saul_driver = {
+const saul_driver_t ec_oem_tds_saul_driver = {
     .read = read_tds,
     .write = set_temp_compensation,
-    .type = SAUL_SENSE_EC,
+    .type = SAUL_SENSE_TDS,
 };
 
-const saul_driver_t ec_oem_saul_driver = {
+const saul_driver_t ec_oem_pss_saul_driver = {
     .read = read_pss,
     .write = set_temp_compensation,
-    .type = SAUL_SENSE_EC,
+    .type = SAUL_SENSE_PSS,
 };

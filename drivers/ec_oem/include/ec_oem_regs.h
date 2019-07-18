@@ -54,7 +54,7 @@ typedef enum ph_oem_reg {
 /**
  * @brief Device ID of the @ref EC_OEM_REG_DEVICE_TYPE register of an EC OEM sensor
  */
-#define EC_OEM_DEVICE_TYPE_ID  0x0
+#define EC_OEM_DEVICE_TYPE_ID  0x04
 
 #ifdef __cplusplus
 }

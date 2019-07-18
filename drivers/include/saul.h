@@ -107,6 +107,8 @@ enum {
     SAUL_SENSE_PH          = 0x99,     /**< sensor: pH */
 	SAUL_SENSE_ORP         = 0x9A,     /**< sensor: ORP */
 	SAUL_SENSE_EC		   = 0x9B,	   /**< sensor: EC */
+	SAUL_SENSE_TDS		   = 0x9C,	   /**< sensor: TDS */
+	SAUL_SENSE_PSS		   = 0x9D,	   /**< sensor: PSS */
     SAUL_CLASS_ANY         = 0xff      /**< any device - wildcard */
     /* extend this list as needed... */
 };
