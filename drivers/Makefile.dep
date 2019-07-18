@@ -122,6 +122,12 @@ ifneq (,$(filter dht,$(USEMODULE)))
   FEATURES_REQUIRED += periph_gpio
 endif
 
+ifneq (,$(filter do_oem,$(USEMODULE)))
+  FEATURES_REQUIRED += periph_gpio_irq
+  FEATURES_REQUIRED += periph_i2c
+  USEMODULE += xtimer
+endif
+
 ifneq (,$(filter ds1307,$(USEMODULE)))
   FEATURES_REQUIRED += periph_i2c
 endif
