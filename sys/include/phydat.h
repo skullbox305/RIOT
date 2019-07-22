@@ -104,6 +104,8 @@ enum {
 	UNIT_TDS,		/**< TDS */
 	UNIT_PSS,		/**< PSS */
 	UNIT_EC,		/**< EC */
+	UNIT_DO_MG,		/**< D.O. in mg/L */
+	UNIT_DO_P,		/**< D.O. in % saturation */
     /* pressure */
     UNIT_BAR,       /**< Beer? */
     UNIT_PA,        /**< Pascal */

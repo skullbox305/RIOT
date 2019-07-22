@@ -369,8 +369,8 @@ int ec_oem_read_compensation(const ec_oem_t *dev,
 int ec_oem_read_ec(const ec_oem_t *dev, uint16_t *ec_value);
 
 /**
- * @brief   Reads the @ref EC_OEM_REG_EC_READING_BASE register to get the current
- *          EC reading.
+ * @brief   Reads the @ref EC_OEM_REG_TDS_READING_BASE register to get the current
+ *          TDS reading.
  *
  * @param[in]  dev        device descriptor
  * @param[out] tds_value  raw TDS value <br>
@@ -383,8 +383,8 @@ int ec_oem_read_ec(const ec_oem_t *dev, uint16_t *ec_value);
 int ec_oem_read_tds(const ec_oem_t *dev, uint16_t *tds_value);
 
 /**
- * @brief   Reads the @ref EC_OEM_REG_EC_READING_BASE register to get the current
- *          EC reading.
+ * @brief   Reads the @ref EC_OEM_REG_PSS_READING_BASE register to get the current
+ *          PSS reading.
  *
  * @param[in]  dev        device descriptor
  * @param[out] tds_value  raw PSS value <br>
@@ -394,7 +394,7 @@ int ec_oem_read_tds(const ec_oem_t *dev, uint16_t *tds_value);
  * @return @ref EC_OEM_OK on success
  * @return @ref EC_OEM_READ_ERR if reading from the device failed
  */
-int ec_oem_read_pss(const ec_oem_t *dev, uint16_t *tds_value);
+int ec_oem_read_pss(const ec_oem_t *dev, uint16_t *pss_value);
 
 #ifdef __cplusplus
 }
