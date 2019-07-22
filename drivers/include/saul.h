@@ -105,10 +105,12 @@ enum {
     SAUL_SENSE_CAPACITANCE = 0x97,     /**< sensor: capacitance */
     SAUL_SENSE_VOLTAGE     = 0x98,     /**< sensor: voltage */
     SAUL_SENSE_PH          = 0x99,     /**< sensor: pH */
-	SAUL_SENSE_ORP         = 0x9A,     /**< sensor: ORP */
-	SAUL_SENSE_EC		   = 0x9B,	   /**< sensor: EC */
-	SAUL_SENSE_TDS		   = 0x9C,	   /**< sensor: TDS */
-	SAUL_SENSE_PSS		   = 0x9D,	   /**< sensor: PSS */
+	SAUL_SENSE_ORP         = 0x9a,     /**< sensor: ORP */
+	SAUL_SENSE_EC		   = 0x9b,	   /**< sensor: EC */
+	SAUL_SENSE_TDS		   = 0x9c,	   /**< sensor: TDS */
+	SAUL_SENSE_PSS		   = 0x9d,	   /**< sensor: PSS */
+	SAUL_SENSE_DO_MG	   = 0x9e,	   /**< sensor: D.O. in mg/L*/
+	SAUL_SENSE_DO_P		   = 0x9f,	   /**< sensor: D.O. in % saturation */
     SAUL_CLASS_ANY         = 0xff      /**< any device - wildcard */
     /* extend this list as needed... */
 };

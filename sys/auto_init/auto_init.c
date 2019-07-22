@@ -376,6 +376,10 @@ void auto_init(void)
     extern void auto_init_dht(void);
     auto_init_dht();
 #endif
+#ifdef MODULE_DO_OEM
+    extern void auto_init_do_oem(void);
+    auto_init_do_oem();
+#endif
 #ifdef MODULE_DS18
     extern void auto_init_ds18(void);
     auto_init_ds18();

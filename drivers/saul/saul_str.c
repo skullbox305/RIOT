@@ -66,6 +66,8 @@ const char *saul_class_to_str(const uint8_t class_id)
         case SAUL_SENSE_EC:          return "SENSE_EC";
         case SAUL_SENSE_TDS:         return "SENSE_TDS";
         case SAUL_SENSE_PSS:         return "SENSE_PSS";
+        case SAUL_SENSE_DO_MG:       return "SENSE_DO_MG";
+        case SAUL_SENSE_DO_P:        return "SENSE_DO_P";
         case SAUL_CLASS_ANY:         return "CLASS_ANY";
         default:                     return "CLASS_UNKNOWN";
     }
