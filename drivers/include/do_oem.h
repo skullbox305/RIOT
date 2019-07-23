@@ -195,21 +195,23 @@ int do_oem_start_new_reading(const do_oem_t *dev);
  */
 int do_oem_clear_calibration(const do_oem_t *dev);
 
-///**
-// * @brief   Read the @ref DO_OEM_REG_CALIBRATION_SALI_CONFIRM register.
-// *          After a calibration event has been successfully carried out, the
-// *          calibration confirmation register will reflect what calibration has
-// *          been done, by setting bits 0 - 1.
-// *
-// * @param[in]  dev                 device descriptor
-// * @param[out] calibration_state   calibration state reflected by bits 0 - 1 <br>
-// *                                 (0 = no calibration, 1 = calibration)
-// *
-// * @return @ref DO_OEM_OK on success
-// * @return @ref DO_OEM_READ_ERR if reading from the device failed
-// */
-//int do_oem_read_calibration_state(const do_oem_t *dev,
-//                                   uint16_t *calibration_state);
+/**
+ * @brief   Read the @ref DO_OEM_REG_CALIBRATION_SALI_CONFIRM register.
+ *          After a calibration event has been successfully carried out, the
+ *          calibration confirmation register will reflect what calibration has
+ *          been done, by setting bits 0 - 3.
+ *
+ * @param[in]  dev                 device descriptor
+ * @param[out] calibration_state   calibration state reflected by bits 0 - 3 <br>
+ *                                 (0 = no calibration, 1 = calibrated to atmosphere
+ *                                 2 = calibrated to 0 Dissolved Oxygen 3 = calibrated to
+ *                                 both atmospheric and 0 dissolved Oxygen)
+ *
+ * @return @ref DO_OEM_OK on success
+ * @return @ref DO_OEM_READ_ERR if reading from the device failed
+ */
+int do_oem_read_calibration_state(const do_oem_t *dev,
+                                   uint16_t *calibration_state);
 
 /**
  * @brief   Sets the @ref DO_OEM_REG_CALIBRATION_REQUEST register to the
@@ -236,7 +238,7 @@ int do_oem_set_calibration(const do_oem_t *dev, do_oem_calibration_option_t opti
  *
  * @param[in] dev                        device descriptor
  * @param[in] salinity_compensation   	 valid salinity range is
- * 										  (??????????)
+ * 										  (0-4294967295)
  *
  * @return @ref DO_OEM_OK on success
  * @return @ref DO_OEM_WRITE_ERR 		if writing to the device failed
@@ -244,7 +246,7 @@ int do_oem_set_calibration(const do_oem_t *dev, do_oem_calibration_option_t opti
  *                                       the valid range
  */
 int do_oem_set_sal_compensation(const do_oem_t *dev,
-                            uint16_t salinity_compensation);
+                            uint32_t salinity_compensation);
 
 /**
  * @brief   Sets the @ref DO_OEM_REG_PRES_COMPENSATION_BASE register to the
@@ -257,7 +259,7 @@ int do_oem_set_sal_compensation(const do_oem_t *dev,
  *
  * @param[in] dev                        device descriptor
  * @param[in] pressure_compensation  	 valid pressure range is
- *                                       (??????????????????)
+ *                                       (0-4294967295)
  *
  * @return @ref DO_OEM_OK on success
  * @return @ref DO_OEM_WRITE_ERR 		 if writing to the device failed
@@ -265,7 +267,7 @@ int do_oem_set_sal_compensation(const do_oem_t *dev,
  *                                       the valid range
  */
 int do_oem_set_pres_compensation(const do_oem_t *dev,
-                            uint16_t presssure_compensation);
+                            uint32_t presssure_compensation);
 
 /**
  * @brief   Sets the @ref DO_OEM_REG_TEMP_COMPENSATION_BASE register to the
@@ -278,7 +280,7 @@ int do_oem_set_pres_compensation(const do_oem_t *dev,
  *
  * @param[in] dev                        device descriptor
  * @param[in] temperature_compensation   valid temperature range is
- *                                       (????????????????????????)
+ *                                       (0-4294967295)
  *
  * @return @ref DO_OEM_OK                on success
  * @return @ref DO_OEM_WRITE_ERR 		 if writing to the device failed
@@ -286,8 +288,7 @@ int do_oem_set_pres_compensation(const do_oem_t *dev,
  *                                       the valid range
  */
 int do_oem_set_temp_compensation(const do_oem_t *dev,
-                            uint16_t temperature_compensation);
-i
+                            uint32_t temperature_compensation);
 /**
  * @brief   The interrupt pin will not auto reset on option @ref DO_OEM_IRQ_RISING
  *          and @ref DO_OEM_IRQ_FALLING after interrupt fires,
@@ -316,24 +317,8 @@ int do_oem_reset_interrupt_pin(const do_oem_t *dev);
  * @return @ref DO_OEM_OK on success
  * @return @ref DO_OEM_READ_ERR if reading from the device failed
  */
-int do_oem_read_sal_compensation(const do_oem_t *dev,
-                             uint16_t *salinity_compensation);
-
-/**
- * @brief   Reads the @ref DO_OEM_REG_SAL_CONFIRMATION_BASE register to verify
- *          the salinity compensation value that was used to take the reading
- *          is set to the correct temperature.
- *
- * @param[in]  dev                       device descriptor
- * @param[out] salinity_compensation 	 raw salinity compensation value. <br>
- *                                       Divide by 100 for floating point <br>
- *                                       e.g 3426 / 100 = 34.26
- *
- * @return @ref DO_OEM_OK on success
- * @return @ref DO_OEM_READ_ERR if reading from the device failed
- */
-int do_oem_read_sal_compensation(const do_oem_t *dev,
-                             uint16_t *salinity_compensation);
+int do_oem_read_sali_compensation(const do_oem_t *dev,
+                             uint32_t *salinity_compensation);
 
 /**
  * @brief   Reads the @ref DO_OEM_REG_PRES_CONFIRMATION_BASE register to verify
@@ -349,7 +334,7 @@ int do_oem_read_sal_compensation(const do_oem_t *dev,
  * @return @ref DO_OEM_READ_ERR 	if reading from the device failed
  */
 int do_oem_read_pres_compensation(const do_oem_t *dev,
-                             uint16_t *pressure_compensation);
+                             uint32_t *pressure_compensation);
 
 /**
  * @brief   Reads the @ref DO_OEM_REG_TEMP_CONFIRMATION_BASE register to verify
@@ -365,7 +350,7 @@ int do_oem_read_pres_compensation(const do_oem_t *dev,
  * @return @ref DO_OEM_READ_ERR if reading from the device failed
  */
 int do_oem_read_temp_compensation(const do_oem_t *dev,
-                             uint16_t *temperature_compensation);
+                             uint32_t *temperature_compensation);
 
 /**
  * @brief   Enable the DO OEM interrupt pin if @ref do_oem_params_t.interrupt_pin
@@ -425,7 +410,7 @@ int do_oem_set_device_state(const do_oem_t *dev,
  * @return @ref DO_OEM_OK 			on success
  * @return @ref DO_OEM_READ_ERR 	if reading from the device failed
  */
-int do_oem_read_do_mg(const do_oem_t *dev, int16_t *do_mg_value);
+int do_oem_read_do_mg(const do_oem_t *dev, uint16_t *do_mg_value);
 
 /**
  * @brief   Reads the @ref DO_OEM_REG_DO_PERCENT_READING_BASE register to get the current
@@ -439,7 +424,7 @@ int do_oem_read_do_mg(const do_oem_t *dev, int16_t *do_mg_value);
  * @return @ref DO_OEM_OK 		on success
  * @return @ref DO_OEM_READ_ERR if reading from the device failed
  */
-int do_oem_read_do_percent(const do_oem_t *dev, int16_t *do_percent_value);
+int do_oem_read_do_percent(const do_oem_t *dev, uint16_t *do_percent_value);
 
 #ifdef __cplusplus
 }

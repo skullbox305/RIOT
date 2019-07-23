@@ -29,7 +29,7 @@
 #define SLEEP_SEC                   (5)
 
 /* calibration test is off by default, so it won't reset your previous calibration */
-#define CALIBRATION_TEST_ENABLED    (false)
+#define CALIBRATION_TEST_ENABLED    (true)
 
 static void reading_available_event_callback(event_t *event);
 
@@ -42,7 +42,8 @@ static event_t event =
 static void reading_available_event_callback(event_t *event)
 {
     (void)event;
-    uint16_t data;
+    uint16_t data = 0;
+    uint32_t data2 = 0;
 
     puts("\n[EVENT - reading EC value from the device]");
 
@@ -52,12 +53,12 @@ static void reading_available_event_callback(event_t *event)
     /* reset interrupt pin in case of falling or rising flank */
     ec_oem_reset_interrupt_pin(&dev);
 
-    ec_oem_read_ec(&dev, &data);
-    printf("EC value raw: %d\n", data);
-    ec_oem_read_tds(&dev, &data);
-    printf("TDS value raw: %d\n", data);
-    ec_oem_read_pss(&dev, &data);
-    printf("PSS value raw: %d\n", data);
+    ec_oem_read_ec(&dev, &data2);
+    printf("EC value raw: %ld\n", data2);
+    ec_oem_read_tds(&dev, &data2);
+    printf("TDS value raw: %ld\n", data2);
+    ec_oem_read_pss(&dev, &data2);
+    printf("PSS value raw: %ld\n", data2);
 
     ec_oem_read_compensation(&dev, &data);
     printf("EC reading was taken at %d Celsius\n", data);
@@ -78,9 +79,10 @@ static void interrupt_pin_callback(void *arg)
 
 int main(void)
 {
-    xtimer_sleep(2);
+    xtimer_sleep(3);
 
     uint16_t data = 0;
+    uint32_t data2 = 0;
 
     puts("Atlas Scientific EC OEM sensor driver test application\n");
 
@@ -136,30 +138,39 @@ int main(void)
         return -1;
     }
 
+    printf("Setting EC probe type to K1.0... ");
+    if (ec_oem_set_probe_type(&dev, 100) == EC_OEM_OK) {
+        puts("[OK]");
+    }
+    else {
+        puts("[Failed]");
+        return -1;
+    }
+
     /* Test calibration process and if it is applied correctly in the EC OEM register */
     if (CALIBRATION_TEST_ENABLED) {
-        printf("Clearing all previous calibrations... ");
-        if (ec_oem_clear_calibration(&dev) == EC_OEM_OK) {
-            puts("[OK]");
-        }
-        else {
-            puts("[Failed]");
-            return -1;
-        }
-
-        printf("Reading calibration state, should be 0... ");
-        if (ec_oem_read_calibration_state(&dev, &data) == EC_OEM_OK
-            && data == 0) {
-            puts("[OK]");
-        }
-        else {
-            puts("[Failed]");
-            return -1;
-        }
+//        printf("Clearing all previous calibrations... ");
+//        if (ec_oem_clear_calibration(&dev) == EC_OEM_OK) {
+//            puts("[OK]");
+//        }
+//        else {
+//            puts("[Failed]");
+//            return -1;
+//        }
+//
+//        printf("Reading calibration state, should be 0... ");
+//        if (ec_oem_read_calibration_state(&dev, &data) == EC_OEM_OK
+//            && data == 0) {
+//            puts("[OK]");
+//        }
+//        else {
+//            puts("[Failed]");
+//            return -1;
+//        }
 
         /* Don't forget to provide temperature compensation for the calibration */
         printf("Setting temperature compensation to 22 Celsius... ");
-        if (ec_oem_set_compensation(&dev, 2200) == EC_OEM_OK) {
+        if (ec_oem_set_compensation(&dev, 2500) == EC_OEM_OK) {
             puts("[OK]");
         }
         else {
@@ -170,25 +181,25 @@ int main(void)
         /* Start with dry calibration when doing a new calibration  */
 
         //test later with 17
-        printf("Dry calibration... ");
-        if (ec_oem_set_calibration(&dev, 0,
-                                   EC_OEM_CALIBRATE_DRY) == EC_OEM_OK) {
-            puts("[OK]");
-        }
-        else {
-            puts("[Failed]");
-            return -1;
-        }
-
-        printf("Reading calibration state, should be 1... ");
-        if (ec_oem_read_calibration_state(&dev, &data) == EC_OEM_OK
-            && data == 1) {
-            puts("[OK]");
-        }
-        else {
-            puts("[Failed]");
-            return -1;
-        }
+//        printf("Dry calibration... ");
+//        if (ec_oem_set_calibration(&dev, 0,
+//                                   EC_OEM_CALIBRATE_DRY) == EC_OEM_OK) {
+//            puts("[OK]");
+//        }
+//        else {
+//            puts("[Failed]");
+//            return -1;
+//        }
+//
+//        printf("Reading calibration state, should be 1... ");
+//        if (ec_oem_read_calibration_state(&dev, &data) == EC_OEM_OK
+//            && data == 1) {
+//            puts("[OK]");
+//        }
+//        else {
+//            puts("[Failed]");
+//            return -1;
+//        }
 
 //        printf("Single point calibration... ");
 //        if (ec_oem_set_calibration(&dev, 4000, EC_OEM_CALIBRATE_SINGLE_POINT)
@@ -210,8 +221,8 @@ int main(void)
 //            return -1;
 //        }
 //
-//        printf("Calibrating to dual point low ... ");
-//        if (ec_oem_set_calibration(&dev, 1280000, EC_OEM_CALIBRATE_DUAL_LOW)
+//        printf("Calibrating to dual point low 12,880... ");
+//        if (ec_oem_set_calibration(&dev, 1288000, EC_OEM_CALIBRATE_DUAL_LOW)
 //            == EC_OEM_OK) {
 //            puts("[OK]");
 //        }
@@ -229,26 +240,26 @@ int main(void)
 //            puts("[Failed]");
 //            return -1;
 //        }
-//
-//        printf("Calibrating to dual point high ...  ");
-//        if (ec_oem_set_calibration(&dev, 8000000, EC_OEM_CALIBRATE_DUAL_HIGH)
-//            == EC_OEM_OK) {
-//            puts("[OK]");
-//        }
-//        else {
-//            puts("[Failed]");
-//            return -1;
-//        }
-//
-//        printf("Reading calibration state, should be 13... ");
-//        if (ec_oem_read_calibration_state(&dev, &data) == EC_OEM_OK
-//            && data == 13) {
-//            puts("[OK]");
-//        }
-//        else {
-//            puts("[Failed]");
-//            return -1;
-//        }
+
+        printf("Calibrating to dual point high 80,000...  ");
+        if (ec_oem_set_calibration(&dev, 8000000, EC_OEM_CALIBRATE_DUAL_HIGH)
+            == EC_OEM_OK) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
+
+        printf("Reading calibration state, should be 13... ");
+        if (ec_oem_read_calibration_state(&dev, &data) == EC_OEM_OK
+            && data == 13) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
     }
 
     if (dev.params.interrupt_pin != GPIO_UNDEF) {
@@ -272,7 +283,7 @@ int main(void)
     }
 
     printf("Setting temperature compensation to 22 °C... ");
-    if (ec_oem_set_compensation(&dev, 2200) == EC_OEM_OK) {
+    if (ec_oem_set_compensation(&dev, 2500) == EC_OEM_OK) {
         puts("[OK]");
     }
     else {
@@ -295,29 +306,32 @@ int main(void)
         }
 
         if (dev.params.interrupt_pin == GPIO_UNDEF) {
-
-            if (ec_oem_read_ec(&dev, &data) == EC_OEM_OK) {
-                printf("EC value raw: %d\n", data);
+        	data2 = 0;
+            if (ec_oem_read_ec(&dev, &data2) == EC_OEM_OK) {
+                printf("EC value raw: %ld\n", data2);
             }
             else {
                 puts("[Reading EC failed]");
             }
 
-            if (ec_oem_read_tds(&dev, &data) == EC_OEM_OK) {
-                printf("TDS value raw: %d\n", data);
+            data2 = 0;
+            if (ec_oem_read_tds(&dev, &data2) == EC_OEM_OK) {
+                printf("TDS value raw: %ld\n", data2);
             }
             else {
                 puts("[Reading TDS failed]");
             }
-            if (ec_oem_read_pss(&dev, &data) == EC_OEM_OK) {
-                printf("PSS value raw: %d\n", data);
+
+            data2 = 0;
+            if (ec_oem_read_pss(&dev, &data2) == EC_OEM_OK) {
+                printf("PSS value raw: %ld\n", data2);
             }
             else {
                 puts("[Reading PSS failed]");
             }
 
             if (ec_oem_read_compensation(&dev, &data) == EC_OEM_OK) {
-                printf("EC/TDS/PSS reading was taken at %d Celsius\n", data);
+                printf("EC/TDS/PSS reading was taken at raw %d Celsius\n", data);
             }
             else {
                 puts("[Reading compensation failed]");

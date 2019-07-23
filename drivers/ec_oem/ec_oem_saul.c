@@ -29,7 +29,7 @@
 static int read_ec(const void *dev, phydat_t *res)
 {
     const ec_oem_t *mydev = dev;
-    uint16_t ec_reading = 0;
+    uint32_t ec_reading = 0;
 
     if (mydev->params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
@@ -54,7 +54,7 @@ static int read_ec(const void *dev, phydat_t *res)
 static int read_tds(const void *dev, phydat_t *res)
 {
     const ec_oem_t *mydev = dev;
-    uint16_t tds_reading = 0;
+    uint32_t tds_reading = 0;
 
     if (mydev->params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
@@ -79,7 +79,7 @@ static int read_tds(const void *dev, phydat_t *res)
 static int read_pss(const void *dev, phydat_t *res)
 {
     const ec_oem_t *mydev = dev;
-    uint16_t pss_reading = 0;
+    uint32_t pss_reading = 0;
 
     if (mydev->params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
