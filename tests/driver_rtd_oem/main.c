@@ -29,7 +29,7 @@
 #define SLEEP_SEC                   (5)
 
 /* calibration test is off by default, so it won't reset your previous calibration */
-#define CALIBRATION_TEST_ENABLED    (false)
+#define CALIBRATION_TEST_ENABLED    (true)
 
 static void reading_available_event_callback(event_t *event);
 
@@ -212,7 +212,7 @@ int main(void)
         if (dev.params.interrupt_pin == GPIO_UNDEF) {
 
             if (rtd_oem_read_temp(&dev, &reading) == RTD_OEM_OK) {
-                printf("RTD value raw: %d\n", data);
+                printf("RTD value raw: %ld\n", reading);
             }
             else {
                 puts("[Reading RTD failed]");

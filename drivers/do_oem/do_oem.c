@@ -70,19 +70,19 @@ static int _set_interrupt_pin(const do_oem_t *dev);
  */
 static int _new_reading_available(const do_oem_t *dev);
 
-/**
- * @brief   Sets the DO_OEM_REG_CALIBRATION_BASE register to the EC
- *          @p calibration_value which the device will be calibrated to.
- *
- * @param[in] dev device descriptor
- * @param[in] calibration_value DO value the device will be calibrated to
- *
- * @return DO_OEM_OK on success
- * @return DO_OEM_READ_ERR if reading from the register failed
- * @return DO_OEM_WRITE_ERR if writing the calibration_value to the device failed
- */
-static int _set_calibration_value(const do_oem_t *dev,
-		uint16_t calibration_value);
+///**
+// * @brief   Sets the DO_OEM_REG_CALIBRATION_BASE register to the EC
+// *          @p calibration_value which the device will be calibrated to.
+// *
+// * @param[in] dev device descriptor
+// * @param[in] calibration_value DO value the device will be calibrated to
+// *
+// * @return DO_OEM_OK on success
+// * @return DO_OEM_READ_ERR if reading from the register failed
+// * @return DO_OEM_WRITE_ERR if writing the calibration_value to the device failed
+// */
+//static int _set_calibration_value(const do_oem_t *dev,
+//		uint16_t calibration_value);
 
 int do_oem_init(do_oem_t *dev, const do_oem_params_t *params)
 {
@@ -400,11 +400,12 @@ int do_oem_clear_calibration(const do_oem_t *dev)
 //	return DO_OEM_OK;
 //}
 
-int do_oem_set_calibration(const do_oem_t *dev, do_oem_calibration_option_t option)
+int do_oem_set_calibration(const do_oem_t *dev,
+		do_oem_calibration_option_t option)
 {
 	assert(dev);
 
-	uint8_t reg_value;
+//	uint8_t reg_value;
 
 	i2c_acquire(I2C);
 
@@ -450,20 +451,16 @@ int do_oem_read_calibration_state(const do_oem_t *dev,
 }
 
 int do_oem_set_sal_compensation(const do_oem_t *dev,
-		uint16_t salinity_compensation)
+		uint32_t salinity_compensation)
 {
-	if (!(salinity_compensation >= ? && salinity_compensation <= ?))
-	{
-		return DO_OEM_SALI_OUT_OF_RANGE;
-	}
 
 	assert(dev);
 	uint8_t reg_value[4];
 
 	reg_value[0] = 0x00;
-	reg_value[1] = 0x00;
+	reg_value[1] = (uint8_t) (salinity_compensation >> 16);
 	reg_value[2] = (uint8_t) (salinity_compensation >> 8);
-	reg_value[3] = (uint8_t) (salinity_compensation & 0x00FF);
+	reg_value[3] = (uint8_t) (salinity_compensation & 0x000000FF);
 
 	i2c_acquire(I2C);
 
@@ -471,7 +468,7 @@ int do_oem_set_sal_compensation(const do_oem_t *dev,
 			4, 0) < 0)
 	{
 		DEBUG("\n[do_oem debug] Setting salinity compensation of device to "
-				"%d failed\n", salinity_compensation);
+				"%ld failed\n", salinity_compensation);
 		i2c_release(I2C);
 		return DO_OEM_WRITE_ERR;
 	}
@@ -481,20 +478,17 @@ int do_oem_set_sal_compensation(const do_oem_t *dev,
 }
 
 int do_oem_set_pres_compensation(const do_oem_t *dev,
-		uint16_t pressure_compensation)
+		uint32_t pressure_compensation)
 {
-	if (!(pressure_compensation >= ? && pressure_compensation <= ?))
-	{
-		return DO_OEM_PRES_OUT_OF_RANGE;
-	}
+
 
 	assert(dev);
 	uint8_t reg_value[4];
 
 	reg_value[0] = 0x00;
-	reg_value[1] = 0x00;
+	reg_value[1] = (uint8_t) (pressure_compensation >> 16);
 	reg_value[2] = (uint8_t) (pressure_compensation >> 8);
-	reg_value[3] = (uint8_t) (pressure_compensation & 0x00FF);
+	reg_value[3] = (uint8_t) (pressure_compensation & 0x000000FF);
 
 	i2c_acquire(I2C);
 
@@ -502,7 +496,7 @@ int do_oem_set_pres_compensation(const do_oem_t *dev,
 			4, 0) < 0)
 	{
 		DEBUG("\n[do_oem debug] Setting pressure compensation of device to "
-				"%d failed\n", pressure_compensation);
+				"%ld failed\n", pressure_compensation);
 		i2c_release(I2C);
 		return DO_OEM_WRITE_ERR;
 	}
@@ -512,20 +506,16 @@ int do_oem_set_pres_compensation(const do_oem_t *dev,
 }
 
 int do_oem_set_temp_compensation(const do_oem_t *dev,
-		uint16_t temperature_compensation)
+		uint32_t temperature_compensation)
 {
-	if (!(temperature_compensation >= ? && temperature_compensation <= ?))
-	{
-		return DO_OEM_TEMP_OUT_OF_RANGE;
-	}
 
 	assert(dev);
 	uint8_t reg_value[4];
 
 	reg_value[0] = 0x00;
-	reg_value[1] = 0x00;
+	reg_value[1] = (uint8_t) (temperature_compensation >> 16);
 	reg_value[2] = (uint8_t) (temperature_compensation >> 8);
-	reg_value[3] = (uint8_t) (temperature_compensation & 0x00FF);
+	reg_value[3] = (uint8_t) (temperature_compensation & 0x000000FF);
 
 	i2c_acquire(I2C);
 
@@ -533,7 +523,7 @@ int do_oem_set_temp_compensation(const do_oem_t *dev,
 			4, 0) < 0)
 	{
 		DEBUG("\n[do_oem debug] Setting temperature compensation of device to "
-				"%d failed\n", temperature_compensation);
+				"%ld failed\n", temperature_compensation);
 		i2c_release(I2C);
 		return DO_OEM_WRITE_ERR;
 	}
@@ -543,7 +533,7 @@ int do_oem_set_temp_compensation(const do_oem_t *dev,
 }
 
 int do_oem_read_sali_compensation(const do_oem_t *dev,
-		uint16_t *salinity_compensation)
+		uint32_t *salinity_compensation)
 {
 	uint8_t reg_value[4];
 
@@ -557,8 +547,8 @@ int do_oem_read_sali_compensation(const do_oem_t *dev,
 		i2c_release(I2C);
 		return DO_OEM_READ_ERR;
 	}
-	*salinity_compensation = (int16_t) (reg_value[2] << 8)
-			| (int16_t) (reg_value[3]);
+	*salinity_compensation = (int32_t) (reg_value[1] << 16)
+			| (int32_t) (reg_value[2] << 8) | (int32_t) (reg_value[3]);
 
 	i2c_release(I2C);
 
@@ -566,7 +556,7 @@ int do_oem_read_sali_compensation(const do_oem_t *dev,
 }
 
 int do_oem_read_pres_compensation(const do_oem_t *dev,
-		uint16_t *pressure_compensation)
+		uint32_t *pressure_compensation)
 {
 	uint8_t reg_value[4];
 
@@ -580,8 +570,8 @@ int do_oem_read_pres_compensation(const do_oem_t *dev,
 		i2c_release(I2C);
 		return DO_OEM_READ_ERR;
 	}
-	*pressure_compensation = (int16_t) (reg_value[2] << 8)
-			| (int16_t) (reg_value[3]);
+	*pressure_compensation = (int32_t) (reg_value[1] << 16)
+			| (int32_t) (reg_value[2] << 8) | (int32_t) (reg_value[3]);
 
 	i2c_release(I2C);
 
@@ -589,7 +579,7 @@ int do_oem_read_pres_compensation(const do_oem_t *dev,
 }
 
 int do_oem_read_temp_compensation(const do_oem_t *dev,
-		uint16_t *temperature_compensation)
+		uint32_t *temperature_compensation)
 {
 	uint8_t reg_value[4];
 
@@ -603,8 +593,8 @@ int do_oem_read_temp_compensation(const do_oem_t *dev,
 		i2c_release(I2C);
 		return DO_OEM_READ_ERR;
 	}
-	*temperature_compensation = (int16_t) (reg_value[2] << 8)
-			| (int16_t) (reg_value[3]);
+	*temperature_compensation = (int32_t) (reg_value[1] << 16)
+			| (int32_t) (reg_value[2] << 8) | (int32_t) (reg_value[3]);
 
 	i2c_release(I2C);
 
@@ -618,8 +608,8 @@ int do_oem_read_do_mg(const do_oem_t *dev, uint16_t *do_mg_value)
 	assert(dev);
 	i2c_acquire(I2C);
 
-	if (i2c_read_regs(I2C, ADDR, DO_OEM_REG_DO_MGL_READING_BASE, &reg_value, 4, 0)
-			< 0)
+	if (i2c_read_regs(I2C, ADDR, DO_OEM_REG_DO_MGL_READING_BASE, &reg_value, 4,
+			0) < 0)
 	{
 		DEBUG("[do_oem debug] Getting DO(mg/L) value failed\n");
 		i2c_release(I2C);
@@ -639,14 +629,15 @@ int do_oem_read_do_percent(const do_oem_t *dev, uint16_t *do_percent_value)
 	assert(dev);
 	i2c_acquire(I2C);
 
-	if (i2c_read_regs(I2C, ADDR, DO_OEM_REG_DO_PERCENT_READING_BASE, &reg_value, 4, 0)
-			< 0)
+	if (i2c_read_regs(I2C, ADDR, DO_OEM_REG_DO_PERCENT_READING_BASE, &reg_value,
+			4, 0) < 0)
 	{
 		DEBUG("[do_oem debug] Getting TDS value failed\n");
 		i2c_release(I2C);
 		return DO_OEM_READ_ERR;
 	}
-	*do_percent_value = (int16_t) (reg_value[2] << 8) | (int16_t) (reg_value[3]);
+	*do_percent_value = (int16_t) (reg_value[2] << 8)
+			| (int16_t) (reg_value[3]);
 
 	i2c_release(I2C);
 
