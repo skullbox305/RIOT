@@ -47,9 +47,9 @@ extern "C" {
  * The port definition is used (and zeroed) to suppress compiler warnings
  */
 #ifdef CPU_MODEL_NRF52840XXAA
-#define GPIO_PIN(x,y)       ((x << 5) | y)
+#define GPIO_PIN(x, y)       ((x << 5) | y)
 #else
-#define GPIO_PIN(x,y)       ((x & 0) | y)
+#define GPIO_PIN(x, y)       ((x & 0) | y)
 #endif
 
 /**
@@ -111,9 +111,9 @@ typedef enum {
  */
 #define HAVE_GPIO_FLANK_T
 typedef enum {
-    GPIO_FALLING = 2,       /**< emit interrupt on falling flank */
-    GPIO_RISING  = 1,       /**< emit interrupt on rising flank */
-    GPIO_BOTH    = 3        /**< emit interrupt on both flanks */
+    GPIO_FALLING    = 2,    /**< emit interrupt on falling flank */
+    GPIO_RISING     = 1,    /**< emit interrupt on rising flank */
+    GPIO_BOTH       = 3     /**< emit interrupt on both flanks */
 } gpio_flank_t;
 /** @} */
 #endif /* ndef DOXYGEN */
@@ -134,10 +134,10 @@ typedef struct {
  */
 #define HAVE_SPI_MODE_T
 typedef enum {
-    SPI_MODE_0 = 0,                                             /**< CPOL=0, CPHA=0 */
-    SPI_MODE_1 = SPI_CONFIG_CPHA_Msk,                           /**< CPOL=0, CPHA=1 */
-    SPI_MODE_2 = SPI_CONFIG_CPOL_Msk,                           /**< CPOL=1, CPHA=0 */
-    SPI_MODE_3 = (SPI_CONFIG_CPOL_Msk | SPI_CONFIG_CPHA_Msk)    /**< CPOL=1, CPHA=1 */
+    SPI_MODE_0  = 0,                                            /**< CPOL=0, CPHA=0 */
+    SPI_MODE_1  = SPI_CONFIG_CPHA_Msk,                          /**< CPOL=0, CPHA=1 */
+    SPI_MODE_2  = SPI_CONFIG_CPOL_Msk,                          /**< CPOL=1, CPHA=0 */
+    SPI_MODE_3  = (SPI_CONFIG_CPOL_Msk | SPI_CONFIG_CPHA_Msk)   /**< CPOL=1, CPHA=1 */
 } spi_mode_t;
 /** @} */
 
@@ -147,11 +147,11 @@ typedef enum {
  */
 #define HAVE_SPI_CLK_T
 typedef enum {
-    SPI_CLK_100KHZ = SPI_FREQUENCY_FREQUENCY_K125,  /**< 100KHz */
-    SPI_CLK_400KHZ = SPI_FREQUENCY_FREQUENCY_K500,  /**< 400KHz */
-    SPI_CLK_1MHZ   = SPI_FREQUENCY_FREQUENCY_M1,    /**< 1MHz */
-    SPI_CLK_5MHZ   = SPI_FREQUENCY_FREQUENCY_M4,    /**< 5MHz */
-    SPI_CLK_10MHZ  = SPI_FREQUENCY_FREQUENCY_M8     /**< 10MHz */
+    SPI_CLK_100KHZ  = SPI_FREQUENCY_FREQUENCY_K125, /**< 100KHz */
+    SPI_CLK_400KHZ  = SPI_FREQUENCY_FREQUENCY_K500, /**< 400KHz */
+    SPI_CLK_1MHZ    = SPI_FREQUENCY_FREQUENCY_M1,   /**< 1MHz */
+    SPI_CLK_5MHZ    = SPI_FREQUENCY_FREQUENCY_M4,   /**< 5MHz */
+    SPI_CLK_10MHZ   = SPI_FREQUENCY_FREQUENCY_M8    /**< 10MHz */
 } spi_clk_t;
 /** @} */
 
