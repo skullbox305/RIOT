@@ -29,7 +29,7 @@
 #include "co2_ezo_internal.h"
 #include "co2_ezo_params.h"
 
-#define ENABLE_DEBUG    (0)
+#define ENABLE_DEBUG    (1)
 #include "debug.h"
 
 #define I2C (dev->params.i2c)
@@ -37,57 +37,33 @@
 
 static int _read_i2c_ezo(co2_ezo_t *dev, char *result_data)
 {
-    uint8_t data;
-    uint8_t response_code = 0;
-    bool data_read = false;
-    int i = 0;
+    (void)result_data;
+//    char data[20];
+    uint8_t response_code;
 
-    printf("read start\n");
+    xtimer_usleep(1000);
 
-    i2c_read_bytes(I2C, ADDR, &data, 1, I2C_NOSTOP);
-    response_code = data;
-    printf("response code: %d\n", response_code);
+    if (i2c_read_bytes(I2C, ADDR, result_data, 20, 0x00)) {
+        return CO2_EZO_READ_ERR;
+    }
 
-    while (!data_read) {
+    response_code = result_data[0];
 
-    	if(response_code == 1){
-        i2c_read_bytes(I2C, ADDR, &data, 1, I2C_NOSTART);
-              xtimer_usleep(10 * US_PER_MS);
-    	}
-        printf("data: %d\n", data);
-
-        if (data == 254) {
-            xtimer_usleep(20 * US_PER_MS);
-        }
-        else if (i == 0) {
-            response_code = data;
-            i++;
-        }
-        else if (data == 0) {
-            data_read = true;
-            i++;
-            result_data[i] = '\0';
-        }
-        else {
-            result_data[i] = (char)data;
-            i++;
+    if (response_code == CO2_EZO_CMD_PENDING) {
+        xtimer_usleep(900 * US_PER_MS);
+        if (i2c_read_bytes(I2C, ADDR, result_data, 20, 0x00)) {
+            return CO2_EZO_READ_ERR;
         }
     }
-    i2c_read_bytes(I2C, ADDR, &data, 1, 0x0);
 
-    printf("i: %d - response code: %d - result data: %s\n", i, response_code,
-           result_data);
-
+    DEBUG("\nresponse code: %d, data: %s\n", response_code, result_data + 1);
 
     return CO2_EZO_OK;
 }
 
-static int _write_i2c_ezo(co2_ezo_t *dev, char *command)
+static int _write_i2c_ezo(co2_ezo_t *dev, uint8_t *command, size_t *size)
 {
-	(void) command;
-//    printf("start write: %x\n", (uint8_t *)command);
-    if (i2c_write_bytes(I2C, ADDR, "i", 1, 0x0) < 0) {
-        i2c_release(I2C);
+    if (i2c_write_bytes(I2C, ADDR, command, *size, 0x0) < 0) {
         return CO2_EZO_WRITE_ERR;
     }
     return CO2_EZO_OK;
@@ -98,18 +74,20 @@ int co2_ezo_init(co2_ezo_t *dev, const co2_ezo_params_t *params)
     assert(dev && params);
     dev->params = *params;
 
-    char *result_data = malloc(13 * sizeof(char));
+    char *result_data = malloc(20 * sizeof(char));
 
     i2c_acquire(I2C);
 
-    if (_write_i2c_ezo(dev, CO2_EZO_DEV_INFO) < 0) {
+    uint8_t cmd[] = CO2_EZO_TAKE_READING;
+    size_t size = sizeof(cmd) / sizeof(uint8_t);
+
+    if (_write_i2c_ezo(dev, (uint8_t *)cmd, &size) < 0) {
         DEBUG("\n[co2_ezo debug] writing to co2 ezo failed \n");
         i2c_release(I2C);
         free(result_data);
         return CO2_EZO_WRITE_ERR;
     }
 
-    xtimer_usleep(500 * US_PER_MS);
     if (_read_i2c_ezo(dev, result_data) < 0) {
         DEBUG("\n[co2_ezo debug] read from co2 ezo failed \n");
         i2c_release(I2C);

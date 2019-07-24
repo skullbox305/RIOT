@@ -97,6 +97,7 @@ int gpio_init(gpio_t pin, gpio_mode_t mode)
         case GPIO_IN:
         case GPIO_IN_PD:
         case GPIO_IN_PU:
+        case GPIO_IN_OD_PU:
         case GPIO_OUT:
             /* configure pin direction, input buffer and pull resistor state */
             port(pin)->PIN_CNF[pin_num(pin)] = mode;

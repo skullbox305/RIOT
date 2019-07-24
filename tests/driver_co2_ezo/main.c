@@ -32,13 +32,10 @@ int main(void)
 {
     xtimer_sleep(2);
 
-//    uint16_t data = 0;
-//    uint32_t data2 = 0;
+    puts("Atlas Scientific CO2 EZO sensor driver test application\n");
 
-//    puts("Atlas Scientific CO2 EZO sensor driver test application\n");
-
-//    printf("Initializing CO2 EZO sensor at I2C_%i, address 0x%02x...",
-//           CO2_EZO_PARAM_I2C, CO2_EZO_PARAM_ADDR);
+    printf("Init CO2 EZO sensor at I2C_%i, address 0x%02x...",
+           CO2_EZO_PARAM_I2C, CO2_EZO_PARAM_ADDR);
 
     if (co2_ezo_init(&dev, co2_ezo_params) == CO2_EZO_OK) {
         puts("[OK]");
