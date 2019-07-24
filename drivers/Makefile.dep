@@ -117,6 +117,12 @@ ifneq (,$(filter ccs811,$(USEMODULE)))
   USEMODULE += xtimer
 endif
 
+ifneq (,$(filter co2_ezo,$(USEMODULE)))
+  FEATURES_REQUIRED += periph_gpio_irq
+  FEATURES_REQUIRED += periph_i2c
+  USEMODULE += xtimer
+endif
+
 ifneq (,$(filter dht,$(USEMODULE)))
   USEMODULE += xtimer
   FEATURES_REQUIRED += periph_gpio
