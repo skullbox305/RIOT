@@ -33,11 +33,7 @@ extern "C"
  * @name    CO2 EZO commands
  * @{
  */
-#define CO2_EZO_LED_ON               ("L,1")        /**< LED ON */
-#define CO2_EZO_LED_OFF              ("L,0")        /**< LED OFF */
-#define CO2_EZO_LED_STATE            ("L,?")        /**< LED state on/off? */
-
-#define CO2_EZO_FIND                 ("Find")       /**< LED rapidly blinks white, find device */
+#define CO2_EZO_LED                  ("L,")        /**< LED ON (L,1), OFF (L,1) */
 
 #define CO2_EZO_TAKE_READING         ("R")          /**< Return 1 reading from device */
 
@@ -47,23 +43,13 @@ extern "C"
 #define CO2_EZO_ALARM_SET_TOL        ("Alarm,tol,") /**< Sets alarm tolerance(n = 0-500 ppm) */
 #define CO2_EZO_ALARM_STATE          ("Alarm,?")    /**< Alarm state */
 
-#define CO2_EZO_INTERNAL_TEMP_ON     ("O,t,1")      /**< Enable internal temperature output*/
-#define CO2_EZO_INTERNAL_TEMP_OFF    ("O,t,0")      /**< Disable internal temperature output */
-#define CO2_EZO_INTERNAL_TEMP_STATE  ("O,?")        /**< Read internal temperature output */
-
 #define CO2_EZO_DEV_INFO             ("i")          /**< Device information */
-
-#define CO2_EZO_DEV_STATUS           ("Status")     /**< Reads voltage at Vcc pin and reason for last restart */
 
 #define CO2_EZO_SLEEP_MODE           ("Sleep")      /**< Enter sleep mode/low power */
 
-#define CO2_EZO_PLOCK_ENABLE         ("Plock,1")    /**< Enable Plock */
-#define CO2_EZO_PLOCK_DISABLE        ("Plock,0")    /**< Disable Plock */
-#define CO2_EZO_PLOCK_STATE          ("Plock,?")    /**< Plock sate on/off? */
-
 #define CO2_EZO_I2C_ADDR_SET         ("I2C,")       /**< Sets I2C address (n = 1 - 127) */
 
-#define CO2_EZO_FACTORY_RESET        ("Factory")    /**< Enable factory reset */
+#define CO2_EZO_FACTORY_RESET        ("Factory")    /**< factory reset */
 
 /** @} */
 

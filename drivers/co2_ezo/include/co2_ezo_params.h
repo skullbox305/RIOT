@@ -38,6 +38,15 @@ extern "C" {
 #ifndef CO2_EZO_PARAM_ADDR
 #define CO2_EZO_PARAM_ADDR                 (0x69)
 #endif
+#ifndef CO2_EZO_PARAM_INTERRUPT_PIN
+#define PH_OEM_PARAM_INTERRUPT_PIN        (GPIO_UNDEF)
+#endif
+#ifndef PH_OEM_PARAM_INTERRUPT_OPTION
+#define PH_OEM_PARAM_INTERRUPT_OPTION     (PH_OEM_IRQ_BOTH)
+#endif
+#ifndef PH_OEM_PARAM_INTERRUPT_GPIO_MODE
+#define PH_OEM_PARAM_INTERRUPT_GPIO_MODE  (GPIO_IN_PD)
+#endif
 
 
 #ifndef CO2_EZO_PARAMS
