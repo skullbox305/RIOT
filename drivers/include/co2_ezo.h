@@ -7,14 +7,10 @@
  */
 
 /**
- * @defgroup    drivers_co2_oem CO2 EZO sensor device driver
+ * @defgroup    drivers_co2_ezo CO2 EZO sensor device driver
  * @ingroup     drivers_sensors
  * @ingroup     drivers_saul
  * @brief       Device driver for Atlas Scientific CO2 EZO sensor with SMBus/I2C interface
- *
- * The Atlas Scientific CO2 EZO sensor can be used with or without the interrupt
- * pin. Per default this pin is mapped to @ref GPIO_UNDEF if not otherwise defined
- * in your makefile.
  *
  * @note This driver provides @ref drivers_saul capabilities.
  * Reading (@ref saul_driver_t.read) from the device returns the current CO2 value.
@@ -46,32 +42,44 @@ extern "C"
 /**
  * @brief   Named return values
  */
-typedef enum {
-    CO2_EZO_OK                   =  0,   /**< Everything was fine */
-    CO2_EZO_NODEV                = -1,   /**< No device found on the bus */
-    CO2_EZO_READ_ERR             = -2,   /**< Reading to device failed*/
-    CO2_EZO_WRITE_ERR            = -3,   /**< Writing to device failed */
-    CO2_EZO_NOT_CO2              = -4,   /**< Not an Atlas Scientific CO2 OEM device */
+typedef enum
+{
+	CO2_EZO_OK = 0, /**< Everything was fine */
+	CO2_EZO_NODEV = -1, /**< No device found on the bus */
+	CO2_EZO_READ_ERR = -2, /**< Reading to device failed*/
+	CO2_EZO_WRITE_ERR = -3, /**< Writing to device failed */
+	CO2_EZO_NOT_CO2 = -4, /**< Not an Atlas Scientific CO2 EZO device */
 } co2_ezo_named_returns_t;
+
+/**
+ * @brief   LED state values
+ */
+typedef enum
+{
+	CO2_EZO_LED_ON = 0x01, 		/**< LED on state */
+	CO2_EZO_LED_OFF = 0x00, 		/**< LED off state */
+} co2_ezo_led_state_t;
 
 
 /**
- * @brief   CO2 OEM sensor params
+ * @brief   CO2 EZO sensor params
  */
-typedef struct co2_ezo_params {
-    i2c_t i2c;                      /**< I2C device the sensor is connected to */
-    uint8_t addr;                   /**< the slave address of the sensor on the I2C bus */
+typedef struct co2_ezo_params
+{
+	i2c_t i2c; /**< I2C device the sensor is connected to */
+	uint8_t addr; /**< the slave address of the sensor on the I2C bus */
 } co2_ezo_params_t;
 
 /**
- * @brief   pH OEM device descriptor
+ * @brief   pH EZO device descriptor
  */
-typedef struct co2_ezo {
-    co2_ezo_params_t params;         /**< device driver configuration */
+typedef struct co2_ezo
+{
+	co2_ezo_params_t params; /**< device driver configuration */
 } co2_ezo_t;
 
 /**
- * @brief   Initialize a CO2 OEM sensor
+ * @brief   Initialize a CO2 EZO sensor
  *
  * @param[in,out]   dev      device descriptor
  * @param[in]       params   device configuration
@@ -82,6 +90,78 @@ typedef struct co2_ezo {
  * @return
  */
 int co2_ezo_init(co2_ezo_t *dev, const co2_ezo_params_t *params);
+
+/**
+ * @brief   Set the LED state of the CO2 EZO sensor
+ *
+ * @param[in] dev       device descriptor
+ * @param[in] state     @ref co2_ezo_led_state_t
+ *
+ * @return @ref CO2_EZO_OK on success
+ * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
+ */
+int co2_ezo_set_led_state(co2_ezo_t *dev, co2_ezo_led_state_t state);
+
+/**
+ * @brief   Sets a new I2C address to the CO2 EZO device and reboot to I2C mode
+ *          The device address will also be updated in the device descriptor so
+ *          it is still usable.
+ *
+ * @note    Changing the I2C address will prevent communication between the circuit
+ *  		and the CPU until the CPU is updated with the new I2C address.
+ *
+ * @param[in] dev   device descriptor
+ * @param[in] addr  new address for the device. Range: 0x01 - 0x7f
+ *
+ * @return @ref CO2_EZO_OK on success
+ * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
+ */
+int co2_ezo_set_i2c_address(co2_ezo_t *dev, uint8_t addr);
+
+/**
+ * @brief   Reads the current CO2 value by sending command 'R' to device
+ *
+ * @param[in]  dev        device descriptor
+ * @param[out] co2_value  co2 value in ppm <br>
+
+ *
+ * @return @ref CO2_EZO_OK 			on success
+ * @return @ref CO2_EZO_READ_ERR 	if reading from the device failed
+ */
+int co2_ezo_read_co2(const co2_ezo_t *dev, uint16_t *co2_value);
+
+/**
+ * @brief   Set the LED on "Find Mode" which would let LED blinks white to find device
+ *
+ * @param[in] dev       device descriptor
+ * @param[in]params   device configuration
+ *
+ * @return @ref CO2_EZO_OK on success
+ * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
+ */
+int co2_ezo_enable_alarm(co2_ezo_t *dev, uint16_t value, uint16_t tolerance);
+
+/**
+ * @brief   Set the LED on "Find Mode" which would let LED blinks white to find device
+ *
+ * @param[in] dev       device descriptor
+ * @param[in]params   device configuration
+ *
+ * @return @ref CO2_EZO_OK on success
+ * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
+ */
+int co2_ezo_disable_alarm(co2_ezo_t *dev);
+
+/**
+ * @brief   Set the LED on "Find Mode" which would let LED blinks white to find device
+ *
+ * @param[in] dev       device descriptor
+ * @param[in]params   device configuration
+ *
+ * @return @ref CO2_EZO_OK on success
+ * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
+ */
+int co2_ezo_get_alarm_state(co2_ezo_t *dev, uint16_t *value, uint16_t *tolerance);
 
 
 #ifdef __cplusplus
