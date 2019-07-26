@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Inria
+ * Copyright (C) 2019 University of Applied Sciences Emden/Leer
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -7,13 +7,13 @@
  */
 
 /**
- * @ingroup     boards_nrf52840-mdk
+ * @ingroup     boards_nrf52840-mdk-dongle
  * @{
  *
  * @file
  * @brief       Configuration of SAUL mapped GPIO pins
  *
- * @author      Alexandre Abadie <alexandre.abadie@inria.fr>
+ * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  */
 
 #ifndef GPIO_PARAMS_H

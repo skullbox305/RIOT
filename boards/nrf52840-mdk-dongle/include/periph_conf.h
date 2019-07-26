@@ -7,11 +7,11 @@
  */
 
 /**
- * @ingroup     boards_nrf52840-mdk
+ * @ingroup     boards_nrf52840-mdk-dongle
  * @{
  *
  * @file
- * @brief       Peripheral configuration for the nRF52840-MDK USB Dongle
+ * @brief       Peripheral configuration for the nRF52840 MDK Dongle
  *
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  *
@@ -56,9 +56,9 @@ static const uart_conf_t uart_config[] = {
 static const spi_conf_t spi_config[] = {
     {
         .dev = NRF_SPI0,
-        .sclk = 15,
-        .mosi = 13,
-        .miso = 14
+        .sclk = 6,
+        .mosi = 4,
+        .miso = 5
     }
 };
 #define SPI_NUMOF           (sizeof(spi_config) / sizeof(spi_config[0]))
@@ -71,8 +71,8 @@ static const spi_conf_t spi_config[] = {
 static const i2c_conf_t i2c_config[] = {
     {
         .dev = NRF_TWIM1,
-        .scl = 20,
-        .sda = 21,
+        .scl = 2,
+        .sda = 3,
         .speed = I2C_SPEED_NORMAL
     }
 };
@@ -84,7 +84,7 @@ static const i2c_conf_t i2c_config[] = {
  * @{
  */
 static const pwm_conf_t pwm_config[] = {
-    { NRF_PWM0, { 4, 5 } }
+    { NRF_PWM0, { 7, 8 } }
 };
 #define PWM_NUMOF           (sizeof(pwm_config) / sizeof(pwm_config[0]))
 /** @} */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Inria
+ * Copyright (C) 2019 University of Applied Sciences Emden/Leer
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -7,13 +7,13 @@
  */
 
 /**
- * @ingroup     boards_nrf52840-mdk
+ * @ingroup     boards_nrf52840-mdk-dongle
  * @{
  *
  * @file
- * @brief       Board specific configuration for the nRF52840-MDK
+ * @brief       Board specific configuration for the nRF52840 MDK USB Dongle
  *
- * @author      Alexandre Abadie <alexandre.abadie@inria.fr>
+ * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  */
 
 #ifndef BOARD_H
@@ -57,7 +57,7 @@ extern "C" {
  * @name    Button pin configuration
  * @{
  */
-#define BTN0_PIN            GPIO_PIN(1, 0)
+#define BTN0_PIN            GPIO_PIN(0, 18)
 #define BTN0_MODE           GPIO_IN_PU
 /** @} */
 
