@@ -56,10 +56,18 @@ typedef enum
  */
 typedef enum
 {
-	CO2_EZO_LED_ON = 0x01, 		/**< LED on state */
-	CO2_EZO_LED_OFF = 0x00, 		/**< LED off state */
+	CO2_EZO_LED_ON = 0x01, /**< LED on state */
+	CO2_EZO_LED_OFF = 0x00, /**< LED off state */
 } co2_ezo_led_state_t;
 
+/**
+ * @brief   Alarm state values
+ */
+typedef enum
+{
+	CO2_EZO_ALARM_ON = 0x01, /**< Alarm on state */
+	CO2_EZO_ALARM_OFF = 0x00, /**< Alarm off state */
+} co2_ezo_alarm_state_t;
 
 /**
  * @brief   CO2 EZO sensor params
@@ -119,7 +127,54 @@ int co2_ezo_set_led_state(co2_ezo_t *dev, co2_ezo_led_state_t state);
 int co2_ezo_set_i2c_address(co2_ezo_t *dev, uint8_t addr);
 
 /**
- * @brief   Reads the current CO2 value by sending command 'R' to device
+ * @brief   Enable the CO2 alarm and provide alarm value and tolerance value.
+ *
+ * @note	The alarm pin will = 1 when CO2 levels are > alarm set point.
+ * 			Alarm tolerance sets how far below the set point CO2 levels
+ * 			need to drop before the pin will = 0 again.
+ *
+ * @param[in] dev    	device descriptor
+ * @param[in] value    	alarm value
+ * @param[in] tolerance tolerance value
+ * @return @ref CO2_EZO_OK on success
+ * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
+ */
+int co2_ezo_enable_alarm(co2_ezo_t *dev,uint16_t value, uint16_t tolerance);
+
+/**
+ * @brief   Disable Alarm mode.
+ *
+ * @param[in] dev       device descriptor
+ *
+ * @return @ref CO2_EZO_OK on success
+ * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
+ */
+int co2_ezo_disable_alarm(co2_ezo_t *dev);
+
+/**
+ * @brief   Gets alarm state if all are enabled.
+ *
+ * @param[in] dev       device descriptor
+ * @param[out] alarm_value 	  alarm value read from device. <br>
+ * @param[out] tolerance_value 	  tolerance value read from device. <br>
+ *
+ * @return @ref CO2_EZO_OK on success
+ * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
+ */
+int co2_ezo_get_alarm_state(co2_ezo_t *dev,uint16_t *alarm_value ,uint16_t *tolerance_value);
+
+/**
+ * @brief   Turn the CO2 EZO sensor to sleep mode
+ *
+ * @param[in] dev       device descriptor
+ *
+ * @return @ref CO2_EZO_OK on success
+ * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
+ */
+int co2_ezo_sleep_mode(co2_ezo_t *dev);
+
+/**
+ * @brief   Reads the current CO2 value by sending command 'R' to device.
  *
  * @param[in]  dev        device descriptor
  * @param[out] co2_value  co2 value in ppm <br>
@@ -128,41 +183,7 @@ int co2_ezo_set_i2c_address(co2_ezo_t *dev, uint8_t addr);
  * @return @ref CO2_EZO_OK 			on success
  * @return @ref CO2_EZO_READ_ERR 	if reading from the device failed
  */
-int co2_ezo_read_co2(const co2_ezo_t *dev, uint16_t *co2_value);
-
-/**
- * @brief   Set the LED on "Find Mode" which would let LED blinks white to find device
- *
- * @param[in] dev       device descriptor
- * @param[in]params   device configuration
- *
- * @return @ref CO2_EZO_OK on success
- * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
- */
-int co2_ezo_enable_alarm(co2_ezo_t *dev, uint16_t value, uint16_t tolerance);
-
-/**
- * @brief   Set the LED on "Find Mode" which would let LED blinks white to find device
- *
- * @param[in] dev       device descriptor
- * @param[in]params   device configuration
- *
- * @return @ref CO2_EZO_OK on success
- * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
- */
-int co2_ezo_disable_alarm(co2_ezo_t *dev);
-
-/**
- * @brief   Set the LED on "Find Mode" which would let LED blinks white to find device
- *
- * @param[in] dev       device descriptor
- * @param[in]params   device configuration
- *
- * @return @ref CO2_EZO_OK on success
- * @return @ref CO2_EZO_WRITE_ERR if writing to the device failed
- */
-int co2_ezo_get_alarm_state(co2_ezo_t *dev, uint16_t *value, uint16_t *tolerance);
-
+int co2_ezo_read_co2(co2_ezo_t *dev, uint16_t *co2_value);
 
 #ifdef __cplusplus
 }
