@@ -40,7 +40,7 @@ extern "C"
 #define CO2_EZO_ALARM_ON             ("Alarm,en,1") /**< Enable alarm */
 #define CO2_EZO_ALARM_OFF            ("Alarm,en,0") /**< Disable alarm */
 #define CO2_EZO_ALARM_SET            ("Alarm,")     /**< Sets alarm to n = 0 - 10000 */
-#define CO2_EZO_ALARM_SET_TOL        ("Alarm,tol,") /**< Sets alarm tolerance(n = 0-500 ppm) */
+#define CO2_EZO_ALARM_SET_TOL        ("Alarm,tol,") /**< Sets alarm tolerance(n = 0-499 ppm) */
 #define CO2_EZO_ALARM_STATE          ("Alarm,?")    /**< Alarm state */
 
 #define CO2_EZO_DEV_INFO             ("i")          /**< Device information */
@@ -48,8 +48,6 @@ extern "C"
 #define CO2_EZO_SLEEP_MODE           ("Sleep")      /**< Enter sleep mode/low power */
 
 #define CO2_EZO_I2C_ADDR_SET         ("I2C,")       /**< Sets I2C address (n = 1 - 127) */
-
-#define CO2_EZO_FACTORY_RESET        ("Factory")    /**< factory reset */
 
 /** @} */
 
