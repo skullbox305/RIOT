@@ -33,7 +33,9 @@ int main(void)
 	xtimer_sleep(2);
 
 	uint16_t data = 0;
-//	uint16_t data2 = 0;
+	uint16_t data2 = 0;
+	bool data3 = false;
+	uint32_t data4 = 0;
 
 	puts("Atlas Scientific CO2 EZO sensor driver test application\n");
 
@@ -74,7 +76,18 @@ int main(void)
 		return -1;
 	}
 
-	xtimer_sleep(1);
+	/* Test sleep mode */
+	printf("Turning device to sleep mode... ");
+	if (co2_ezo_sleep_mode(&dev) == CO2_EZO_OK)
+	{
+		puts("[OK]");
+		xtimer_sleep(2);
+	}
+	else
+	{
+		puts("[Failed]");
+		return -1;
+	}
 
 	/* Test changing the CO2 EZO i2c address to 0x68 and back to 0x69 in the
 	 * sensor as well as dev->params.addr
@@ -90,8 +103,6 @@ int main(void)
 		return -1;
 	}
 
-	xtimer_sleep(2);
-
 	printf("Setting device address back to the default address 0x69... ");
 	if (co2_ezo_set_i2c_address(&dev, 0x69) == CO2_EZO_OK)
 	{
@@ -102,39 +113,6 @@ int main(void)
 		puts("[Failed]");
 		return -1;
 	}
-
-	xtimer_sleep(2);
-
-//	/* Enable alarm and set the alarm value to 1500 and tolerance value to 100 */
-//	printf("Enabling alarm... ");
-//	if (co2_ezo_enable_alarm(&dev,1300,100) == CO2_EZO_OK)
-//	{
-//		puts("[OK]");
-//	}
-//	else
-//	{
-//		puts("[Failed]");
-//		return -1;
-//	}
-//
-//	xtimer_sleep(2);
-//
-//	/* Gets CO2 EZO alarm state */
-//	printf("Getting alarm state... ");
-//	if (co2_ezo_get_alarm_state(&dev, &data, &data2) == CO2_EZO_OK)
-//	{
-//		puts("[OK]");
-//		xtimer_sleep(2);
-//		printf("\nAlarm value is %d ppm", data);
-//		printf("\nTolerance value is %d ppm \n", data2);
-//	}
-//	else
-//	{
-//		puts("[Reading CO2 alarm state Failed]");
-//		return -1;
-//	}
-//
-//	xtimer_sleep(2);
 
 	/* Disable alarm */
 	printf("Disabling alarm... ");
@@ -148,9 +126,9 @@ int main(void)
 		return -1;
 	}
 
-	/* Test sleep mode */
-	printf("Turning device to sleep mode... ");
-	if (co2_ezo_sleep_mode(&dev) == CO2_EZO_OK)
+	/* Enable alarm and set the alarm value to 1500 and tolerance value to 100 */
+	printf("Enabling alarm... ");
+	if (co2_ezo_enable_alarm(&dev,10000,499) == CO2_EZO_OK)
 	{
 		puts("[OK]");
 	}
@@ -160,16 +138,36 @@ int main(void)
 		return -1;
 	}
 
-	/* Sleep 2 seconds to actually see it sleeping */
-	xtimer_sleep(2);
+
+
+	/* Gets CO2 EZO alarm state */
+	printf("Getting alarm state... ");
+	if (co2_ezo_get_alarm_state(&dev, &data, &data2, &data3) == CO2_EZO_OK)
+	{
+		puts("[OK]");
+		xtimer_sleep(2);
+		printf("Alarm value is %d ppm\n", data);
+		printf("Tolerance value is %d ppm\n", data2);
+		printf("Alarm is %s\n", data3 ? "enabled" : "disabled");
+
+	}
+	else
+	{
+		puts("[Reading CO2 alarm state Failed]");
+		return -1;
+	}
+
+
+
 
 	while (1)
 	{
 		puts("\n[MAIN - Initiate reading]");
 
-		if (co2_ezo_read_co2(&dev, &data) == CO2_EZO_OK)
+		if (co2_ezo_read_co2(&dev, &data, &data4) == CO2_EZO_OK)
 		{
 			printf("CO2 value in ppm : %d\n", data);
+			printf("Internal temperature : %lu\n", data4);
 		}
 		else
 		{
