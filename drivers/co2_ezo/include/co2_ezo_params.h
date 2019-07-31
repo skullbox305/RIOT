@@ -11,7 +11,7 @@
  * @{
  *
  * @file
- * @brief       Default configuration for Atlas Scientific pH OEM sensors
+ * @brief       Default configuration for Atlas Scientific CO2 EZO sensors
 
  * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
@@ -38,20 +38,14 @@ extern "C" {
 #ifndef CO2_EZO_PARAM_ADDR
 #define CO2_EZO_PARAM_ADDR                 (0x69)
 #endif
-#ifndef CO2_EZO_PARAM_INTERRUPT_PIN
-#define PH_OEM_PARAM_INTERRUPT_PIN         (GPIO_UNDEF)
+#ifndef CO2_EZO_PARAM_ALARM_INT_PIN
+#define CO2_EZO_PARAM_ALARM_INT_PIN        (GPIO_UNDEF)
 #endif
-#ifndef PH_OEM_PARAM_INTERRUPT_OPTION
-#define PH_OEM_PARAM_INTERRUPT_OPTION      (CO2_EZO_IRQ_BOTH)
-#endif
-#ifndef PH_OEM_PARAM_INTERRUPT_GPIO_MODE
-#define PH_OEM_PARAM_INTERRUPT_GPIO_MODE   (GPIO_IN_PD)
-#endif
-
 
 #ifndef CO2_EZO_PARAMS
-#define CO2_EZO_PARAMS       { .i2c = CO2_EZO_PARAM_I2C,        \
-                              .addr = CO2_EZO_PARAM_ADDR }
+#define CO2_EZO_PARAMS       { .i2c = CO2_EZO_PARAM_I2C,   \
+                               .addr = CO2_EZO_PARAM_ADDR, \
+                               .alarm_int_pin = CO2_EZO_PARAM_ALARM_INT_PIN   }
 #endif
 #ifndef CO2_EZO_SAUL_INFO
 #define CO2_EZO_SAUL_INFO       { .name = "CO2 EZO sensor" }

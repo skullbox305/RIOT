@@ -57,7 +57,7 @@ extern "C"
  * @{
  */
 #define CO2_EZO_NO_DATA              (255)       /**< Not data to send */
-#define CO2_EZO_CMD_PENDING          (254)       /**< Still processing cmd, not ready */
+#define CO2_EZO_CMD_PENDING          (254)       /**< Still processing command, not ready */
 #define CO2_EZO_SYNTAX_ERR           (2)         /**< Syntax error in command */
 #define CO2_EZO_SUCCESS              (1)         /**< Command request successful */
 
