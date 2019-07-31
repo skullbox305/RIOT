@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "periph/gpio.h"
 
 #include "assert.h"
 #include "periph/i2c.h"
@@ -37,18 +38,15 @@
 #define ADDR (dev->params.addr)
 
 /* private function declaration */
-static int _command_proccessed(co2_ezo_t *dev);
+static int _cmd_process_wait(co2_ezo_t *dev);
 static int _read_i2c_ezo(co2_ezo_t *dev, char *result_data);
 static int _write_i2c_ezo(co2_ezo_t *dev, uint8_t *command, size_t *size);
 static int _set_alarm_value(co2_ezo_t *dev, uint16_t *value);
 static int _set_alarm_tolerance(co2_ezo_t *dev, uint16_t *tolerance);
 static int _enable_alarm(co2_ezo_t *dev);
-static int _parse_string_to_int_array(char *string_result_int, char *delimiter,
-		uint16_t *parsed_values, uint8_t amount_of_values);
-static int _parse_string_to_string_array(char *string_result_str,
-		char *delimiter, char *parsed_strings, uint8_t amount_of_strings);
+int _parse_string_to_array(char *input_string, char *delimiter,
+		char **output_string_array, uint8_t amount_of_values);
 
-//turn internal temp on with O,t,1 */
 /* Public functions */
 int co2_ezo_init(co2_ezo_t *dev, const co2_ezo_params_t *params)
 {
@@ -74,6 +72,16 @@ int co2_ezo_init(co2_ezo_t *dev, const co2_ezo_params_t *params)
 
 	/* write the command to the co2 ezo */
 	if (_write_i2c_ezo(dev, (uint8_t *) cmd, &size) < 0)
+	{
+		result = CO2_EZO_WRITE_ERR;
+		goto RETURN;
+	}
+
+	/* enable the internal temperature*/
+	char cmd_temp[6] = "O,t,1";
+	size_t size_temp = sizeof(cmd_temp) / sizeof(uint8_t);
+
+	if (_write_i2c_ezo(dev, (uint8_t *) cmd_temp, &size_temp) < 0)
 	{
 		result = CO2_EZO_WRITE_ERR;
 		goto RETURN;
@@ -119,6 +127,13 @@ int co2_ezo_set_led_state(co2_ezo_t *dev, co2_ezo_led_state_t state)
 		return CO2_EZO_WRITE_ERR;
 	}
 
+	/** blocks till command finishes */
+	if (_cmd_process_wait(dev) < 0)
+	{
+		i2c_release(I2C);
+		return CO2_EZO_READ_ERR;
+	}
+
 	i2c_release(I2C);
 
 	return CO2_EZO_OK;
@@ -147,19 +162,24 @@ int co2_ezo_set_i2c_address(co2_ezo_t *dev, uint8_t addr)
 	return CO2_EZO_OK;
 }
 
-int co2_ezo_enable_alarm(co2_ezo_t *dev, uint16_t value, uint16_t tolerance)
+int co2_ezo_enable_alarm(co2_ezo_t *dev, uint16_t value, uint16_t tolerance,
+		co2_ezo_interrupt_pin_cb_t cb, void *arg)
 {
 	assert(dev);
+	if (dev->params.alarm_int_pin == GPIO_UNDEF)
+	{
+		return CO2_EZO_INT_GPIO_UNDEF;
+	}
 
 	if (value > 10000)
 	{
-		DEBUG("[co2_ezo debug] value out of range\n");
+		DEBUG("[co2_ezo debug] Value out of range\n");
 		return CO2_EZO_OUT_OF_RANGE;
 	}
 
 	if (tolerance >= 500)
 	{
-		DEBUG("[co2_ezo debug] tolerance out of range\n");
+		DEBUG("[co2_ezo debug] Tolerance out of range\n");
 		return CO2_EZO_OUT_OF_RANGE;
 	}
 
@@ -168,6 +188,13 @@ int co2_ezo_enable_alarm(co2_ezo_t *dev, uint16_t value, uint16_t tolerance)
 	_set_alarm_value(dev, &value);
 	_set_alarm_tolerance(dev, &tolerance);
 	_enable_alarm(dev);
+
+	if (gpio_init_int(dev->params.alarm_int_pin, GPIO_IN_PD, GPIO_BOTH, cb, arg)
+			< 0)
+	{
+		DEBUG("\n[co2 ezo debug] Initializing interrupt gpio pin failed.\n");
+		return CO2_EZO_GPIO_INIT_ERR;
+	}
 
 	i2c_release(I2C);
 	return CO2_EZO_OK;
@@ -192,7 +219,7 @@ int co2_ezo_get_alarm_state(co2_ezo_t *dev, uint16_t *alarm_value,
 		return CO2_EZO_WRITE_ERR;
 	}
 
-	/* read the data from the co2 ezo */
+	/* reads the data from the co2 ezo */
 	if (_read_i2c_ezo(dev, result_data) < 0)
 	{
 		i2c_release(I2C);
@@ -200,13 +227,12 @@ int co2_ezo_get_alarm_state(co2_ezo_t *dev, uint16_t *alarm_value,
 		return CO2_EZO_WRITE_ERR;
 	}
 
-	uint16_t parsed_values[3] =
-	{ 0 };
-	_parse_string_to_int_array(result_data + 8, ",", parsed_values, 3);
-	*alarm_value = parsed_values[0];
-	*tolerance_value = parsed_values[1];
+	char *parsed_values[3];
+	_parse_string_to_array(result_data + 8, ",", parsed_values, 3);
+	*alarm_value = atoi(parsed_values[0]);
+	*tolerance_value = atoi(parsed_values[1]);
 
-	if (parsed_values[2] == 1)
+	if (strcmp(parsed_values[2], "1") == 0)
 	{
 		*enabled = true;
 	}
@@ -237,7 +263,7 @@ int co2_ezo_disable_alarm(co2_ezo_t *dev)
 	}
 
 	/** blocks till command finishes */
-	if (_command_proccessed(dev) < 0)
+	if (_cmd_process_wait(dev) < 0)
 	{
 		i2c_release(I2C);
 		return CO2_EZO_READ_ERR;
@@ -261,6 +287,14 @@ int co2_ezo_sleep_mode(co2_ezo_t *dev)
 		i2c_release(I2C);
 		return CO2_EZO_WRITE_ERR;
 	}
+
+	/** blocks till command finishes */
+	if (_cmd_process_wait(dev) < 0)
+	{
+		i2c_release(I2C);
+		return CO2_EZO_READ_ERR;
+	}
+
 	i2c_release(I2C);
 
 	return CO2_EZO_OK;
@@ -271,7 +305,7 @@ int co2_ezo_read_co2(co2_ezo_t *dev, uint16_t *co2_value,
 {
 	assert(dev);
 
-	uint8_t result = CO2_EZO_OK;
+	int8_t result = CO2_EZO_OK;
 
 	char *result_data = malloc(5 * sizeof(char));
 
@@ -292,21 +326,27 @@ int co2_ezo_read_co2(co2_ezo_t *dev, uint16_t *co2_value,
 		goto RETURN;
 	}
 
-	uint16_t parsed_values[2] =
-	{ 0 };
-	_parse_string_to_int_array(result_data + 1, ",", parsed_values, 2);
-	*co2_value = parsed_values[0];
+	/* the sensor must warm-up before it can output readings, return the data
+	 * while CO2 sensor is warmed-up */
+	if (strcmp(result_data + 1, "*WARM") == 0)
+	{
+		result = CO2_EZO_WARMING;
+		goto RETURN;
+	}
 
-//	char parsed_strings[2] = {};
-//	char *temp_str= "";
-//	_parse_string_to_string_array(result_data + 1, ",", parsed_strings, 2);
-//	*temp_str = parsed_strings[1];
-//
-//	uint16_t parsed_temp_values[2] =
-//	{ 0 };
-//	_parse_string_to_int_array(temp_str + 1, ".", parsed_temp_values, 2);
-//	*internal_temperature = parsed_temp_values[0] * 1000
-//			+ parsed_temp_values[1];
+	else
+	{
+		char *parsed_values[2] =
+		{ "" };
+		_parse_string_to_array(result_data + 1, ",", parsed_values, 2);
+		*co2_value = atoi(parsed_values[0]);
+
+		char *parsed_temp_values[2] =
+		{ "" };
+		_parse_string_to_array(parsed_values[1], ".", parsed_temp_values, 2);
+		*internal_temperature = atoi(parsed_temp_values[0]) * 1000
+				+ atoi(parsed_temp_values[1]);
+	}
 
 	RETURN: i2c_release(I2C);
 	free(result_data);
@@ -315,7 +355,7 @@ int co2_ezo_read_co2(co2_ezo_t *dev, uint16_t *co2_value,
 }
 
 /* Private functions */
-static int _command_proccessed(co2_ezo_t *dev)
+static int _cmd_process_wait(co2_ezo_t *dev)
 {
 	char *response_code = malloc(2 * sizeof(char));
 
@@ -337,14 +377,11 @@ static int _read_i2c_ezo(co2_ezo_t *dev, char *result_data)
 		xtimer_usleep(100 * US_PER_MS);
 		if (i2c_read_bytes(I2C, ADDR, result_data, 20, 0x00) < 0)
 		{
-			DEBUG("\n[co2_ezo debug] read from co2 ezo failed \n");
+			DEBUG("\n[co2_ezo debug] Read from co2 ezo failed \n");
 			return CO2_EZO_READ_ERR;
 		}
 		response_code = result_data[0];
 	} while (response_code != CO2_EZO_SUCCESS);
-
-	DEBUG("\n[co2 ezo debug] response code: %d, data: %s\n", response_code,
-			result_data + 1);
 
 	return CO2_EZO_OK;
 }
@@ -353,15 +390,16 @@ static int _write_i2c_ezo(co2_ezo_t *dev, uint8_t *command, size_t *size)
 {
 	if (i2c_write_bytes(I2C, ADDR, command, *size, 0x0) < 0)
 	{
-		DEBUG("\n[co2_ezo debug] writing to co2 ezo failed \n");
+		DEBUG("\n[co2_ezo debug] Writing to co2 ezo failed \n");
 		return CO2_EZO_WRITE_ERR;
 	}
+
 	return CO2_EZO_OK;
 }
 
 static int _set_alarm_value(co2_ezo_t *dev, uint16_t *value)
 {
-	/*After alarm is enabled, sets alarm value. */
+	/*sets the alarm value after the alarm mode is enabled */
 	char alarm_cmd[12];
 
 	sprintf(alarm_cmd, "%s%d", CO2_EZO_ALARM_SET, *value);
@@ -375,7 +413,7 @@ static int _set_alarm_value(co2_ezo_t *dev, uint16_t *value)
 	}
 
 	/** blocks till command finishes */
-	if (_command_proccessed(dev) < 0)
+	if (_cmd_process_wait(dev) < 0)
 	{
 		i2c_release(I2C);
 		return CO2_EZO_READ_ERR;
@@ -386,7 +424,7 @@ static int _set_alarm_value(co2_ezo_t *dev, uint16_t *value)
 
 static int _set_alarm_tolerance(co2_ezo_t *dev, uint16_t *tolerance)
 {
-	/*After alarm is enabled, sets tolerance value. */
+	/*sets tolerance value after alarm is enabled */
 	char tol_cmd[14];
 
 	sprintf(tol_cmd, "%s%d", CO2_EZO_ALARM_SET_TOL, *tolerance);
@@ -401,17 +439,18 @@ static int _set_alarm_tolerance(co2_ezo_t *dev, uint16_t *tolerance)
 	}
 
 	/** blocks till command finishes */
-	if (_command_proccessed(dev) < 0)
+	if (_cmd_process_wait(dev) < 0)
 	{
 		i2c_release(I2C);
 		return CO2_EZO_READ_ERR;
 	}
+
 	return CO2_EZO_OK;
 }
 
 static int _enable_alarm(co2_ezo_t *dev)
 {
-	/*Enable Alarm mode*/
+	/*enable alarm mode*/
 	uint8_t command[] = CO2_EZO_ALARM_ON;
 	size_t size = sizeof(command) / sizeof(uint8_t);
 
@@ -423,46 +462,27 @@ static int _enable_alarm(co2_ezo_t *dev)
 	}
 
 	/** blocks till command finishes */
-	if (_command_proccessed(dev) < 0)
+	if (_cmd_process_wait(dev) < 0)
 	{
 		i2c_release(I2C);
 		return CO2_EZO_READ_ERR;
 	}
+
 	return CO2_EZO_OK;
 }
 
-static int _parse_string_to_int_array(char *string_result_int, char *delimiter,
-		uint16_t *parsed_values, uint8_t amount_of_values)
+int _parse_string_to_array(char *input_string, char *delimiter,
+		char **output_string_array, uint8_t amount_of_values)
 {
 	char *ptr;
 	int i = 0;
 
-	ptr = strtok(string_result_int, delimiter);
+	ptr = strtok(input_string, delimiter);
 
 	while (ptr != NULL && i < amount_of_values)
 	{
-		printf("%s\n", ptr);
+		output_string_array[i] = ptr;
 		ptr = strtok(NULL, delimiter);
-		parsed_values[i] = atoi(ptr);
-		i++;
-	}
-
-	return CO2_EZO_OK;
-}
-
-static int _parse_string_to_string_array(char *string_result_str,
-		char *delimiter, char *parsed_strings, uint8_t amount_of_strings)
-{
-	char *ptr;
-	int i = 0;
-
-	ptr = strtok(string_result_str, delimiter);
-
-	while (ptr != NULL && i < amount_of_strings)
-	{
-		printf("%s\n", ptr);
-		ptr = strtok(NULL, delimiter);
-		parsed_strings[i] = *ptr;
 		i++;
 	}
 

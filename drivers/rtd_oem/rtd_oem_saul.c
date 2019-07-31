@@ -13,7 +13,7 @@
  * @file
  * @brief       RTD OEM adaption to the sensor/actuator abstraction layer
  *
- * @author      Ting XU <your-email@placeholder.com>
+ * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  *
  * @}
@@ -24,7 +24,6 @@
 
 #include "saul.h"
 #include "rtd_oem.h"
-
 #include "rtd_oem_regs.h"
 
 static int read_temp(const void *dev, phydat_t *res)
