@@ -102,7 +102,7 @@ static int read_pss(const void *dev, phydat_t *res)
 }
 
 /* Sets the temperature compensation for taking accurate EC readings.
- * Valid temperature range is 1 - 20000 (0.01 °C  to  200.0 °C) */
+ * Valid temperature range is 1 - 20000 (unknown °C  to  unknown °C) */
 static int set_temp_compensation(const void *dev, phydat_t *res)
 {
     const ec_oem_t *mydev = dev;

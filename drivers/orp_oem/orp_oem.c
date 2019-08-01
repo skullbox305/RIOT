@@ -7,11 +7,11 @@
  */
 
 /**
- * @ingroup     drivers_ph_oem
+ * @ingroup     drivers_orp_oem
  * @{
  *
  * @file
- * @brief       pH OEM device driver
+ * @brief       ORP OEM device driver
  *
  * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
@@ -38,9 +38,9 @@
  * @brief   Unlocks the ORP_OEM_REG_UNLOCK register to be able to change the
  *          I2C device address, by writing 0x55 and 0xAA to the register
  *
- * @param[in] dev device descriptor
+ * @param[in] dev 			 device descriptor
  *
- * @return ORP_OEM_OK on success
+ * @return ORP_OEM_OK 		 on success
  * @return ORP_OEM_WRITE_ERR if writing to the device failed
  */
 static int _unlock_address_reg(orp_oem_t *dev);
@@ -49,39 +49,39 @@ static int _unlock_address_reg(orp_oem_t *dev);
  * @brief   Setting the ORP OEM interrupt mode to the defined mode provided
  *          in the device descriptor
  *
- * @param[in] dev device descriptor
+ * @param[in] dev 			 device descriptor
  *
- * @return ORP_OEM_OK on success
+ * @return ORP_OEM_OK 		 on success
  * @return ORP_OEM_WRITE_ERR if writing to the device failed
  */
 static int _set_interrupt_pin(const orp_oem_t *dev);
 
 /**
  * @brief   Polls the ORP_OEM_REG_NEW_READING register as long as it does not
- *          equal 0x01, which indicates that a new pH reading is available.
+ *          equal 0x01, which indicates that a new ORP reading is available.
  *          Polling is done in an interval of 20ms. Estimated completion ~420ms
  *
- * @param[in] dev device descriptor
+ * @param[in] dev 			 device descriptor
  *
- * @return ORP_OEM_OK on success
- * @return ORP_OEM_READ_ERR if reading from the register failed
+ * @return ORP_OEM_OK		 on success
+ * @return ORP_OEM_READ_ERR  if reading from the register failed
  * @return ORP_OEM_WRITE_ERR if reseting the register failed
  */
 static int _new_reading_available(const orp_oem_t *dev);
 
 /**
- * @brief   Sets the PH_OEM_REG_CALIBRATION_BASE register to the pH
+ * @brief   Sets the ORP_OEM_REG_CALIBRATION_BASE register to the ORP
  *          @p calibration_value which the device will be calibrated to.
  *
- * @param[in] dev device descriptor
- * @param[in] calibration_value pH value the device will be calibrated to
+ * @param[in] dev 				device descriptor
+ * @param[in] calibration_value ORP value the device will be calibrated to
  *
- * @return PH_OEM_OK on success
- * @return PH_OEM_READ_ERR if reading from the register failed
- * @return PH_OEM_WRITE_ERR if writing the calibration_value to the device failed
+ * @return ORP_OEM_OK 			on success
+ * @return ORP_OEM_READ_ERR 	if reading from the register failed
+ * @return ORP_OEM_WRITE_ERR    if writing the calibration_value to the device failed
  */
 static int _set_calibration_value(const orp_oem_t *dev,
-                                  uint16_t calibration_value);
+                                  int16_t calibration_value);
 
 int orp_oem_init(orp_oem_t *dev, const orp_oem_params_t *params)
 {
@@ -331,12 +331,12 @@ int orp_oem_clear_calibration(const orp_oem_t *dev)
 static int _set_calibration_value(const orp_oem_t *dev,
                                   uint16_t calibration_value)
 {
-    uint8_t reg_value[4];
+    int8_t reg_value[4];
 
     reg_value[0] = 0x00;
     reg_value[1] = 0x00;
-    reg_value[2] = (uint8_t)(calibration_value >> 8);
-    reg_value[3] = (uint8_t)(calibration_value & 0x00FF);
+    reg_value[2] = (int8_t)(calibration_value >> 8);
+    reg_value[3] = (int8_t)(calibration_value & 0x00FF);
 
     i2c_acquire(I2C);
 
@@ -418,7 +418,7 @@ int orp_oem_read_calibration_state(const orp_oem_t *dev, uint16_t *calibration_s
 
 int orp_oem_read_orp(const orp_oem_t *dev, int16_t *orp_value)
 {
-    uint8_t reg_value[4];
+    int8_t reg_value[4];
 
     assert(dev);
     i2c_acquire(I2C);

@@ -11,7 +11,7 @@
  * @{
  *
  * @file
- * @brief       EC OEM device driver
+ * @brief       DO OEM device driver
  *
  * @author      Ting Xu <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
@@ -20,7 +20,6 @@
 
 #include "xtimer.h"
 #include "assert.h"
-
 #include "periph/i2c.h"
 #include "periph/gpio.h"
 
@@ -52,7 +51,7 @@ static int _unlock_address_reg(do_oem_t *dev);
  *
  * @param[in] dev device descriptor
  *
- * @return DO_OEM_OK on success
+ * @return DO_OEM_OK 		on success
  * @return DO_OEM_WRITE_ERR if writing to the device failed
  */
 static int _set_interrupt_pin(const do_oem_t *dev);
@@ -64,25 +63,11 @@ static int _set_interrupt_pin(const do_oem_t *dev);
  *
  * @param[in] dev device descriptor
  *
- * @return DO_OEM_OK on success
- * @return DO_OEM_READ_ERR if reading from the register failed
+ * @return DO_OEM_OK 		on success
+ * @return DO_OEM_READ_ERR  if reading from the register failed
  * @return DO_OEM_WRITE_ERR if reseting the register failed
  */
 static int _new_reading_available(const do_oem_t *dev);
-
-///**
-// * @brief   Sets the DO_OEM_REG_CALIBRATION_BASE register to the EC
-// *          @p calibration_value which the device will be calibrated to.
-// *
-// * @param[in] dev device descriptor
-// * @param[in] calibration_value DO value the device will be calibrated to
-// *
-// * @return DO_OEM_OK on success
-// * @return DO_OEM_READ_ERR if reading from the register failed
-// * @return DO_OEM_WRITE_ERR if writing the calibration_value to the device failed
-// */
-//static int _set_calibration_value(const do_oem_t *dev,
-//		uint16_t calibration_value);
 
 int do_oem_init(do_oem_t *dev, const do_oem_params_t *params)
 {
@@ -95,7 +80,7 @@ int do_oem_init(do_oem_t *dev, const do_oem_params_t *params)
 	i2c_acquire(I2C);
 
 	/* Register read test */
-	if (i2c_read_regs(I2C, ADDR, DO_OEM_REG_DEVICE_TYPE, &reg_data, 3, 0x0) < 0)
+	if (i2c_read_regs(I2C, ADDR, DO_OEM_REG_DEVICE_TYPE, &reg_data, 1, 0x0) < 0)
 	{
 		DEBUG("\n[do_oem debug] init - error: unable to read reg %x\n",
 				DO_OEM_REG_DEVICE_TYPE);
@@ -355,57 +340,10 @@ int do_oem_clear_calibration(const do_oem_t *dev)
 	return DO_OEM_OK;
 }
 
-//static int _set_calibration_value(const do_oem_t *dev,
-//		uint32_t calibration_value)
-//{
-//	uint8_t reg_value[4];
-//
-//	reg_value[0] = 0x00;
-//	reg_value[1] = (uint8_t) (calibration_value >> 16);
-//	reg_value[2] = (uint8_t) (calibration_value >> 8);
-//	reg_value[3] = (uint8_t) (calibration_value & 0x000000FF);
-//
-//	i2c_acquire(I2C);
-//
-//	if (i2c_write_regs(I2C, ADDR, DO_OEM_REG_CALIBRATION_BASE, &reg_value, 4, 0)
-//			< 0)
-//	{
-//		DEBUG("\n[do_oem debug] Writing calibration value failed \n");
-//		i2c_release(I2C);
-//		return DO_OEM_WRITE_ERR;
-//	}
-//
-//	/* Calibration is critical, so check if written value is in fact correct */
-//	if (i2c_read_regs(I2C, ADDR, DO_OEM_REG_CALIBRATION_BASE, &reg_value, 4, 0)
-//			< 0)
-//	{
-//		DEBUG("\n[do_oem debug] Reading the calibration value failed \n");
-//		i2c_release(I2C);
-//		return DO_OEM_READ_ERR;
-//	}
-//
-//	uint32_t confirm_value = (int32_t) (reg_value[1] << 16)
-//			| (int32_t) (reg_value[2] << 8) | (int32_t) (reg_value[3]);
-//
-//	if (confirm_value != calibration_value)
-//	{
-//		DEBUG("\n[do_oem debug] Setting calibration register to EC raw %ld "
-//				"failed \n", calibration_value);
-//		i2c_release(I2C);
-//		return DO_OEM_WRITE_ERR;
-//	}
-//
-//	i2c_release(I2C);
-//
-//	return DO_OEM_OK;
-//}
-
 int do_oem_set_calibration(const do_oem_t *dev,
 		do_oem_calibration_option_t option)
 {
 	assert(dev);
-
-//	uint8_t reg_value;
 
 	i2c_acquire(I2C);
 
@@ -415,25 +353,13 @@ int do_oem_set_calibration(const do_oem_t *dev,
 		return DO_OEM_WRITE_ERR;
 	}
 
-//	do
-//	{
-//		if (i2c_read_reg(I2C, ADDR, DO_OEM_REG_CALIBRATION_REQUEST, &reg_value,
-//				0) < 0)
-//		{
-//			DEBUG(
-//					"\n[do_oem debug] Reading calibration request status failed\n");
-//			i2c_release(I2C);
-//			return DO_OEM_READ_ERR;
-//		}
-//	} while (reg_value != 0 x00);
-
 	i2c_release(I2C);
 
 	return DO_OEM_OK;
 }
 
 int do_oem_read_calibration_state(const do_oem_t *dev,
-		uint16_t *calibration_state)
+		uint8_t *calibration_state)
 {
 	assert(dev);
 	i2c_acquire(I2C);
@@ -481,7 +407,6 @@ int do_oem_set_pres_compensation(const do_oem_t *dev,
 		uint32_t pressure_compensation)
 {
 
-
 	assert(dev);
 	uint8_t reg_value[4];
 
@@ -506,16 +431,16 @@ int do_oem_set_pres_compensation(const do_oem_t *dev,
 }
 
 int do_oem_set_temp_compensation(const do_oem_t *dev,
-		uint32_t temperature_compensation)
+		uint16_t temperature_compensation)
 {
 
 	assert(dev);
 	uint8_t reg_value[4];
 
-	reg_value[0] = 0x00;
-	reg_value[1] = (uint8_t) (temperature_compensation >> 16);
-	reg_value[2] = (uint8_t) (temperature_compensation >> 8);
-	reg_value[3] = (uint8_t) (temperature_compensation & 0x000000FF);
+    reg_value[0] = 0x00;
+    reg_value[1] = 0x00;
+    reg_value[2] = (uint8_t)(temperature_compensation >> 8);
+    reg_value[3] = (uint8_t)(temperature_compensation & 0x00FF);
 
 	i2c_acquire(I2C);
 
@@ -523,7 +448,7 @@ int do_oem_set_temp_compensation(const do_oem_t *dev,
 			4, 0) < 0)
 	{
 		DEBUG("\n[do_oem debug] Setting temperature compensation of device to "
-				"%ld failed\n", temperature_compensation);
+				"%hu failed\n", temperature_compensation);
 		i2c_release(I2C);
 		return DO_OEM_WRITE_ERR;
 	}
@@ -579,7 +504,7 @@ int do_oem_read_pres_compensation(const do_oem_t *dev,
 }
 
 int do_oem_read_temp_compensation(const do_oem_t *dev,
-		uint32_t *temperature_compensation)
+		uint16_t *temperature_compensation)
 {
 	uint8_t reg_value[4];
 
@@ -593,8 +518,7 @@ int do_oem_read_temp_compensation(const do_oem_t *dev,
 		i2c_release(I2C);
 		return DO_OEM_READ_ERR;
 	}
-	*temperature_compensation = (int32_t) (reg_value[1] << 16)
-			| (int32_t) (reg_value[2] << 8) | (int32_t) (reg_value[3]);
+	*temperature_compensation = (int16_t) (reg_value[2] << 8) | (int16_t) (reg_value[3]);
 
 	i2c_release(I2C);
 

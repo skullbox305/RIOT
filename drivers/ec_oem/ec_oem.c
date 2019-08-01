@@ -20,12 +20,11 @@
 
 #include "xtimer.h"
 #include "assert.h"
-
-#include "include/ec_oem_params.h"
-#include "include/ec_oem_regs.h"
 #include "periph/i2c.h"
 #include "periph/gpio.h"
 
+#include "ec_oem_params.h"
+#include "ec_oem_regs.h"
 #include "ec_oem.h"
 
 #define ENABLE_DEBUG    (1)
@@ -39,21 +38,21 @@
  * @brief   Unlocks the EC_OEM_REG_UNLOCK register to be able to change the
  *          I2C device address, by writing 0x55 and 0xAA to the register
  *
- * @param[in] dev device descriptor
+ * @param[in] dev 			 device descriptor
  *
- * @return EC_OEM_OK on success
- * @return EC_OEM_WRITE_ERR if writing to the device failed
+ * @return EC_OEM_OK		 on success
+ * @return EC_OEM_WRITE_ERR  if writing to the device failed
  */
 static int _unlock_address_reg(ec_oem_t *dev);
 
 /**
- * @brief   Setting the OEM OEM interrupt mode to the defined mode provided
+ * @brief   Setting the EC OEM interrupt mode to the defined mode provided
  *          in the device descriptor
  *
- * @param[in] dev device descriptor
+ * @param[in] dev 			 device descriptor
  *
- * @return EC_OEM_OK on success
- * @return EC_OEM_WRITE_ERR if writing to the device failed
+ * @return EC_OEM_OK 		 on success
+ * @return EC_OEM_WRITE_ERR  if writing to the device failed
  */
 static int _set_interrupt_pin(const ec_oem_t *dev);
 
@@ -62,11 +61,11 @@ static int _set_interrupt_pin(const ec_oem_t *dev);
  *          equal 0x01, which indicates that a new EC reading is available.
  *          Polling is done in an interval of 20ms. Estimated completion ~640ms
  *
- * @param[in] dev device descriptor
+ * @param[in] dev 			 device descriptor
  *
- * @return EC_OEM_OK on success
- * @return EC_OEM_READ_ERR if reading from the register failed
- * @return EC_OEM_WRITE_ERR if reseting the register failed
+ * @return EC_OEM_OK 		 on success
+ * @return EC_OEM_READ_ERR 	 if reading from the register failed
+ * @return EC_OEM_WRITE_ERR  if reseting the register failed
  */
 static int _new_reading_available(const ec_oem_t *dev);
 
@@ -74,12 +73,12 @@ static int _new_reading_available(const ec_oem_t *dev);
  * @brief   Sets the EC_OEM_REG_CALIBRATION_BASE register to the EC
  *          @p calibration_value which the device will be calibrated to.
  *
- * @param[in] dev device descriptor
+ * @param[in] dev 			 	device descriptor
  * @param[in] calibration_value EC value the device will be calibrated to
  *
- * @return EC_OEM_OK on success
- * @return EC_OEM_READ_ERR if reading from the register failed
- * @return EC_OEM_WRITE_ERR if writing the calibration_value to the device failed
+ * @return EC_OEM_OK 			on success
+ * @return EC_OEM_READ_ERR 		if reading from the register failed
+ * @return EC_OEM_WRITE_ERR 	if writing the calibration_value to the device failed
  */
 static int _set_calibration_value(const ec_oem_t *dev,
                                   uint32_t calibration_value);
@@ -261,7 +260,7 @@ int ec_oem_set_device_state(const ec_oem_t *dev, ec_oem_device_state_t state)
 
 static int _new_reading_available(const ec_oem_t *dev)
 {
-    int8_t new_reading_available;
+    uint8_t new_reading_available;
 
     assert(dev);
     i2c_acquire(I2C);

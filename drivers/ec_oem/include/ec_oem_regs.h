@@ -42,8 +42,8 @@ typedef enum ph_oem_reg {
 	EC_OEM_REG_SET_PROBE_TYPE			= 0x08, /**< Set probe type available register (read/write)  */
 	EC_OEM_REG_CALIBRATION_BASE         = 0x0A, /**< Calibration value register base address. Register order is: MSB, high byte, low byte, LSB (0x08-0x0B) (read/write) */
     EC_OEM_REG_CALIBRATION_REQUEST      = 0x0E, /**< Calibration request register (read/write) */
-    EC_OEM_REG_CALIBRATION_CONFIRM      = 0x0F, /**< Calibration confirm register (read/write) */
-    EC_OEM_REG_TEMP_COMPENSATION_BASE   = 0x10, /**< Temperature compensation register base address. Register order is: MSB, high byte, low byte, LSB (0x0E-0x11) (read/write) */
+    EC_OEM_REG_CALIBRATION_CONFIRM      = 0x0F, /**< Calibration confirm register (read only) */
+    EC_OEM_REG_TEMP_COMPENSATION_BASE   = 0x10, /**< Temperature compensation register base address. Register order is: MSB, high byte, low byte, LSB (0x0E-0x11) (read only */
     EC_OEM_REG_TEMP_CONFIRMATION_BASE   = 0x14, /**< Temperature confirm register base address. Register order is: MSB, high byte, low byte, LSB (0x12-0x15) (read only) */
     EC_OEM_REG_EC_READING_BASE          = 0x18, /**< EC reading register base address, order= MSB, high byte, low byte, LSB (0x16-0x19) (read only) */
 	EC_OEM_REG_TDS_READING_BASE         = 0x1C, /**< TDS reading register base address, order= MSB, high byte, low byte, LSB (0x16-0x19) (read only) */

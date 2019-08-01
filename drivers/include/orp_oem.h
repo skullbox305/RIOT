@@ -126,11 +126,11 @@ typedef struct orp_oem {
 /**
  * @brief   Initialize a ORP OEM sensor
  *
- * @param[in,out]   dev      device descriptor
- * @param[in]       params   device configuration
+ * @param[in,out]   dev       	device descriptor
+ * @param[in]       params    	device configuration
  *
- * @return @ref ORP_OEM_OK on success
- * @return @ref ORP_OEM_NODEV if no device is found on the bus
+ * @return @ref ORP_OEM_OK 	  	on success
+ * @return @ref ORP_OEM_NODEV 	if no device is found on the bus
  * @return @ref ORP_OEM_NOT_ORP if the device found at the address is not a ORP OEM device
  * @return
  */
@@ -149,10 +149,10 @@ int orp_oem_init(orp_oem_t *dev, const orp_oem_params_t *params);
  *          address you provided through ORP_OEM_PARAM_ADDR after the
  *          microcontroller restarts
  *
- * @param[in] dev   device descriptor
- * @param[in] addr  new address for the device. Range: 0x01 - 0x7f
+ * @param[in] dev   			  device descriptor
+ * @param[in] addr  			  new address for the device. Range: 0x01 - 0x7f
  *
- * @return @ref ORP_OEM_OK on success
+ * @return @ref ORP_OEM_OK  	  on success
  * @return @ref ORP_OEM_WRITE_ERR if writing to the device failed
  */
 int orp_oem_set_i2c_address(orp_oem_t *dev, uint8_t addr);
@@ -178,10 +178,10 @@ int orp_oem_set_i2c_address(orp_oem_t *dev, uint8_t addr);
  * @param[in] cb        callback called when the ORP OEM interrupt pin fires
  * @param[in] arg       callback argument
  *
- * @return @ref ORP_OEM_OK on success
- * @return @ref ORP_OEM_WRITE_ERR if writing to the device failed
+ * @return @ref ORP_OEM_OK 		  		 	 on success
+ * @return @ref ORP_OEM_WRITE_ERR 			 if writing to the device failed
  * @return @ref ORP_OEM_INTERRUPT_GPIO_UNDEF if the interrupt pin is undefined
- * @return @ref ORP_OEM_GPIO_INIT_ERR if initializing the interrupt gpio pin failed
+ * @return @ref ORP_OEM_GPIO_INIT_ERR 		 if initializing the interrupt gpio pin failed
  */
 int orp_oem_enable_interrupt(orp_oem_t *dev, orp_oem_interrupt_pin_cb_t cb,
                             void *arg);
@@ -205,10 +205,10 @@ int orp_oem_reset_interrupt_pin(const orp_oem_t *dev);
  * @brief   Set the LED state of the ORP OEM sensor by writing to the
  *          @ref ORP_OEM_REG_LED register
  *
- * @param[in] dev       device descriptor
- * @param[in] state     @ref orp_oem_led_state_t
+ * @param[in] dev       		  device descriptor
+ * @param[in] state     		  @ref orp_oem_led_state_t
  *
- * @return @ref ORP_OEM_OK on success
+ * @return @ref ORP_OEM_OK 		  on success
  * @return @ref ORP_OEM_WRITE_ERR if writing to the device failed
  */
 int orp_oem_set_led_state(const orp_oem_t *dev, orp_oem_led_state_t state);
@@ -221,10 +221,10 @@ int orp_oem_set_led_state(const orp_oem_t *dev, orp_oem_led_state_t state);
  *          readings every 420ms. Waking the device is the only way to take a
  *          reading. Hibernating the device is the only way to stop taking readings.
  *
- * @param[in] dev   device descriptor
- * @param[in] state @ref orp_oem_device_state_t
+ * @param[in] dev   		  	  device descriptor
+ * @param[in] state @ref 		  orp_oem_device_state_t
  *
- * @return @ref ORP_OEM_OK on success
+ * @return @ref ORP_OEM_OK 		  on success
  * @return @ref ORP_OEM_WRITE_ERR if writing to the device failed
  */
 int orp_oem_set_device_state(const orp_oem_t *dev, orp_oem_device_state_t state);
@@ -237,22 +237,22 @@ int orp_oem_set_device_state(const orp_oem_t *dev, orp_oem_device_state_t state)
  *          this function will poll every 20ms till a reading is done (~420ms)
  *          and stop the device from taking further readings
  *
- * @param[in] dev   device descriptor
+ * @param[in] dev   				device descriptor
  *
- * @return @ref ORP_OEM_OK on success
- * @return @ref ORP_OEM_WRITE_ERR if writing to the device failed
- * @return @ref ORP_OEM_READ_ERR if reading from the device failed
+ * @return @ref ORP_OEM_OK 			on success
+ * @return @ref ORP_OEM_WRITE_ERR   if writing to the device failed
+ * @return @ref ORP_OEM_READ_ERR    if reading from the device failed
  */
 int orp_oem_start_new_reading(const orp_oem_t *dev);
 
 /**
  * @brief   Clears all calibrations previously done
  *
- * @param[in] dev   device descriptor
+ * @param[in] dev  				  device descriptor
  *
- * @return @ref ORP_OEM_OK on success
+ * @return @ref ORP_OEM_OK 		  on success
  * @return @ref ORP_OEM_WRITE_ERR if writing to the device failed
- * @return @ref ORP_OEM_READ_ERR if reading from the device failed
+ * @return @ref ORP_OEM_READ_ERR  if reading from the device failed
  */
 int orp_oem_clear_calibration(const orp_oem_t *dev);
 
@@ -269,9 +269,9 @@ int orp_oem_clear_calibration(const orp_oem_t *dev);
  * @param[in] calibration_value   orp value multiplied by 10 e.g 209.4 * 10 = 2094
  * @param[in] option              @ref orp_oem_calibration_option_t
  *
- * @return @ref ORP_OEM_OK on success
+ * @return @ref ORP_OEM_OK		  on success
  * @return @ref ORP_OEM_WRITE_ERR if writing to the device failed
- * @return @ref ORP_OEM_READ_ERR if reading from the device failed
+ * @return @ref ORP_OEM_READ_ERR  if reading from the device failed
  */
 int orp_oem_set_calibration(const orp_oem_t *dev, uint16_t calibration_value,
                            orp_oem_calibration_option_t option);
@@ -284,8 +284,8 @@ int orp_oem_set_calibration(const orp_oem_t *dev, uint16_t calibration_value,
  * @param[in]  dev                 device descriptor
  * @param[out] calibration_state   calibration state reflected 1.
  *
- * @return @ref ORP_OEM_OK on success
- * @return @ref ORP_OEM_READ_ERR if reading from the device failed
+ * @return @ref ORP_OEM_OK 		   on success
+ * @return @ref ORP_OEM_READ_ERR   if reading from the device failed
  */
 int orp_oem_read_calibration_state(const orp_oem_t *dev, uint16_t *calibration_state);
 
@@ -293,12 +293,12 @@ int orp_oem_read_calibration_state(const orp_oem_t *dev, uint16_t *calibration_s
  * @brief   Reads the @ref ORP_OEM_REG_ORP_READING_BASE register to get the current
  *          ORP reading.
  *
- * @param[in]  dev        device descriptor
- * @param[out] orp_value  raw ORP value <br>
- *                        divide by 10 for floating point <br>
- *                        e.g 834 / 10 = 83.4
+ * @param[in]  dev       		 device descriptor
+ * @param[out] orp_value 		 raw ORP value <br>
+ *                       		 divide by 10 for floating point <br>
+ *                       		 e.g 834 / 10 = 83.4
  *
- * @return @ref ORP_OEM_OK on success
+ * @return @ref ORP_OEM_OK 		 on success
  * @return @ref ORP_OEM_READ_ERR if reading from the device failed
  */
 int orp_oem_read_orp(const orp_oem_t *dev, int16_t *orp_value);
