@@ -117,7 +117,6 @@ typedef void (*co2_ezo_interrupt_pin_cb_t)(void *);
  * @return @ref CO2_EZO_OK 		on success
  * @return @ref CO2_EZO_NODEV 	if no device is found on the bus
  * @return @ref CO2_EZO_NOT_CO2 if the device found at the address is not a CO2 EZO device
- * @return
  */
 int co2_ezo_init(co2_ezo_t *dev, const co2_ezo_params_t *params);
 

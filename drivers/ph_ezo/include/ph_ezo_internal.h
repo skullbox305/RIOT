@@ -7,22 +7,22 @@
  */
 
 /**
- * @ingroup     drivers_co2_ezo
+ * @ingroup     drivers_ph_ezo
  * @{
  *
  * @file
- * @brief       Internal definitions for the Atlas Scientific CO2 EZO sensors
+ * @brief       Internal definitions for the Atlas Scientific pH EZO sensors
  *
  * @author      Ting Xu <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  */
 
-#ifndef CO2_EZO_INTERNAL_H
-#define CO2_EZO_INTERNAL_H
+#ifndef PH_EZO_INTERNAL_H
+#define PH_EZO_INTERNAL_H
 
 #include "board.h" /* THIS INCLUDE IS MANDATORY */
 #include "saul_reg.h"
-#include "co2_ezo.h"
+#include "ph_ezo.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -30,38 +30,40 @@ extern "C"
 #endif
 
 /**
- * @name    CO2 EZO commands
+ * @name    pH EZO commands
  * @{
  */
-#define CO2_EZO_LED                  ("L,")        /**< LED ON (L,1), OFF (L,1) */
+#define PH_EZO_LED                  ("L,")        	 /**< LED ON (L,1), OFF (L,1) */
 
-#define CO2_EZO_TAKE_READING         ("R")          /**< Return 1 reading from device */
+#define PH_EZO_TAKE_READING         ("R")          	 /**< Return 1 reading from device */
 
-#define CO2_EZO_ALARM_ON             ("Alarm,en,1") /**< Enable alarm */
-#define CO2_EZO_ALARM_OFF            ("Alarm,en,0") /**< Disable alarm */
-#define CO2_EZO_ALARM_SET            ("Alarm,")     /**< Sets alarm to n = 0 - 10000 */
-#define CO2_EZO_ALARM_SET_TOL        ("Alarm,tol,") /**< Sets alarm tolerance(n = 0-500 ppm) */
-#define CO2_EZO_ALARM_STATE          ("Alarm,?")    /**< Alarm state */
+#define PH_EZO_CALIBRATE_MID        ("Cal,mid,")	 /**< Single point calibration at midpoint */
+#define PH_EZO_CALIBRATE_LOW        ("Cal,low,") 	 /**< Two point calibration at lowpoint */
+#define PH_EZO_CALIBRATE_HIGH       ("Cal,high,") 	 /**< Three point calibration at hight point */
+#define PH_EZO_CALIBRATE_CLEAR      ("Cal,clear") 	 /**< Delete calibration data */
+#define PH_EZO_CALIBRATE_STATE      ("Cal,?") 		 /**< Calibration state */
 
-#define CO2_EZO_DEV_INFO             ("i")          /**< Device information */
+#define PH_EZO_DEV_INFO             ("i")            /**< Device information */
 
-#define CO2_EZO_SLEEP_MODE           ("Sleep")      /**< Enter sleep mode/low power */
+#define PH_EZO_SLEEP_MODE           ("Sleep")        /**< Enter sleep mode/low power */
 
-#define CO2_EZO_I2C_ADDR_SET         ("I2C,")       /**< Sets I2C address (n = 1 - 127) */
+#define PH_EZO_I2C_ADDR_SET         ("I2C,")         /**< Sets I2C address (n = 1 - 127) */
 
-#define CO2_EZO_FACTORY_RESET        ("Factory")    /**< factory reset */
+#define PH_EZO_FACTORY_RESET        ("Factory")      /**< Factory reset */
+
+#define PH_EZO_SLOPE 		        ("Slope,?")      /**< Returns the slope of the pH probe */
 
 /** @} */
 
 
 /**
- * @name    CO2 EZO response codes
+ * @name    PH EZO response codes
  * @{
  */
-#define CO2_EZO_NO_DATA              (255)       /**< Not data to send */
-#define CO2_EZO_CMD_PENDING          (254)       /**< Still processing cmd, not ready */
-#define CO2_EZO_SYNTAX_ERR           (2)         /**< Syntax error in command */
-#define CO2_EZO_SUCCESS              (1)         /**< Command request successful */
+#define PH_EZO_NO_DATA              (255)       /**< Not data to send */
+#define PH_EZO_CMD_PENDING          (254)       /**< Still processing cmd, not ready */
+#define PH_EZO_SYNTAX_ERR           (2)         /**< Syntax error in command */
+#define PH_EZO_SUCCESS              (1)         /**< Command request successful */
 
 /** @} */
 
@@ -69,5 +71,5 @@ extern "C"
 }
 #endif
 
-#endif /* CO2_EZO_INTERNAL */
+#endif /* PH_EZO_INTERNAL */
 /** @} */
