@@ -234,6 +234,10 @@ ifneq (,$(filter pcd8544,$(USEMODULE)))
   USEMODULE_INCLUDES += $(RIOTBASE)/drivers/pcd8544/include
 endif
 
+ifneq (,$(filter ph_ezo,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(RIOTBASE)/drivers/ph_ezo/include
+endif
+
 ifneq (,$(filter ph_oem,$(USEMODULE)))
   USEMODULE_INCLUDES += $(RIOTBASE)/drivers/ph_oem/include
 endif

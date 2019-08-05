@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup     drivers_co2_ezo
+ * @ingroup     drivers_ph_ezo
  * @{
  *
  * @file
@@ -17,28 +17,28 @@
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  */
 
-#ifndef CO2_EZO_PARAMS_H
-#define CO2_EZO_PARAMS_H
+#ifndef PH_EZO_PARAMS_H
+#define PH_EZO_PARAMS_H
 
 #include "board.h" /* THIS INCLUDE IS MANDATORY */
 #include "saul_reg.h"
-#include "co2_ezo.h"
+#include "ph_ezo.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @name    Set default configuration parameters for the Atlas Scientific CO2 EZO driver
+ * @name    Set default configuration parameters for the Atlas Scientific pH EZO driver
  * @{
  */
-#ifndef CO2_EZO_PARAM_I2C
-#define CO2_EZO_PARAM_I2C                  (I2C_DEV(0))
+#ifndef PH_EZO_PARAM_I2C
+#define PH_EZO_PARAM_I2C                   (I2C_DEV(0))
 #endif
-#ifndef CO2_EZO_PARAM_ADDR
-#define CO2_EZO_PARAM_ADDR                 (0x69)
+#ifndef PH_EZO_PARAM_ADDR
+#define PH_EZO_PARAM_ADDR                  (0x63)
 #endif
-#ifndef CO2_EZO_PARAM_INTERRUPT_PIN
+#ifndef PH_EZO_PARAM_INTERRUPT_PIN
 #define PH_OEM_PARAM_INTERRUPT_PIN         (GPIO_UNDEF)
 #endif
 #ifndef PH_OEM_PARAM_INTERRUPT_OPTION
@@ -49,33 +49,33 @@ extern "C" {
 #endif
 
 
-#ifndef CO2_EZO_PARAMS
-#define CO2_EZO_PARAMS       { .i2c = CO2_EZO_PARAM_I2C,        \
-                              .addr = CO2_EZO_PARAM_ADDR }
+#ifndef PH_EZO_PARAMS
+#define PH_EZO_PARAMS      	 { .i2c = PH_EZO_PARAM_I2C,        \
+                              .addr = PH_EZO_PARAM_ADDR }
 #endif
-#ifndef CO2_EZO_SAUL_INFO
-#define CO2_EZO_SAUL_INFO       { .name = "CO2 EZO sensor" }
+#ifndef PH_EZO_SAUL_INFO
+#define PH_EZO_SAUL_INFO       { .name = "pH EZO sensor" }
 #endif
 /** @} */
 /**
- * @brief   CO2 EZO defaults if not defined for a board or application
+ * @brief   pH EZO defaults if not defined for a board or application
  */
-static const co2_ezo_params_t co2_ezo_params[] =
+static const ph_ezo_params_t ph_ezo_params[] =
 {
-    CO2_EZO_PARAMS
+    PH_EZO_PARAMS
 };
 
 /**
  * @brief   Additional meta information to keep in the SAUL registry
  */
-static const saul_reg_info_t co2_ezo_saul_info[] =
+static const saul_reg_info_t ph_ezo_saul_info[] =
 {
-    CO2_EZO_SAUL_INFO
+    PH_EZO_SAUL_INFO
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CO2_EZO_PARAMS_H */
+#endif /* PH_EZO_PARAMS_H */
 /** @} */
