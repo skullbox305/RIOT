@@ -329,7 +329,7 @@ int orp_oem_clear_calibration(const orp_oem_t *dev)
 }
 
 static int _set_calibration_value(const orp_oem_t *dev,
-                                  uint16_t calibration_value)
+                                  int16_t calibration_value)
 {
     int8_t reg_value[4];
 
@@ -368,7 +368,7 @@ static int _set_calibration_value(const orp_oem_t *dev,
     return ORP_OEM_OK;
 }
 
-int orp_oem_set_calibration(const orp_oem_t *dev, uint16_t calibration_value,
+int orp_oem_set_calibration(const orp_oem_t *dev, int16_t calibration_value,
                            orp_oem_calibration_option_t option)
 {
     assert(dev);
