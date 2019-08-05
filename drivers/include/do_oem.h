@@ -219,7 +219,7 @@ int do_oem_start_new_reading(const do_oem_t *dev);
 int do_oem_clear_calibration(const do_oem_t *dev);
 
 /**
- * @brief   Read the @ref DO_OEM_REG_CALIBRATION_SALI_CONFIRM register.
+ * @brief   Read the @ref DO_OEM_REG_CALIBRATION_CONFIRM register.
  *          After a calibration event has been successfully carried out, the
  *          calibration confirmation register will reflect what calibration has
  *          been done, by setting bits 0 - 3.
@@ -234,7 +234,7 @@ int do_oem_clear_calibration(const do_oem_t *dev);
  * @return @ref DO_OEM_READ_ERR if reading from the device failed
  */
 int do_oem_read_calibration_state(const do_oem_t *dev,
-		uint8_t *calibration_state);
+		uint16_t *calibration_state);
 
 /**
  * @brief   Sets the @ref DO_OEM_REG_CALIBRATION_REQUEST register to the
@@ -262,11 +262,11 @@ int do_oem_set_calibration(const do_oem_t *dev,
  *
  * @param[in] dev                        device descriptor
  * @param[in] salinity_compensation   	 valid salinity range is
- * 										  (Unknown)
+ * 										  (0.00 μS/cm - 65625.00 μS/cm)
  *
  * @return @ref DO_OEM_OK 				on success
  * @return @ref DO_OEM_WRITE_ERR 		if writing to the device failed
- * @return @ref DO_OEM_SAL_OUT_OF_RANGE if the salinity_compensation is not in
+ * @return @ref DO_OEM_SALI_OUT_OF_RANGE if the salinity_compensation is not in
  *                                       the valid range
  */
 int do_oem_set_sal_compensation(const do_oem_t *dev,
@@ -283,7 +283,7 @@ int do_oem_set_sal_compensation(const do_oem_t *dev,
  *
  * @param[in] dev                        device descriptor
  * @param[in] pressure_compensation  	 valid pressure range is
- *                                       (Unknown)
+ *                                       (30.00 kPa - 110.00 kPa)
  *
  * @return @ref DO_OEM_OK on success
  * @return @ref DO_OEM_WRITE_ERR 		 if writing to the device failed
@@ -291,7 +291,7 @@ int do_oem_set_sal_compensation(const do_oem_t *dev,
  *                                       the valid range
  */
 int do_oem_set_pres_compensation(const do_oem_t *dev,
-		uint32_t presssure_compensation);
+		uint16_t pressure_compensation);
 
 /**
  * @brief   Sets the @ref DO_OEM_REG_TEMP_COMPENSATION_BASE register to the
@@ -304,7 +304,7 @@ int do_oem_set_pres_compensation(const do_oem_t *dev,
  *
  * @param[in] dev                        device descriptor
  * @param[in] temperature_compensation   valid temperature range is
- *                                       (Unknown)
+ *                                       (0.01 ℃ - 200.00 ℃)
  *
  * @return @ref DO_OEM_OK                on success
  * @return @ref DO_OEM_WRITE_ERR 		 if writing to the device failed
@@ -321,15 +321,15 @@ int do_oem_set_temp_compensation(const do_oem_t *dev,
  * @note    The interrupt settings are not retained if the power is cut,
  *          so you have to call this function again after powering on the device.
  *
- * @param[in] dev    device descriptor
+ * @param[in] dev    			 device descriptor
  *
- * @return @ref DO_OEM_			 OK on success
+ * @return @ref DO_OEM_OK 		 on success
  * @return @ref DO_OEM_WRITE_ERR if writing to the device failed
  */
 int do_oem_reset_interrupt_pin(const do_oem_t *dev);
 
 /**
- * @brief   Reads the @ref DO_OEM_REG_SAL_CONFIRMATION_BASE register to verify
+ * @brief   Reads the @ref DO_OEM_REG_SALI_COMFIRMATION_BASE register to verify
  *          the salinity compensation value that was used to take the reading
  *          is set to the correct temperature.
  *
@@ -345,7 +345,7 @@ int do_oem_read_sali_compensation(const do_oem_t *dev,
 		uint32_t *salinity_compensation);
 
 /**
- * @brief   Reads the @ref DO_OEM_REG_PRES_CONFIRMATION_BASE register to verify
+ * @brief   Reads the @ref DO_OEM_REG_PRES_COMFIRMATION_BASE register to verify
  *          the pressure compensation value that was used to take the reading
  *          is set to the correct pressure.
  *
@@ -358,10 +358,10 @@ int do_oem_read_sali_compensation(const do_oem_t *dev,
  * @return @ref DO_OEM_READ_ERR 		 if reading from the device failed
  */
 int do_oem_read_pres_compensation(const do_oem_t *dev,
-		uint32_t *pressure_compensation);
+		uint16_t *pressure_compensation);
 
 /**
- * @brief   Reads the @ref DO_OEM_REG_TEMP_CONFIRMATION_BASE register to verify
+ * @brief   Reads the @ref DO_OEM_REG_TEMP_COMFIRMATION_BASE register to verify
  *          the temperature compensation value that was used to take the reading
  *          is set to the correct temperature.
  *

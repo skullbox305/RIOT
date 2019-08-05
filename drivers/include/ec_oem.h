@@ -387,7 +387,7 @@ int ec_oem_read_tds(const ec_oem_t *dev, uint32_t *tds_value);
  *          PSS reading.
  *
  * @param[in]  dev        device descriptor
- * @param[out] tds_value  raw PSS value <br>
+ * @param[out] pss_value  raw PSS value <br>
  *                        divide by 100 for floating point <br>
  *                        e.g 730 / 100 = 7,30
  *

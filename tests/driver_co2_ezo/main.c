@@ -51,7 +51,7 @@ static void _event_callback(event_t *event)
         puts("ALARM ON!!!");
     }
     else {
-        puts("ALARM OFF");
+        puts("ALARM OFF!!!");
     }
 }
 

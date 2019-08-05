@@ -61,10 +61,10 @@ static void reading_available_event_callback(event_t *event)
 
     do_oem_read_sali_compensation(&dev, &data2);
     printf("DO reading was taken at raw %ld μs\n", data2);
-    do_oem_read_pres_compensation(&dev, &data2);
-    printf("DO reading was taken at raw %ld kPa\n", data2);
-    do_oem_read_temp_compensation(&dev, &data2);
-    printf("DO reading was taken at raw %ld Celsius\n", data2);
+    do_oem_read_pres_compensation(&dev, &data);
+    printf("DO reading was taken at raw %d kPa\n", data);
+    do_oem_read_temp_compensation(&dev, &data);
+    printf("DO reading was taken at raw %d Celsius\n", data);
 }
 
 static void interrupt_pin_callback(void *arg)
@@ -73,7 +73,7 @@ static void interrupt_pin_callback(void *arg)
     (void)arg;
 
     /* Posting event to the event queue. Main is blocking with "event_wait"
-     * and will exdoute the event callback after posting */
+     * and will execute the event callback after posting */
     event_post(&event_queue, &event);
 
     /* initiate new reading with "do_oem_start_new_reading()" for this callback
@@ -290,15 +290,15 @@ int main(void)
                 puts("[Reading salinity compensation failed]");
 
             }
-            if (do_oem_read_pres_compensation(&dev, &data2) == DO_OEM_OK) {
-                printf("DO reading was taken at %ld kPa\n", data2);
+            if (do_oem_read_pres_compensation(&dev, &data) == DO_OEM_OK) {
+                printf("DO reading was taken at %d kPa\n", data);
             }
             else {
                 puts("[Reading pressure compensation failed]");
 
             }
-            if (do_oem_read_temp_compensation(&dev, &data2) == DO_OEM_OK) {
-                printf("DO reading was taken at %ld Celsius\n", data2);
+            if (do_oem_read_temp_compensation(&dev, &data) == DO_OEM_OK) {
+                printf("DO reading was taken at %d Celsius\n", data);
             }
             else {
                 puts("[Reading temperature compensation failed]");

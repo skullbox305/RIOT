@@ -273,7 +273,7 @@ int orp_oem_clear_calibration(const orp_oem_t *dev);
  * @return @ref ORP_OEM_WRITE_ERR if writing to the device failed
  * @return @ref ORP_OEM_READ_ERR  if reading from the device failed
  */
-int orp_oem_set_calibration(const orp_oem_t *dev, uint16_t calibration_value,
+int orp_oem_set_calibration(const orp_oem_t *dev, int16_t calibration_value,
                            orp_oem_calibration_option_t option);
 
 /**
