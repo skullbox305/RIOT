@@ -30,7 +30,7 @@
 #define SLEEP_SEC                   (5)
 
 /* calibration test is off by default, so it won't reset your previous calibration */
-#define CALIBRATION_TEST_ENABLED    (false)
+#define CALIBRATION_TEST_ENABLED    (true)
 
 static ph_ezo_t dev;
 
@@ -56,8 +56,7 @@ int main(void)
 		return -1;
 	}
 
-	puts("Enable factory reset...\n");
-
+	printf("Factory reset... ");
 	if (ph_ezo_reset(&dev) == PH_EZO_OK)
 	{
 		puts("[OK]");
@@ -67,6 +66,8 @@ int main(void)
 		puts("[Failed]");
 		return -1;
 	}
+
+	xtimer_sleep(1);
 
 	printf("Turning LED off... ");
 	if (ph_ezo_set_led_state(&dev, PH_EZO_LED_OFF) == PH_EZO_OK)
@@ -170,7 +171,7 @@ int main(void)
 		}
 
 		printf("Reading calibration state, should be 1... ");
-		if (ph_ezo_read_calibration_state(&dev, &data) == PH_EZO_OK
+		if (ph_ezo_get_calibration_state(&dev, &data) == PH_EZO_OK
 				&& data == PH_EZO_CALIBRATE_ONE)
 		{
 			puts("[OK]");
@@ -194,7 +195,7 @@ int main(void)
 		}
 
 		printf("Reading calibration state, should be 2... ");
-		if (ph_ezo_read_calibration_state(&dev, &data) == PH_EZO_OK
+		if (ph_ezo_get_calibration_state(&dev, &data) == PH_EZO_OK
 				&& data == PH_EZO_CALIBRATE_TWO)
 		{
 			puts("[OK]");
@@ -218,7 +219,7 @@ int main(void)
 		}
 
 		printf("Reading calibration state, should be 3... ");
-		if (ph_oem_read_calibration_state(&dev, &data) == PH_EZO_OK
+		if (ph_ezo_get_calibration_state(&dev, &data) == PH_EZO_OK
 				&& data == PH_EZO_CALIBRATE_THREE)
 		{
 			puts("[OK]");
@@ -233,7 +234,7 @@ int main(void)
 
 	/* Get the slope of the pH probe */
 	puts("Getting the slope of the pH probe... ");
-	if (ph_ezo_read_slope(&dev, &data, &data2) == PH_OEM_OK)
+	if (ph_ezo_read_slope(&dev, &data, &data2) == PH_EZO_OK)
 	{
 		printf("slope of acid calibration in raw: %d\n", data);
 		printf("slope of base calibration in raw: %d\n", data2);

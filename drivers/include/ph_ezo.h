@@ -170,6 +170,17 @@ int ph_ezo_set_led_state(ph_ezo_t *dev, ph_ezo_led_state_t state);
 int ph_ezo_set_i2c_address(ph_ezo_t *dev, uint8_t addr);
 
 /**
+ * @brief   Clear previous calibration.
+ *
+ * @param[in]  dev              	Device descriptor
+ *
+ *
+ * @return @ref PH_EZO_OK 		    on success
+ * @return @ref PH_EZO_WRITE_ERR    if writing to the device failed
+ */
+int ph_ezo_clear_calibration(ph_ezo_t *dev);
+
+/**
  * @brief   Enable the PH alarm and provide alarm value and tolerance value.
  *
  * @note	The alarm pin will = 1 when PH levels are > alarm set point.
@@ -184,7 +195,7 @@ int ph_ezo_set_i2c_address(ph_ezo_t *dev, uint8_t addr);
  * @return  @ref PH_EZO_WRITE_ERR if writing to the device failed
  * @return 	@ref PH_EZO_READ_ERR  if reading the device failed
  */
-int ph_ezo_set_calibration(const ph_ezo_t *dev, uint16_t calibration_value,
+int ph_ezo_set_calibration(ph_ezo_t *dev, uint16_t calibration_value,
 		ph_ezo_calibration_option_t option);
 
 /**
@@ -197,7 +208,7 @@ int ph_ezo_set_calibration(const ph_ezo_t *dev, uint16_t calibration_value,
  * @return @ref PH_EZO_OK 		    on success
  * @return @ref PH_EZO_WRITE_ERR    if writing to the device failed
  */
-int ph_ezo_get_calibration_state(ph_ezo_t *dev, ph_ezo_calibration_state_t *cal_state);
+int ph_ezo_get_calibration_state(ph_ezo_t *dev, uint16_t *cal_state);
 
 /**
  * @brief   Turn the PH EZO sensor to sleep mode
@@ -219,7 +230,7 @@ int ph_ezo_sleep_mode(ph_ezo_t *dev);
  * 									matches the "ideal" pH probe.
  *
  * @note 	Acid_slope and base_value are both in raw. Don't forget to divide<br>
- *			by 1000 for floating point. e.g 8347 / 1000 = 8.347
+ *			by 10 for floating point. e.g 997 / 10 = 99.7
  *
  * @return @ref PH_EZO_OK 		  on success
  * @return @ref PH_EZO_WRITE_ERR  if writing to the device failed
@@ -231,6 +242,9 @@ int ph_ezo_read_slope(ph_ezo_t *dev,uint16_t *acid_slope, uint16_t *base_slope);
  *
  * @param[in]  dev                   device descriptor
  * @param[out] ph_value            	 raw pH value <br>
+ *
+ * @note 	pH value is in raw. Don't forget to divide by 10 for floating point.<br>
+ * 			 e.g 997 / 10 = 99.7
  *
  * @return @ref PH_EZO_OK           on success
  * @return @ref PH_EZO_READ_ERR     if reading from the device failed
