@@ -138,66 +138,66 @@ int main(void)
             return -1;
         }
 
-//        /* Always start with mid point when doing a new calibration  */
-//        printf("Calibrating to midpoint... ");
-//        if (ph_ezo_set_calibration(&dev, 6870, PH_EZO_CALIBRATE_MID_POINT)
-//            == PH_EZO_OK) {
-//            puts("[OK]");
-//        }
-//        else {
-//            puts("[Failed]");
-//            return -1;
-//        }
-//
-//        printf("Reading calibration state, should be 1... ");
-//        if (ph_ezo_get_calibration_state(&dev, &data) == PH_EZO_OK
-//            && data == PH_EZO_CALIBRATE_ONE) {
-//            puts("[OK]");
-//        }
-//        else {
-//            puts("[Failed]");
-//            return -1;
-//        }
-//
-//        printf("Calibrating to lowpoint... ");
-//        if (ph_ezo_set_calibration(&dev, 4000, PH_EZO_CALIBRATE_LOW_POINT)
-//            == PH_EZO_OK) {
-//            puts("[OK]");
-//        }
-//        else {
-//            puts("[Failed]");
-//            return -1;
-//        }
-//
-//        printf("Reading calibration state, should be 2... ");
-//        if (ph_ezo_get_calibration_state(&dev, &data) == PH_EZO_OK
-//            && data == PH_EZO_CALIBRATE_TWO) {
-//            puts("[OK]");
-//        }
-//        else {
-//            puts("[Failed]");
-//            return -1;
-//        }
-//
-//        printf("Calibrating to highpoint... ");
-//        if (ph_ezo_set_calibration(&dev, 9210, PH_EZO_CALIBRATE_HIGH_POINT)
-//            == PH_EZO_OK) {
-//            puts("[OK]");
-//        }
-//        else {
-//            puts("[Failed]");
-//            return -1;
-//        }
-//
-//        printf("Reading calibration state, should be 3... ");
-//        if (ph_ezo_get_calibration_state(&dev, &data) == PH_EZO_OK
-//            && data == PH_EZO_CALIBRATE_THREE) {
-//            puts("[OK]");
-//        }
-//        else {
-//            puts("[Failed]");
-//            return -1;
-//        }
+        /* Always start with mid point when doing a new calibration  */
+        printf("Calibrating to midpoint... ");
+        if (ph_ezo_set_calibration(&dev, 6870, PH_EZO_CALIBRATE_MID_POINT)
+            == PH_EZO_OK) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
+
+        printf("Reading calibration state, should be 1... ");
+        if (ph_ezo_get_calibration_state(&dev, &data) == PH_EZO_OK
+            && data == PH_EZO_CALIBRATE_ONE) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
+
+        printf("Calibrating to lowpoint... ");
+        if (ph_ezo_set_calibration(&dev, 4000, PH_EZO_CALIBRATE_LOW_POINT)
+            == PH_EZO_OK) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
+
+        printf("Reading calibration state, should be 2... ");
+        if (ph_ezo_get_calibration_state(&dev, &data) == PH_EZO_OK
+            && data == PH_EZO_CALIBRATE_TWO) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
+
+        printf("Calibrating to highpoint... ");
+        if (ph_ezo_set_calibration(&dev, 9210, PH_EZO_CALIBRATE_HIGH_POINT)
+            == PH_EZO_OK) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
+
+        printf("Reading calibration state, should be 3... ");
+        if (ph_ezo_get_calibration_state(&dev, &data) == PH_EZO_OK
+            && data == PH_EZO_CALIBRATE_THREE) {
+            puts("[OK]");
+        }
+        else {
+            puts("[Failed]");
+            return -1;
+        }
     }
 
 
