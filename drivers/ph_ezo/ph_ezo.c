@@ -100,7 +100,7 @@ int ph_ezo_init(ph_ezo_t *dev, const ph_ezo_params_t *params)
 	return result;
 }
 
-int ph_ezo_reset(const ph_ezo_t *dev)
+int ph_ezo_reset(ph_ezo_t *dev)
 {
 	assert(dev);
 	i2c_acquire(I2C);
@@ -162,14 +162,15 @@ int ph_ezo_set_i2c_address(ph_ezo_t *dev, uint8_t addr)
 		return PH_EZO_WRITE_ERR;
 	}
 	dev->params.addr = addr;
+
 	i2c_release(I2C);
 
-	xtimer_usleep(2000 * US_PER_MS);
+	xtimer_usleep(3000 * US_PER_MS);
 
 	return PH_EZO_OK;
 }
 
-int ph_ezo_clear_calibration(const ph_ezo_t *dev)
+int ph_ezo_clear_calibration(ph_ezo_t *dev)
 {
 	assert(dev);
 	i2c_acquire(I2C);
@@ -188,23 +189,23 @@ int ph_ezo_clear_calibration(const ph_ezo_t *dev)
 	return PH_EZO_OK;
 }
 
-int ph_ezo_set_calibration(const ph_ezo_t *dev, uint16_t calibration_value,
+int ph_ezo_set_calibration(ph_ezo_t *dev, uint16_t calibration_value,
 		ph_ezo_calibration_option_t option)
 {
 	assert(dev);
+	i2c_acquire(I2C);
 
 	char calibration_cmd[15];
 
 	if (option == PH_EZO_CALIBRATE_MID_POINT)
 	{
-//    	float value;
-//    	value = calibration_value / 100;
 
-//    	char calibration_value_float_string[7];
-//    	fmt_float(&calibration_value_float_string, ((float)calibration_value) / 100.0, 3)
+		char calibration_value_float_string[6];
+		fmt_float(calibration_value_float_string,
+				((float) calibration_value) / 100.0, 3);
 
-		sprintf(calibration_cmd, "%s%f", PH_EZO_CALIBRATE_MID,
-				((float) calibration_value) / 100.0);
+		sprintf(calibration_cmd, "%s%s", PH_EZO_CALIBRATE_MID,
+				calibration_value_float_string);
 		size_t value_size = strlen(calibration_cmd);
 
 		if (_write_i2c_ezo(dev, (uint8_t *) calibration_cmd, &value_size) < 0)
@@ -227,14 +228,12 @@ int ph_ezo_set_calibration(const ph_ezo_t *dev, uint16_t calibration_value,
 
 	if (option == PH_EZO_CALIBRATE_LOW_POINT)
 	{
-//    	float value;
-//    	value = calibration_value / 100;
+		char calibration_value_float_string[6];
+		fmt_float(calibration_value_float_string,
+				((float) calibration_value) / 100.0, 3);
 
-//    	char calibration_value_float_string[7];
-//    	fmt_float(&calibration_value_float_string, ((float)calibration_value) / 100.0, 3)
-
-		sprintf(calibration_cmd, "%s%f", PH_EZO_CALIBRATE_LOW,
-				((float) calibration_value) / 100.0);
+		sprintf(calibration_cmd, "%s%s", PH_EZO_CALIBRATE_LOW,
+				calibration_value_float_string);
 		size_t value_size = strlen(calibration_cmd);
 
 		if (_write_i2c_ezo(dev, (uint8_t *) calibration_cmd, &value_size) < 0)
@@ -257,14 +256,13 @@ int ph_ezo_set_calibration(const ph_ezo_t *dev, uint16_t calibration_value,
 
 	if (option == PH_EZO_CALIBRATE_HIGH_POINT)
 	{
-//    	float value;
-//    	value = calibration_value / 100;
 
-//    	char calibration_value_float_string[7];
-//    	fmt_float(&calibration_value_float_string, ((float)calibration_value) / 100.0, 3)
+		char calibration_value_float_string[7];
+		fmt_float(calibration_value_float_string,
+				((float) calibration_value) / 100.0, 3);
 
-		sprintf(calibration_cmd, "%s%f", PH_EZO_CALIBRATE_HIGH,
-				((float) calibration_value) / 100.0);
+		sprintf(calibration_cmd, "%s%s", PH_EZO_CALIBRATE_HIGH,
+				calibration_value_float_string);
 		size_t value_size = strlen(calibration_cmd);
 
 		if (_write_i2c_ezo(dev, (uint8_t *) calibration_cmd, &value_size) < 0)
@@ -284,16 +282,16 @@ int ph_ezo_set_calibration(const ph_ezo_t *dev, uint16_t calibration_value,
 		}
 
 	}
+	i2c_release(I2C);
 	return PH_EZO_OK;
 
 }
 
-int ph_ezo_get_calibration_state(ph_ezo_t *dev,
-		uint16_t *cal_state)
+int ph_ezo_get_calibration_state(ph_ezo_t *dev, uint16_t *cal_state)
 {
 	assert(dev);
 
-	char *result_data = malloc(20 * sizeof(char));
+	char *result_data = malloc(10 * sizeof(char));
 	char result_data_substring[1];
 
 	uint8_t calibration_state_cmd[] = PH_EZO_CALIBRATE_STATE;
@@ -317,10 +315,11 @@ int ph_ezo_get_calibration_state(ph_ezo_t *dev,
 	}
 
 	strncpy(result_data_substring, result_data + 6, 1);
-	*cal_state = atoi(result_data_substring[0]);
+	*cal_state = atoi(&result_data_substring[0]);
 
 	i2c_release(I2C);
 	free(result_data);
+
 	return PH_EZO_OK;
 
 }
@@ -338,13 +337,6 @@ int ph_ezo_sleep_mode(ph_ezo_t *dev)
 		DEBUG("\n[ph_ezo debug] Enable sleep mode failed\n");
 		i2c_release(I2C);
 		return PH_EZO_WRITE_ERR;
-	}
-
-	/** blocks till command finishes */
-	if (_cmd_process_wait(dev) < 0)
-	{
-		i2c_release(I2C);
-		return PH_EZO_READ_ERR;
 	}
 
 	i2c_release(I2C);
@@ -378,19 +370,21 @@ int ph_ezo_read_slope(ph_ezo_t *dev, uint16_t *acid_slope, uint16_t *base_slope)
 		return PH_EZO_WRITE_ERR;
 	}
 
-	char parsed_values[2] =
+	char *parsed_values[2] =
 	{ "" };
 	_parse_string_to_array(result_data + 8, ",", parsed_values, 2);
 
 	char *parsed_acid_values[2] =
 	{ "" };
 	_parse_string_to_array(parsed_values[0], ".", parsed_acid_values, 2);
-	*acid_slope = atoi(parsed_acid_values[0]) | atoi(parsed_acid_values[1]);
+	*acid_slope = atoi(parsed_acid_values[0]) * 10
+			+ atoi(parsed_acid_values[1]);
 
 	char *parsed_base_values[2] =
 	{ "" };
 	_parse_string_to_array(parsed_values[1], ".", parsed_base_values, 2);
-	*base_slope = atoi(parsed_acid_values[0]) | atoi(parsed_acid_values[1]);
+	*base_slope = atoi(parsed_acid_values[0]) * 10
+			+ atoi(parsed_acid_values[1]);
 
 	i2c_release(I2C);
 	free(result_data);
@@ -426,7 +420,7 @@ int ph_ezo_read_ph(ph_ezo_t *dev, uint16_t *ph_value)
 	{ "" };
 
 	_parse_string_to_array(result_data + 1, ".", parsed_values, 2);
-	*ph_value = atoi(parsed_values[0])|atoi(parsed_values[1]);
+	*ph_value = atoi(parsed_values[0]) * 1000 + atoi(parsed_values[1]);
 
 	RETURN: i2c_release(I2C);
 	free(result_data);
@@ -443,6 +437,7 @@ static int _cmd_process_wait(ph_ezo_t *dev)
 	{
 		return PH_EZO_READ_ERR;
 	}
+
 	free(response_code);
 
 	return PH_EZO_OK;
@@ -461,6 +456,7 @@ static int _read_i2c_ezo(ph_ezo_t *dev, char *result_data)
 			return PH_EZO_READ_ERR;
 		}
 		response_code = result_data[0];
+//		printf("response_code: %d\n", response_code);
 	} while (response_code != PH_EZO_SUCCESS);
 
 	return PH_EZO_OK;
