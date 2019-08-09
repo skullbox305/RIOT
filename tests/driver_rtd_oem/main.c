@@ -152,26 +152,26 @@ int main(void)
             return -1;
         }
 
-        printf("Single point calibration... ");
-        if (rtd_oem_set_calibration(&dev, 100000,
-                                    RTD_OEM_CALIBRATE_SINGLE_POINT) ==
-            RTD_OEM_OK) {
-            puts("[OK]");
-        }
-        else {
-            puts("[Failed]");
-            return -1;
-        }
-
-        printf("Reading calibration state, should be 1... ");
-        if (rtd_oem_read_calibration_state(&dev, &data) == RTD_OEM_OK
-            && data == 1) {
-            puts("[OK]");
-        }
-        else {
-            puts("[Failed]");
-            return -1;
-        }
+//        printf("Single point calibration... ");
+//        if (rtd_oem_set_calibration(&dev, 100000,
+//                                    RTD_OEM_CALIBRATE_SINGLE_POINT) ==
+//            RTD_OEM_OK) {
+//            puts("[OK]");
+//        }
+//        else {
+//            puts("[Failed]");
+//            return -1;
+//        }
+//
+//        printf("Reading calibration state, should be 1... ");
+//        if (rtd_oem_read_calibration_state(&dev, &data) == RTD_OEM_OK
+//            && data == 1) {
+//            puts("[OK]");
+//        }
+//        else {
+//            puts("[Failed]");
+//            return -1;
+//        }
     }
 
     if (dev.params.interrupt_pin != GPIO_UNDEF) {
@@ -210,7 +210,7 @@ int main(void)
         }
 
         if (dev.params.interrupt_pin == GPIO_UNDEF) {
-
+        	reading = 0;
             if (rtd_oem_read_temp(&dev, &reading) == RTD_OEM_OK) {
                 printf("RTD value raw: %ld\n", reading);
             }
