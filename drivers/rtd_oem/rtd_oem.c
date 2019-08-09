@@ -445,7 +445,7 @@ int rtd_oem_start_new_reading(const rtd_oem_t *dev)
 
 int rtd_oem_read_temp(const rtd_oem_t *dev, int32_t *rtd_value)
 {
-	uint8_t reg_value[4];
+	uint8_t reg_value[4] = { 0 };
 
 	assert(dev);
 	i2c_acquire(I2C);
@@ -457,8 +457,11 @@ int rtd_oem_read_temp(const rtd_oem_t *dev, int32_t *rtd_value)
 		i2c_release(I2C);
 		return RTD_OEM_READ_ERR;
 	}
-	*rtd_value = (int32_t)((int32_t) (reg_value[0] < 24)|(int32_t) (reg_value[1] << 16) | (int32_t) (reg_value[2] << 8)
-			| (int32_t) (reg_value[3]));
+
+
+
+	*rtd_value = ((int32_t)reg_value[0] << 24) |  ((int32_t)reg_value[1] << 16) |  ((int32_t)reg_value[2] << 8)
+			| ((int32_t) reg_value[3]);
 
 	i2c_release(I2C);
 
