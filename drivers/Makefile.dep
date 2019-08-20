@@ -433,6 +433,12 @@ ifneq (,$(filter pulse_counter,$(USEMODULE)))
   FEATURES_REQUIRED += periph_gpio_irq
 endif
 
+ifneq (,$(filter rgb_ezo,$(USEMODULE)))
+  FEATURES_REQUIRED += periph_gpio_irq
+  FEATURES_REQUIRED += periph_i2c
+  USEMODULE += xtimer
+endif
+
 ifneq (,$(filter rgbled,$(USEMODULE)))
   USEMODULE += color
 endif

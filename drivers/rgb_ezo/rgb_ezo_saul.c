@@ -11,7 +11,7 @@
  * @{
  *
  * @file
- * @brief       CO2 EZO adaption to the sensor/actuator abstraction layer
+ * @brief       RGB EZO adaption to the sensor/actuator abstraction layer
  *
  * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
@@ -23,11 +23,11 @@
 #include <stdio.h>
 
 #include "saul.h"
-#include "co2_ezo.h"
+#include "rgb_ezo.h"
 
 
-const saul_driver_t co2_ezo_saul_driver = {
+const saul_driver_t rgb_ezo_saul_driver = {
     .read = saul_notsup,
     .write = saul_notsup,
-    .type = SAUL_SENSE_CO2,
+    .type = SAUL_SENSE_RGB,
 };
