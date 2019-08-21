@@ -60,15 +60,15 @@ extern "C"
  * @brief   Named return values
  */
 typedef enum {
-    RGB_EZO_OK              =  0,    /**< Everything was fine */
+    RGB_EZO_OK              = 0,    /**< Everything was fine */
     RGB_EZO_NODEV           = -1,   /**< No device found on the bus */
     RGB_EZO_READ_ERR        = -2,   /**< Reading to device failed*/
     RGB_EZO_WRITE_ERR       = -3,   /**< Writing to device failed */
     RGB_EZO_NOT_RGB         = -4,   /**< Not an Atlas Scientific RGB EZO device */
     RGB_EZO_OUT_OF_RANGE    = -5,   /**< Input value out of accepted range */
-	RGB_EZO_WARMING    		= -6,   /**< RGB EZO still warming up */
-	RGB_EZO_INT_GPIO_UNDEF  = -7,   /**< Alarm interrupt pin undefined */
-	RGB_EZO_GPIO_INIT_ERR   = -8    /**< Error while initializing GPIO PIN */
+    RGB_EZO_WARMING         = -6,   /**< RGB EZO still warming up */
+    RGB_EZO_INT_GPIO_UNDEF  = -7,   /**< Alarm interrupt pin undefined */
+    RGB_EZO_GPIO_INIT_ERR   = -8    /**< Error while initializing GPIO PIN */
 } rgb_ezo_named_returns_t;
 
 /**
@@ -78,6 +78,16 @@ typedef enum {
     RGB_EZO_LED_ON  = 0x01, /**< LED on state */
     RGB_EZO_LED_OFF = 0x00, /**< LED off state */
 } rgb_ezo_led_state_t;
+
+
+/**
+ * @brief  Paremeters of the output string
+ */
+typedef enum {
+    RGB_EZO_RGB = 0x01,     /**< RBG output on state */
+    RGB_EZO_LUX = 0x02,     /**< LUX output on state */
+    RGB_EZO_CIE =  0x03,    /**< CIE output on state */
+} rgb_ezo_parameter_t;
 
 /**
  * @brief   Alarm state values
@@ -91,9 +101,9 @@ typedef enum {
  * @brief   RGB EZO sensor params
  */
 typedef struct rgb_ezo_params {
-    i2c_t i2c;            /**< I2C device the sensor is connected to */
-    uint8_t addr;         /**< the slave address of the sensor on the I2C bus */
-    gpio_t alarm_int_pin; /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
+    i2c_t i2c;              /**< I2C device the sensor is connected to */
+    uint8_t addr;           /**< the slave address of the sensor on the I2C bus */
+    gpio_t alarm_int_pin;   /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
 } rgb_ezo_params_t;
 
 /**
@@ -114,8 +124,8 @@ typedef void (*rgb_ezo_interrupt_pin_cb_t)(void *);
  * @param[in,out]   dev      device descriptor
  * @param[in]       params   device configuration
  *
- * @return @ref RGB_EZO_OK 		on success
- * @return @ref RGB_EZO_NODEV 	if no device is found on the bus
+ * @return @ref RGB_EZO_OK      on success
+ * @return @ref RGB_EZO_NODEV   if no device is found on the bus
  * @return @ref RGB_EZO_NOT_RGB if the device found at the address is not a RGB EZO device
  */
 int rgb_ezo_init(rgb_ezo_t *dev, const rgb_ezo_params_t *params);
@@ -129,7 +139,7 @@ int rgb_ezo_init(rgb_ezo_t *dev, const rgb_ezo_params_t *params);
  * @return @ref RGB_EZO_OK on success
  * @return @ref RGB_EZO_WRITE_ERR if writing to the device failed
  */
-int rgb_ezo_set_led_state(rgb_ezo_t *dev, rgb_ezo_led_state_t state);
+int rgb_ezo_set_indicator_led_state(rgb_ezo_t *dev, rgb_ezo_led_state_t state);
 
 /**
  * @brief   Sets a new I2C address to the RGB EZO device and reboot to I2C mode
@@ -148,59 +158,74 @@ int rgb_ezo_set_led_state(rgb_ezo_t *dev, rgb_ezo_led_state_t state);
 int rgb_ezo_set_i2c_address(rgb_ezo_t *dev, uint8_t addr);
 
 /**
- * @brief   Enable the RGB alarm and provide alarm value and tolerance value.
+ * @brief   Calibrate the sensor by placing white object in front of target
  *
- * @note	The alarm pin will = 1 when RGB levels are > alarm set point.
- *          Alarm tolerance sets how far below the set point RGB levels
- *          need to drop before the pin will = 0 again.
+ * @param[in,out]   dev      device descriptor
  *
- * @param[in] dev       device descriptor
- * @param[in] value     alarm value
- * @param[in] tolerance tolerance value 0 - 499 (not 500 how Atlas said)
- * @param[in] cb        callback called when the RGB EZO alarm int pin fires
- * @param[in] arg       callback argument
- *
- * @return              @ref RGB_EZO_OK on success
- * @return              @ref RGB_EZO_INT_GPIO_UNDEF
- * @return              @ref RGB_EZO_OUT_OF_RANGE
- * @return              @ref RGB_EZO_GPIO_INIT_ERR
- * @return              @ref RGB_EZO_WRITE_ERR if writing to the device failed
+ * @return @ref RGB_EZO_OK      on success
+ * @return @ref RGB_EZO_NODEV   if no device is found on the bus
+ * @return @ref RGB_EZO_NOT_RGB if the device found at the address is not a RGB EZO device
  */
-int rgb_ezo_enable_alarm(rgb_ezo_t *dev, uint16_t value, uint16_t tolerance,
-                         rgb_ezo_interrupt_pin_cb_t cb,
-                         void *arg);
+int rgb_ezo_calibration(rgb_ezo_t *dev);
 
 /**
- * @brief   Disable Alarm mode.
+ * @brief   Setting the gamma correction by sending a floating point number
+ *          from 0,01 - 4,99, but send the value after multiplying 100 so the
+ *          value would be an integer.
+ *
+ * @note    The default gamma correction is 1-00 which represents no correction
+ *          at all. A gamma correction factor is a floating point number from 0.01 to 4.99.
  *
  * @param[in] dev       device descriptor
  *
- * @return @ref RGB_EZO_OK 		  on success
+ * @return @ref RGB_EZO_OK        on success
  * @return @ref RGB_EZO_WRITE_ERR if writing to the device failed
  */
-int rgb_ezo_disable_alarm(rgb_ezo_t *dev);
+int rgb_ezo_gamma_correction(rgb_ezo_t *dev, uint16_t value);
 
 /**
- * @brief   Get alarm state if all are enabled.
+ * @brief   Gets the gamma correction value
  *
- * @param[in]  dev              Device descriptor
- * @param[out] alarm_value      Alarm value read from device.
- * @param[out] tolerance_value  Tolerance value read from device.
- * @param[out] enabled          Alarm enabled = true, disabled = false.
+ * @param[in]  dev                   device descriptor
+ * @param[out] correction_value      correction value from device.
  *
+ * @note    The correction value is in raw so you need to divide it by 100.
  *
- * @return @ref RGB_EZO_OK 		  on success
+ * @return @ref RGB_EZO_OK        on success
  * @return @ref RGB_EZO_WRITE_ERR if writing to the device failed
  */
-int rgb_ezo_get_alarm_state(rgb_ezo_t *dev, uint16_t *alarm_value,
-                            uint16_t *tolerance_value, bool *enabled);
+int rgb_ezo_get_gamma_correction(rgb_ezo_t *dev, uint16_t *correction_value);
+
+/**
+ * @brief   Enables the parameters from output string.
+ *
+ * @param[in] dev                 device descriptor
+ * @param[in] parameter           the parameter that you want to enable
+ *
+ * @return @ref RGB_EZO_OK        on success
+ * @return @ref RGB_EZO_WRITE_ERR if writing to the device failed
+ */
+int rgb_ezo_set_parameters_state(rgb_ezo_t *dev, rgb_ezo_parameter_t parameter,
+                                 bool enabled);
+
+/**
+ * @brief   Reads the current RGB value by sending command 'R' to device.
+ *
+ * @param[in]  dev                   device descriptor
+ * @param[out] string    			 enabled parameters
+ *
+ * @return @ref RGB_EZO_OK          on success
+ * @return @ref RGB_EZO_READ_ERR    if reading from the device failed
+ * @return @ref RGB_EZO_WARMING		if sensor is still under warm-up process
+ */
+int rgb_ezo_get_parameter_state(rgb_ezo_t *dev, char *string);
 
 /**
  * @brief   Turn the RGB EZO sensor to sleep mode
  *
- * @param[in] dev       		  device descriptor
+ * @param[in] dev                 device descriptor
  *
- * @return @ref RGB_EZO_OK 		  on success
+ * @return @ref RGB_EZO_OK        on success
  * @return @ref RGB_EZO_WRITE_ERR if writing to the device failed
  */
 int rgb_ezo_sleep_mode(rgb_ezo_t *dev);
@@ -209,15 +234,13 @@ int rgb_ezo_sleep_mode(rgb_ezo_t *dev);
  * @brief   Reads the current RGB value by sending command 'R' to device.
  *
  * @param[in]  dev                   device descriptor
- * @param[out] rgb_value             rgb value in ppm <br>
- * @param[out] internal_temperature  internal temperature of the sensor <br>
+ * @param[out] rgb_value             rgb value <br>
 
  *
  * @return @ref RGB_EZO_OK          on success
  * @return @ref RGB_EZO_READ_ERR    if reading from the device failed
- * @return @ref RGB_EZO_WARMING		if sensor is still under warm-up process
  */
-int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *rgb_value,  uint32_t *internal_temperature);
+int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *rgb_value);
 
 
 #ifdef __cplusplus

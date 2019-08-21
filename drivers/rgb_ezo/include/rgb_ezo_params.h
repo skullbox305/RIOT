@@ -44,7 +44,7 @@ extern "C" {
 
 #ifndef RGB_EZO_PARAMS
 #define RGB_EZO_PARAMS       { .i2c = RGB_EZO_PARAM_I2C,   \
-                               .addr = RGB_EZO_PARAM_ADDR, \  }
+                               .addr = RGB_EZO_PARAM_ADDR  }
 #endif
 #ifndef RGB_EZO_SAUL_INFO
 #define RGB_EZO_SAUL_INFO       { .name = "RGB EZO sensor" }

@@ -24,57 +24,58 @@
 #include "rgb_ezo_internal.h"
 
 #include "xtimer.h"
-#include "event/callback.h"
+#include "string.h"
+//#include "event/callback.h"
 #include "thread.h"
 
 #define SLEEP_SEC                   (5)
 
-kernel_pid_t _event_handler_pid;
-static char stack_event_handler[THREAD_STACKSIZE_DEFAULT];
+//kernel_pid_t _event_handler_pid;
+//static char stack_event_handler[THREAD_STACKSIZE_DEFAULT];
 
 static rgb_ezo_t dev;
 
-static void _event_callback(event_t *event);
+//static void _event_callback(event_t *event);
+//
+//static event_queue_t event_queue;
+//static event_t event =
+//{ .handler = _event_callback };
+//
+//static void _event_callback(event_t *event)
+//{
+//	(void) event;
+//
+//	puts("\n[EVENT]");
+//
+//	if (gpio_read(dev.params.alarm_int_pin) > 0)
+//	{
+//		puts("ALARM ON!!!");
+//	}
+//	else
+//	{
+//		puts("ALARM OFF!!!");
+//	}
+//}
 
-static event_queue_t event_queue;
-static event_t event =
-{ .handler = _event_callback };
+//static void alarm_int_pin_callback(void *arg)
+//{
+//	puts("\n[IRQ - alarm triggered. Writing event to event queue]");
+//	(void) arg;
+//
+//	/* Posting event to the event queue. Main is blocking with "event_wait"
+//	 * and will execute the event callback after posting */
+//	event_post(&event_queue, &event);
+//}
 
-static void _event_callback(event_t *event)
-{
-	(void) event;
-
-	puts("\n[EVENT]");
-
-	if (gpio_read(dev.params.alarm_int_pin) > 0)
-	{
-		puts("ALARM ON!!!");
-	}
-	else
-	{
-		puts("ALARM OFF!!!");
-	}
-}
-
-static void alarm_int_pin_callback(void *arg)
-{
-	puts("\n[IRQ - alarm triggered. Writing event to event queue]");
-	(void) arg;
-
-	/* Posting event to the event queue. Main is blocking with "event_wait"
-	 * and will execute the event callback after posting */
-	event_post(&event_queue, &event);
-}
-
-static void *_event_handler_thread(void *arg)
-{
-	(void) arg;
-
-	event_queue_init(&event_queue);
-	event_loop(&event_queue);
-
-	return NULL;
-}
+//static void *_event_handler_thread(void *arg)
+//{
+//	(void) arg;
+//
+//	event_queue_init(&event_queue);
+//	event_loop(&event_queue);
+//
+//	return NULL;
+//}
 
 int main(void)
 {
@@ -83,10 +84,9 @@ int main(void)
 	uint16_t data = 0;
 	char string_data[30];
 
-	bool data3 = false;
 	puts("Atlas Scientific RGB EZO sensor driver test application\n");
 
-	printf("Init RGB EZO sensor at I2C_%i, address 0x%02x...",
+	printf("Initiate RGB EZO sensor at I2C_%i, address 0x%02x...",
 	RGB_EZO_PARAM_I2C, RGB_EZO_PARAM_ADDR);
 
 	if (rgb_ezo_init(&dev, rgb_ezo_params) == RGB_EZO_OK)
@@ -99,21 +99,21 @@ int main(void)
 		return -1;
 	}
 
-	/* start event handler thread */
-	_event_handler_pid = thread_create(stack_event_handler,
-			sizeof(stack_event_handler),
-			THREAD_PRIORITY_MAIN - 1,
-			THREAD_CREATE_STACKTEST, _event_handler_thread,
-			NULL, "event_handler");
-
-	if (_event_handler_pid <= KERNEL_PID_UNDEF)
-	{
-		puts("Creation of event handler thread failed");
-		return -1;
-	}
+//	/* start event handler thread */
+//	_event_handler_pid = thread_create(stack_event_handler,
+//			sizeof(stack_event_handler),
+//			THREAD_PRIORITY_MAIN - 1,
+//			THREAD_CREATE_STACKTEST, _event_handler_thread,
+//			NULL, "event_handler");
+//
+//	if (_event_handler_pid <= KERNEL_PID_UNDEF)
+//	{
+//		puts("Creation of event handler thread failed");
+//		return -1;
+//	}
 
 	printf("Turning LED off... ");
-	if (rgb_ezo_set_led_state(&dev, RGB_EZO_LED_OFF) == RGB_EZO_OK)
+	if (rgb_ezo_set_indicator_led_state(&dev, RGB_EZO_LED_OFF) == RGB_EZO_OK)
 	{
 		puts("[OK]");
 		/* Sleep 2 seconds to actually see it turning off */
@@ -126,7 +126,7 @@ int main(void)
 	}
 
 	printf("Turning LED on... ");
-	if (rgb_ezo_set_led_state(&dev, RGB_EZO_LED_ON) == RGB_EZO_OK)
+	if (rgb_ezo_set_indicator_led_state(&dev, RGB_EZO_LED_ON) == RGB_EZO_OK)
 	{
 		puts("[OK]");
 	}
@@ -187,7 +187,7 @@ int main(void)
 	}
 
 	printf("Setting gamma correction to 1,99... ");
-	if (rgb_ezo_calibration(&dev, 199) == RGB_EZO_OK)
+	if (rgb_ezo_gamma_correction(&dev, 199) == RGB_EZO_OK)
 	{
 		puts("[OK]");
 	}
@@ -210,9 +210,9 @@ int main(void)
 	}
 
 	printf("Disabling all the parameters... ");
-	if (rgb_ezo_disable_parameters(&dev, "RGB") == RGB_EZO_OK
-			&& rgb_ezo_disable_parameters(&dev, "LUX") == RGB_EZO_OK
-			&& rgb_ezo_disable_parameters(&dev, "CIE") == RGB_EZO_OK)
+	if (rgb_ezo_set_parameters_state(&dev, RGB_EZO_RGB, false) == RGB_EZO_OK
+			&& rgb_ezo_set_parameters_state(&dev, RGB_EZO_LUX, false) == RGB_EZO_OK
+			&& rgb_ezo_set_parameters_state(&dev, RGB_EZO_CIE, false) == RGB_EZO_OK)
 	{
 		puts("[OK]");
 	}
@@ -223,7 +223,7 @@ int main(void)
 	}
 
 	printf("Reading enabled parameters, should be 'No parameter enabled'... ");
-	if (rgb_ezo_get_parameter_state(&dev, &string_data) == RGB_EZO_OK
+	if (rgb_ezo_get_parameter_state(&dev, string_data) == RGB_EZO_OK
 			&& strcmp(string_data, "No parameter enabled") == 0)
 	{
 		puts("[OK]");
@@ -233,6 +233,32 @@ int main(void)
 		puts("[Failed]");
 		return -1;
 	}
+
+	printf("Enabling all the parameters... ");
+	if (rgb_ezo_set_parameters_state(&dev, RGB_EZO_RGB, true) == RGB_EZO_OK
+			&& rgb_ezo_set_parameters_state(&dev, RGB_EZO_LUX, true) == RGB_EZO_OK
+			&& rgb_ezo_set_parameters_state(&dev, RGB_EZO_CIE, true) == RGB_EZO_OK)
+	{
+		puts("[OK]");
+	}
+	else
+	{
+		puts("[Failed]");
+		return -1;
+	}
+
+	printf("Reading enabled parameters... ");
+	if (rgb_ezo_get_parameter_state(&dev, string_data) == RGB_EZO_OK)
+	{
+		puts("[OK]");
+		printf("enabled %s\n", string_data);
+	}
+	else
+	{
+		puts("[Failed]");
+		return -1;
+	}
+
 //    if (dev.params.alarm_int_pin != GPIO_UNDEF) {
 //        /* Disable alarm */
 //        printf("Disabling alarm... ");
@@ -276,15 +302,11 @@ int main(void)
 	{
 		puts("\n[MAIN - Initiate reading]");
 
-		if (rgb_ezo_read_rgb(&dev, &data, &data4) == RGB_EZO_OK)
+		if (rgb_ezo_read_rgb(&dev, &data) == RGB_EZO_OK)
 		{
-			printf("RGB value in ppm : %d\n", data);
-			printf("Internal temperature raw(10^-3) : %lu\n", data4);
+//			printf("RGB value in ppm : %d\n", data);
 		}
-		else if (rgb_ezo_read_rgb(&dev, &data, &data4) == RGB_EZO_WARMING)
-		{
-			puts("[RGB EZO still warming]");
-		}
+
 		else
 		{
 			puts("[Reading RGB failed]");

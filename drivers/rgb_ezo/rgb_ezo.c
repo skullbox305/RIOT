@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "fmt.h"
 #include "periph/gpio.h"
 
 #include "assert.h"
@@ -43,7 +44,7 @@ static int _read_i2c_ezo(rgb_ezo_t *dev, char *result_data);
 static int _write_i2c_ezo(rgb_ezo_t *dev, uint8_t *command, size_t *size);
 int _parse_string_to_array(char *input_string, char *delimiter,
 		char **output_string_array, uint8_t amount_of_values);
-int _insert_to_array_in_mid(char *input_string, char cmd_string,
+int _insert_to_array_in_mid(char *input_string, char *cmd_string,
 		char *output_string);
 
 /* Public functions */
@@ -185,17 +186,21 @@ int rgb_ezo_gamma_correction(rgb_ezo_t *dev, uint16_t value)
 	i2c_acquire(I2C);
 
 	char command[7];
-	sprintf(command, "%s%d", RGB_EZO_GAMMA_CORRECTION,
-			(float) (value / 100, 00));
+	char gamma_value_float_string[7];
+
+	fmt_float(gamma_value_float_string, ((float)value) / 100.0, 2);
+
+	sprintf(command, "%s%s", RGB_EZO_GAMMA_CORRECTION,
+			gamma_value_float_string);
 	size_t size = strlen(command);
 
 	if (_write_i2c_ezo(dev, (uint8_t *) command, &size) < 0)
 	{
-		DEBUG("\n[rgb_ezo debug] Setting I2C address to %x failed\n", addr);
+		DEBUG("\n[rgb_ezo debug] Setting gamma correction to %d failed\n",
+				value);
 		i2c_release(I2C);
 		return RGB_EZO_WRITE_ERR;
 	}
-	dev->params.addr = addr;
 	i2c_release(I2C);
 
 	xtimer_usleep(2000 * US_PER_MS);
@@ -203,7 +208,7 @@ int rgb_ezo_gamma_correction(rgb_ezo_t *dev, uint16_t value)
 	return RGB_EZO_OK;
 }
 
-int rgb_ezo_get_gamma_correction(rgb_ezo_t *dev, uint16_t *value)
+int rgb_ezo_get_gamma_correction(rgb_ezo_t *dev, uint16_t *correction_value)
 {
 	assert(dev);
 
@@ -228,9 +233,11 @@ int rgb_ezo_get_gamma_correction(rgb_ezo_t *dev, uint16_t *value)
 	}
 
 	char *parsed_values[2];
-	strncpy(result_data, result_data + 4, 4);
-	_parse_string_to_array(result_data, ".", parsed_values, 2);
-	*value = atoi(parsed_values[0]) * 100 + atoi(parsed_values[1]);
+	char result_data_substring[5];
+
+	strncpy(result_data_substring, result_data + 4, 4);
+	_parse_string_to_array(result_data_substring, ".", parsed_values, 2);
+	*correction_value = atoi(parsed_values[0]) * 100 + atoi(parsed_values[1]);
 
 	RETURN: i2c_release(I2C);
 	free(result_data);
@@ -238,17 +245,30 @@ int rgb_ezo_get_gamma_correction(rgb_ezo_t *dev, uint16_t *value)
 	return result;
 }
 
-int rgb_ezo_disable_rgb(rgb_ezo_t *dev)
+
+int rgb_ezo_set_parameters_state(rgb_ezo_t *dev, rgb_ezo_parameter_t parameter,
+bool enabled)
 {
 	assert(dev);
 
-	char option ="RGB"
-	int result = 0;
 	char command[8];
 	i2c_acquire(I2C);
 
-	uint8_t cmd[] = RGB_EZO_PARAMETER_OFF;
-	_insert_to_array_in_mid(value, cmd, command[8]);
+	switch (parameter)
+	{
+	case RGB_EZO_RGB:
+		sprintf(command, "%s%s%d", RGB_EZO_SET_PARAMETER, "RGB,", enabled);
+		break;
+	case RGB_EZO_LUX:
+		sprintf(command, "%s%s%d", RGB_EZO_SET_PARAMETER, "LUX,", enabled);
+		break;
+	case RGB_EZO_CIE:
+		sprintf(command, "%s%s%d", RGB_EZO_SET_PARAMETER, "CIE,", enabled);
+		break;
+	default:
+		break;
+	}
+
 	size_t size = sizeof(command) / sizeof(uint8_t);
 
 	if (_write_i2c_ezo(dev, (uint8_t *) command, &size) < 0)
@@ -262,37 +282,14 @@ int rgb_ezo_disable_rgb(rgb_ezo_t *dev)
 	return RGB_EZO_OK;
 }
 
-int rgb_ezo_enable_parameters(rgb_ezo_t *dev, char value)
+int rgb_ezo_get_parameter_state(rgb_ezo_t *dev, char *string)
 {
 	assert(dev);
 
-	int result = 0;
-	char command[8];
-	i2c_acquire(I2C);
-
-	uint8_t cmd[] = RGB_EZO_PARAMETER_ON;
-	_insert_to_array_in_mid(value, cmd, command[8]);
-	size_t size = sizeof(command) / sizeof(uint8_t);
-
-	if (_write_i2c_ezo(dev, (uint8_t *) command, &size) < 0)
-	{
-		i2c_release(I2C);
-		return RGB_EZO_WRITE_ERR;
-	}
-
-	i2c_release(I2C);
-
-	return RGB_EZO_OK;
-}
-
-int rgb_ezo_get_parameter_state(rgb_ezo_t *dev, char *enabled_parameters )
-{
-	assert(dev);
-
-	char *result_data = malloc(20 * sizeof(char));
+	char *result_data = malloc(30 * sizeof(char));
 	char enabled_parameter[16];
 
-	uint8_t parameter_state_cmd[] = RGB_EZO_ENABLED_PARAMETER;
+	uint8_t parameter_state_cmd[] = RGB_EZO__PARAMETER_STATE;
 	size_t size = sizeof(parameter_state_cmd) / sizeof(uint8_t);
 
 	i2c_acquire(I2C);
@@ -312,23 +309,20 @@ int rgb_ezo_get_parameter_state(rgb_ezo_t *dev, char *enabled_parameters )
 		return RGB_EZO_READ_ERR;
 	}
 
-	char device_type[] = "no output";
-	if(strcmp(result_data, device_type) == 0)
+	char device_type[] = "1?0";
+	if (strcmp(result_data, device_type) == 0)
 	{
-		*enabled_parameters = "No parameter enabled";
+		strcpy(string, "No parameter enabled");
 	}
 	else
 	{
 		strncpy(enabled_parameter, result_data + 5, 12);
-		result_data[30] =  "Enabled parameters: ";
-		strcat(result_data, enabled_parameter);
-		*enabled_parameters = result_data;
+		strcpy(string, enabled_parameter);
 	}
 
 	i2c_release(I2C);
-
 	return RGB_EZO_OK;
-
+}
 
 int rgb_ezo_sleep_mode(rgb_ezo_t *dev)
 {
@@ -357,15 +351,12 @@ int rgb_ezo_sleep_mode(rgb_ezo_t *dev)
 	return RGB_EZO_OK;
 }
 
-int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *rgb_value,
-		uint32_t *internal_temperature)
+int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *rgb_value)
 {
 	assert(dev);
-
 	int8_t result = RGB_EZO_OK;
 
-	char *result_data = malloc(5 * sizeof(char));
-
+	char *result_data = malloc(20 * sizeof(char));
 	uint8_t read_cmd[] = RGB_EZO_TAKE_READING;
 	size_t size = sizeof(read_cmd) / sizeof(uint8_t);
 
@@ -383,33 +374,91 @@ int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *rgb_value,
 		goto RETURN;
 	}
 
+	printf("raw data: %s\n", result_data);
+
+
+	*rgb_value = 0;
+
 	/* the sensor must warm-up before it can output readings, return the data
 	 * while RGB sensor is warmed-up */
-	if (strcmp(result_data + 1, "*WARM") == 0)
-	{
-		result = RGB_EZO_WARMING;
-		goto RETURN;
-	}
-
-	else
-	{
-		char *parsed_values[2] =
-		{ "" };
-		_parse_string_to_array(result_data + 1, ",", parsed_values, 2);
-		*rgb_value = atoi(parsed_values[0]);
-
-		char *parsed_temp_values[2] =
-		{ "" };
-		_parse_string_to_array(parsed_values[1], ".", parsed_temp_values, 2);
-		*internal_temperature = atoi(parsed_temp_values[0]) * 1000
-				+ atoi(parsed_temp_values[1]);
-	}
+//	if (strcmp(result_data + 1, "*WARM") == 0)
+//	{
+//		result = RGB_EZO_WARMING;
+//		goto RETURN;
+//	}
+//
+//	else
+//	{
+//		char *parsed_values[2] =
+//		{ "" };
+//		_parse_string_to_array(result_data + 1, ",", parsed_values, 2);
+//		*rgb_value = atoi(parsed_values[0]);
+//
+//		char *parsed_temp_values[2] =
+//		{ "" };
+//		_parse_string_to_array(parsed_values[1], ".", parsed_temp_values, 2);
+//		*internal_temperature = atoi(parsed_temp_values[0]) * 1000
+//				+ atoi(parsed_temp_values[1]);
+//	}
 
 	RETURN: i2c_release(I2C);
 	free(result_data);
 
 	return result;
 }
+//
+//int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *rgb_value)
+//{
+//	assert(dev);
+//
+//	int8_t result = RGB_EZO_OK;
+//
+//	char *result_data = malloc(5 * sizeof(char));
+//
+//	uint8_t read_cmd[] = RGB_EZO_TAKE_READING;
+//	size_t size = sizeof(read_cmd) / sizeof(uint8_t);
+//
+//	i2c_acquire(I2C);
+//
+//	if (_write_i2c_ezo(dev, (uint8_t *) read_cmd, &size) < 0)
+//	{
+//		result = RGB_EZO_WRITE_ERR;
+//		goto RETURN;
+//	}
+//
+//	if (_read_i2c_ezo(dev, result_data) < 0)
+//	{
+//		result = RGB_EZO_READ_ERR;
+//		goto RETURN;
+//	}
+//
+//	/* the sensor must warm-up before it can output readings, return the data
+//	 * while RGB sensor is warmed-up */
+//	if (strcmp(result_data + 1, "*WARM") == 0)
+//	{
+//		result = RGB_EZO_WARMING;
+//		goto RETURN;
+//	}
+//
+//	else
+//	{
+//		char *parsed_values[2] =
+//		{ "" };
+//		_parse_string_to_array(result_data + 1, ",", parsed_values, 2);
+//		*rgb_value = atoi(parsed_values[0]);
+//
+//		char *parsed_temp_values[2] =
+//		{ "" };
+//		_parse_string_to_array(parsed_values[1], ".", parsed_temp_values, 2);
+//		*internal_temperature = atoi(parsed_temp_values[0]) * 1000
+//				+ atoi(parsed_temp_values[1]);
+//	}
+//
+//	RETURN: i2c_release(I2C);
+//	free(result_data);
+//
+//	return result;
+//}
 
 /* Private functions */
 static int _cmd_process_wait(rgb_ezo_t *dev)
@@ -472,13 +521,3 @@ int _parse_string_to_array(char *input_string, char *delimiter,
 	return RGB_EZO_OK;
 }
 
-int _insert_to_array_in_mid(char *input_string, char *cmd_string,
-		char *output_string)
-{
-	char tem_str[2];
-	strncpy(tem_str[0], cmd_string, 2);
-	strcat(tem_str[1], input_string);
-	strncpy(tem_str[2], cmd_string + 3, 2);
-	output_string = tem_str[2];
-
-}
