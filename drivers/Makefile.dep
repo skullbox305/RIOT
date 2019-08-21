@@ -436,6 +436,7 @@ endif
 ifneq (,$(filter rgb_ezo,$(USEMODULE)))
   FEATURES_REQUIRED += periph_gpio_irq
   FEATURES_REQUIRED += periph_i2c
+  USEMODULE += fmt
   USEMODULE += xtimer
 endif
 

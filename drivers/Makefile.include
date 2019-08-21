@@ -243,7 +243,7 @@ ifneq (,$(filter pulse_counter,$(USEMODULE)))
 endif
 
 ifneq (,$(filter rgb_ezo,$(USEMODULE)))
-  USEMODULE_INCLUDES += $(RIOTBASE)/drivers/co2_ezo/include
+  USEMODULE_INCLUDES += $(RIOTBASE)/drivers/rgb_ezo/include
 endif
 
 ifneq (,$(filter rn2xx3,$(USEMODULE)))

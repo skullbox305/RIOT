@@ -41,9 +41,8 @@ extern "C"
 
 #define RGB_EZO_TAKE_READING         ("R")          /**< Return 1 reading from device */
 
-#define RGB_EZO_PARAMETER_ON   		 ("O,,1") 		/**< Enable output parameter */
-#define RGB_EZO_PARAMETER_OFF        ("O,,0") 		/**< Disable output parameter */
-#define RGB_EZO_ENABLED_PARAMETER    ("O,?") 		/**< Enabled output parameter */
+#define RGB_EZO_SET_PARAMETER         ("O,") 		/**< Enable/disable output parameter */
+#define RGB_EZO__PARAMETER_STATE      ("O,?") 		/**< Enabled output parameter */
 
 #define RGB_EZO_GAMMA_CORRECTION     ("G,")   	    /**< Sets gamma correction */
 #define RGB_EZO_GAMMA_VALUE 	     ("G,?")   	    /**< Gets gamma correction value */
