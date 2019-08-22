@@ -81,7 +81,10 @@ int main(void)
 {
 	xtimer_sleep(2);
 
-	uint16_t data = 0;
+	uint16_t data1 = 0;
+	uint16_t data2 = 0;
+	uint16_t data3 = 0;
+
 	char string_data[30];
 
 	puts("Atlas Scientific RGB EZO sensor driver test application\n");
@@ -187,7 +190,7 @@ int main(void)
 	}
 
 	printf("Setting gamma correction to 1,99... ");
-	if (rgb_ezo_gamma_correction(&dev, 199) == RGB_EZO_OK)
+	if (rgb_ezo_set_gamma_correction(&dev, 199) == RGB_EZO_OK)
 	{
 		puts("[OK]");
 	}
@@ -197,9 +200,10 @@ int main(void)
 		return -1;
 	}
 
+	data1 = 0;
 	/* Check if the gamma correction value is correctly set */
 	printf("Getting gamma correction value, should be 199... ");
-	if (rgb_ezo_get_gamma_correction(&dev, &data) == RGB_EZO_OK && data == 199)
+	if (rgb_ezo_get_gamma_correction(&dev, &data1) == RGB_EZO_OK && data1 == 199)
 	{
 		puts("[OK]");
 	}
@@ -222,17 +226,17 @@ int main(void)
 		return -1;
 	}
 
-	printf("Reading enabled parameters, should be 'No parameter enabled'... ");
-	if (rgb_ezo_get_parameter_state(&dev, string_data) == RGB_EZO_OK
-			&& strcmp(string_data, "No parameter enabled") == 0)
-	{
-		puts("[OK]");
-	}
-	else
-	{
-		puts("[Failed]");
-		return -1;
-	}
+//	printf("Reading enabled parameters, should be 'No parameter enabled'... ");
+//	if (rgb_ezo_get_parameter_state(&dev, string_data) == RGB_EZO_OK
+//			&& strcmp(string_data, "No parameter enabled") == 0)
+//	{
+//		puts("[OK]");
+//	}
+//	else
+//	{
+//		puts("[Failed]");
+//		return -1;
+//	}
 
 	printf("Enabling all the parameters... ");
 	if (rgb_ezo_set_parameters_state(&dev, RGB_EZO_RGB, true) == RGB_EZO_OK
@@ -302,9 +306,9 @@ int main(void)
 	{
 		puts("\n[MAIN - Initiate reading]");
 
-		if (rgb_ezo_read_rgb(&dev, &data) == RGB_EZO_OK)
+		if (rgb_ezo_read_rgb(&dev, &data1, &data2, &data3) == RGB_EZO_OK)
 		{
-//			printf("RGB value in ppm : %d\n", data);
+			printf("R:%d, G:%d, B:%d\n", data1, data2, data3);
 		}
 
 		else
