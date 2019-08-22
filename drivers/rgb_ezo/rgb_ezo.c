@@ -44,8 +44,6 @@ static int _read_i2c_ezo(rgb_ezo_t *dev, char *result_data);
 static int _write_i2c_ezo(rgb_ezo_t *dev, uint8_t *command, size_t *size);
 int _parse_string_to_array(char *input_string, char *delimiter,
 		char **output_string_array, uint8_t amount_of_values);
-int _insert_to_array_in_mid(char *input_string, char *cmd_string,
-		char *output_string);
 
 /* Public functions */
 int rgb_ezo_init(rgb_ezo_t *dev, const rgb_ezo_params_t *params)
@@ -180,7 +178,7 @@ int rgb_ezo_calibration(rgb_ezo_t *dev)
 	return RGB_EZO_OK;
 }
 
-int rgb_ezo_gamma_correction(rgb_ezo_t *dev, uint16_t value)
+int rgb_ezo_set_gamma_correction(rgb_ezo_t *dev, uint16_t value)
 {
 	assert(dev);
 	i2c_acquire(I2C);
@@ -214,7 +212,7 @@ int rgb_ezo_get_gamma_correction(rgb_ezo_t *dev, uint16_t *correction_value)
 
 	int result = 0;
 
-	char *result_data = malloc(10 * sizeof(char));
+	char *result_data = malloc(9 * sizeof(char));
 	i2c_acquire(I2C);
 
 	uint8_t cmd[] = RGB_EZO_GAMMA_VALUE;
@@ -236,6 +234,7 @@ int rgb_ezo_get_gamma_correction(rgb_ezo_t *dev, uint16_t *correction_value)
 	char result_data_substring[5];
 
 	strncpy(result_data_substring, result_data + 4, 4);
+
 	_parse_string_to_array(result_data_substring, ".", parsed_values, 2);
 	*correction_value = atoi(parsed_values[0]) * 100 + atoi(parsed_values[1]);
 
@@ -309,7 +308,9 @@ int rgb_ezo_get_parameter_state(rgb_ezo_t *dev, char *string)
 		return RGB_EZO_READ_ERR;
 	}
 
-	char device_type[] = "1?0";
+	printf("states: %s\n", result_data);
+
+	char device_type[] = "1?O";
 	if (strcmp(result_data, device_type) == 0)
 	{
 		strcpy(string, "No parameter enabled");
@@ -351,7 +352,7 @@ int rgb_ezo_sleep_mode(rgb_ezo_t *dev)
 	return RGB_EZO_OK;
 }
 
-int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *rgb_value)
+int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *r_value,uint16_t *g_value,uint16_t *b_value)
 {
 	assert(dev);
 	int8_t result = RGB_EZO_OK;
@@ -374,91 +375,25 @@ int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *rgb_value)
 		goto RETURN;
 	}
 
-	printf("raw data: %s\n", result_data);
-
-
-	*rgb_value = 0;
-
 	/* the sensor must warm-up before it can output readings, return the data
 	 * while RGB sensor is warmed-up */
-//	if (strcmp(result_data + 1, "*WARM") == 0)
-//	{
-//		result = RGB_EZO_WARMING;
-//		goto RETURN;
-//	}
-//
-//	else
-//	{
-//		char *parsed_values[2] =
-//		{ "" };
-//		_parse_string_to_array(result_data + 1, ",", parsed_values, 2);
-//		*rgb_value = atoi(parsed_values[0]);
-//
-//		char *parsed_temp_values[2] =
-//		{ "" };
-//		_parse_string_to_array(parsed_values[1], ".", parsed_temp_values, 2);
-//		*internal_temperature = atoi(parsed_temp_values[0]) * 1000
-//				+ atoi(parsed_temp_values[1]);
-//	}
+
+	printf("result: %s\n", result_data);
+
+		char *parsed_values[3] =
+		{ "" };
+		_parse_string_to_array(result_data + 1, ",", parsed_values, 3);
+		*r_value = atoi(parsed_values[0]);
+		*g_value = atoi(parsed_values[1]);
+		*b_value = atoi(parsed_values[2]);
 
 	RETURN: i2c_release(I2C);
 	free(result_data);
 
 	return result;
 }
-//
-//int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *rgb_value)
-//{
-//	assert(dev);
-//
-//	int8_t result = RGB_EZO_OK;
-//
-//	char *result_data = malloc(5 * sizeof(char));
-//
-//	uint8_t read_cmd[] = RGB_EZO_TAKE_READING;
-//	size_t size = sizeof(read_cmd) / sizeof(uint8_t);
-//
-//	i2c_acquire(I2C);
-//
-//	if (_write_i2c_ezo(dev, (uint8_t *) read_cmd, &size) < 0)
-//	{
-//		result = RGB_EZO_WRITE_ERR;
-//		goto RETURN;
-//	}
-//
-//	if (_read_i2c_ezo(dev, result_data) < 0)
-//	{
-//		result = RGB_EZO_READ_ERR;
-//		goto RETURN;
-//	}
-//
-//	/* the sensor must warm-up before it can output readings, return the data
-//	 * while RGB sensor is warmed-up */
-//	if (strcmp(result_data + 1, "*WARM") == 0)
-//	{
-//		result = RGB_EZO_WARMING;
-//		goto RETURN;
-//	}
-//
-//	else
-//	{
-//		char *parsed_values[2] =
-//		{ "" };
-//		_parse_string_to_array(result_data + 1, ",", parsed_values, 2);
-//		*rgb_value = atoi(parsed_values[0]);
-//
-//		char *parsed_temp_values[2] =
-//		{ "" };
-//		_parse_string_to_array(parsed_values[1], ".", parsed_temp_values, 2);
-//		*internal_temperature = atoi(parsed_temp_values[0]) * 1000
-//				+ atoi(parsed_temp_values[1]);
-//	}
-//
-//	RETURN: i2c_release(I2C);
-//	free(result_data);
-//
-//	return result;
-//}
+
+
 
 /* Private functions */
 static int _cmd_process_wait(rgb_ezo_t *dev)

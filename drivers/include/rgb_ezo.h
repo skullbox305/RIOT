@@ -181,7 +181,7 @@ int rgb_ezo_calibration(rgb_ezo_t *dev);
  * @return @ref RGB_EZO_OK        on success
  * @return @ref RGB_EZO_WRITE_ERR if writing to the device failed
  */
-int rgb_ezo_gamma_correction(rgb_ezo_t *dev, uint16_t value);
+int rgb_ezo_set_gamma_correction(rgb_ezo_t *dev, uint16_t value);
 
 /**
  * @brief   Gets the gamma correction value
@@ -240,7 +240,7 @@ int rgb_ezo_sleep_mode(rgb_ezo_t *dev);
  * @return @ref RGB_EZO_OK          on success
  * @return @ref RGB_EZO_READ_ERR    if reading from the device failed
  */
-int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *rgb_value);
+int rgb_ezo_read_rgb(rgb_ezo_t *dev, uint16_t *r_value,uint16_t *g_value,uint16_t *b_value);
 
 
 #ifdef __cplusplus
