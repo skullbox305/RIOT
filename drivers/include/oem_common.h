@@ -87,15 +87,6 @@ typedef struct oem_common_params {
 typedef void (*oem_common_interrupt_pin_cb_t)(void *);
 
 /**
- * @brief   DO OEM device descriptor
- */
-typedef struct oem_common {
-    oem_common_params_t params;         /**< device driver configuration */
-    oem_common_interrupt_pin_cb_t cb;   /**< interrupt pin callback */
-    void *arg;                          /**< interrupt pin callback param */
-} oem_common_t;
-
-/**
  * @brief   Initialize a DO OEM sensor
  *
  * @param[in,out]   dev      device descriptor
@@ -229,9 +220,8 @@ int oem_common_reset_interrupt_pin(const oem_common_t *dev);
 int oem_common_enable_interrupt(oem_common_t *dev,
                                 oem_common_interrupt_pin_cb_t cb,
                                 void *arg);
-
 /**
- * @brief   Sets the device state (active/hibernate) of the DO OEM sensor by
+ * @brief   Sets the device state (active/hibernate) of the XXX_OEM sensor by
  *          writing to the @ref OEM_COMMON_REG_HIBERNATE register.
  *
  *          @note Once the device has been woken up it will continuously take
@@ -246,35 +236,6 @@ int oem_common_enable_interrupt(oem_common_t *dev,
  */
 int oem_common_set_device_state(const oem_common_t *dev,
                                 oem_common_device_state_t state);
-
-/**
- * @brief   Reads the @ref OEM_COMMON_REG_DO_MGL_READING_BASE register to get the current
- *          D.O. reading.
- *
- * @param[in]  dev                  device descriptor
- * @param[out] do_mg_value          raw do value in mg/L <br>
- *                                  divide by 100 for floating point <br>
- *                                  e.g 834 / 100 = 8.34
- *
- * @return @ref OEM_COMMON_OK           on success
- * @return @ref OEM_COMMON_READ_ERR     if reading from the device failed
- */
-int oem_common_read_do_mg(const oem_common_t *dev, uint16_t *do_mg_value);
-
-/**
- * @brief   Reads the @ref OEM_COMMON_REG_DO_PERCENT_READING_BASE register to get the current
- *          pressure reading.
- *
- * @param[in]  dev                  device descriptor
- * @param[out] do_percent_value     raw do value in % saturation <br>
- *                                  divide by 100 for floating point <br>
- *                                  e.g 834 / 100 = 8.34
- *
- * @return @ref OEM_COMMON_OK           on success
- * @return @ref OEM_COMMON_READ_ERR     if reading from the device failed
- */
-int oem_common_read_do_percent(const oem_common_t *dev,
-                               uint16_t *do_percent_value);
 
 #ifdef __cplusplus
 }
