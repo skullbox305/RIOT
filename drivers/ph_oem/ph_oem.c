@@ -91,6 +91,7 @@ int ph_oem_read_calibration_state(const ph_oem_t *dev,
     return oem_common_read_calibration_state(&dev->oem_dev,
                                              PH_OEM_REG_CALIBRATION_CONFIRM,
                                              calibration_state);
+
 }
 
 //static int _set_interrupt_pin(const ph_oem_t *dev)
