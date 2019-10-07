@@ -318,7 +318,7 @@ int do_oem_clear_calibration(const do_oem_t *dev)
 
 	assert(dev);
 	i2c_acquire(I2C);
-	if (i2c_write_reg(I2C, ADDR, DO_OEM_REG_CALIBRATION_REQUEST, 0x01, 0) < 0)
+	if (i2c_write_reg(I2C, ADDR, DO_OEM_REG_CALIBRATION, 0x01, 0) < 0)
 	{
 		DEBUG("\n[do_oem debug] Clearing calibration failed \n");
 		i2c_release(I2C);
@@ -327,7 +327,7 @@ int do_oem_clear_calibration(const do_oem_t *dev)
 
 	do
 	{
-		if (i2c_read_reg(I2C, ADDR, DO_OEM_REG_CALIBRATION_REQUEST, &reg_value,
+		if (i2c_read_reg(I2C, ADDR, DO_OEM_REG_CALIBRATION, &reg_value,
 				0) < 0)
 		{
 			i2c_release(I2C);
@@ -347,7 +347,7 @@ int do_oem_set_calibration(const do_oem_t *dev,
 
 	i2c_acquire(I2C);
 
-	if (i2c_write_reg(I2C, ADDR, DO_OEM_REG_CALIBRATION_REQUEST, option, 0) < 0)
+	if (i2c_write_reg(I2C, ADDR, DO_OEM_REG_CALIBRATION, option, 0) < 0)
 	{
 		DEBUG("\n[do_oem debug] Sending calibration request failed\n");
 		return DO_OEM_WRITE_ERR;

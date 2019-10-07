@@ -21,6 +21,7 @@
 
 #include "board.h" /* THIS INCLUDE IS MANDATORY */
 #include "saul_reg.h"
+#include "oem_common.h"
 #include "ph_oem.h"
 #include "ph_oem_regs.h"
 
@@ -42,7 +43,7 @@ extern "C" {
 #define PH_OEM_PARAM_INTERRUPT_PIN        (GPIO_UNDEF)
 #endif
 #ifndef PH_OEM_PARAM_INTERRUPT_OPTION
-#define PH_OEM_PARAM_INTERRUPT_OPTION     (PH_OEM_IRQ_BOTH)
+#define PH_OEM_PARAM_INTERRUPT_OPTION     (OEM_COMMON_IRQ_BOTH)
 #endif
 #ifndef PH_OEM_PARAM_INTERRUPT_GPIO_MODE
 #define PH_OEM_PARAM_INTERRUPT_GPIO_MODE  (GPIO_IN_PD)
@@ -53,7 +54,8 @@ extern "C" {
                               .addr = PH_OEM_PARAM_ADDR,       \
                               .interrupt_pin = PH_OEM_PARAM_INTERRUPT_PIN, \
                               .gpio_mode = PH_OEM_PARAM_INTERRUPT_GPIO_MODE, \
-                              .irq_option = PH_OEM_PARAM_INTERRUPT_OPTION }
+                              .irq_option = PH_OEM_PARAM_INTERRUPT_OPTION, \
+                              .device_type_id = 0x01 }
 #endif
 #ifndef PH_OEM_SAUL_INFO
 #define PH_OEM_SAUL_INFO       { .name = "pH OEM sensor" }
@@ -62,7 +64,7 @@ extern "C" {
 /**
  * @brief   pH OEM defaults if not defined for a board or application
  */
-static const ph_oem_params_t ph_oem_params[] =
+static const oem_common_params_t ph_oem_params[] =
 {
     PH_OEM_PARAMS
 };

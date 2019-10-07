@@ -7,15 +7,15 @@
  */
 
 /**
- * @defgroup    drivers_oem_common OEM sensors common code
+ * @defgroup    drivers_oem_common OEM common code
  * @ingroup     drivers_sensors
  * @brief       Common device driver code for the Atlas Scientific OEM sensor
- *              series (pH, EC, ORP, D.O. and RTD)
+ *              family (pH, EC, ORP, D.O. and RTD)
  * @{
  *
  * @file
  * @brief       Common device driver code for the Atlas Scientific OEM sensor
- *              series
+ *              family
  *
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  */
@@ -71,7 +71,7 @@ typedef enum {
 } oem_common_irq_option_t;
 
 /**
- * @brief   DO OEM sensor params
+ * @brief   XXX_OEM sensor params
  */
 typedef struct oem_common_params {
     i2c_t i2c;                          /**< I2C device the sensor is connected to */
@@ -79,28 +79,38 @@ typedef struct oem_common_params {
     gpio_t interrupt_pin;               /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
     gpio_mode_t gpio_mode;              /**< gpio mode of the interrupt pin */
     oem_common_irq_option_t irq_option; /**< behavior of the interrupt pin, disabled by default */
+    uint8_t device_type_id;             /**< Device ID of the @ref PH_OEM_REG_DEVICE_TYPE
+                                         *   register of a pH OEM sensor */
 } oem_common_params_t;
 
 /**
- * @brief   DO OEM interrupt pin callback
+ * @brief   XXX_OEM interrupt pin callback
  */
 typedef void (*oem_common_interrupt_pin_cb_t)(void *);
 
 /**
- * @brief   Initialize a DO OEM sensor
+ * @brief   XXX_OEM device descriptor
+ */
+typedef struct oem_common_dev {
+	oem_common_params_t params;         /**< device driver configuration */
+	oem_common_interrupt_pin_cb_t cb;   /**< interrupt pin callback */
+} oem_common_dev_t;
+
+/**
+ * @brief   Initialize a XXX_OEM sensor
  *
  * @param[in,out]   dev      device descriptor
  * @param[in]       params   device configuration
  *
- * @return @ref OEM_COMMON_OK	  on success
- * @return @ref OEM_COMMON_NODEV  if no device is found on the bus
- * @return @ref OEM_COMMON_NOT_DO if the device found at the address is not a DO OEM device
+ * @return @ref OEM_COMMON_OK	     on success
+ * @return @ref OEM_COMMON_NODEV     if no device is found on the bus
+ * @return @ref OEM_COMMON_WRONG_DEV if the device found at the address is not a XXX_OEM device
  * @return
  */
-int oem_common_init(oem_common_t *dev, const oem_common_params_t *params);
+int oem_common_init(oem_common_dev_t *dev, const oem_common_params_t *params);
 
 /**
- * @brief   Set the LED state of the DO OEM sensor by writing to the
+ * @brief   Set the LED state of the XXX_OEM sensor by writing to the
  *          @ref OEM_COMMON_REG_LED register
  *
  * @param[in] dev       device descriptor
@@ -109,11 +119,11 @@ int oem_common_init(oem_common_t *dev, const oem_common_params_t *params);
  * @return @ref OEM_COMMON_OK        on success
  * @return @ref OEM_COMMON_WRITE_ERR if writing to the device failed
  */
-int oem_common_set_led_state(const oem_common_t *dev,
+int oem_common_set_led_state(const oem_common_dev_t *dev,
                              oem_common_led_state_t state);
 
 /**
- * @brief   Sets a new address to the DO OEM device by unlocking the
+ * @brief   Sets a new address to the XXX_OEM device by unlocking the
  *          @ref OEM_COMMON_REG_UNLOCK register and  writing a new address to
  *          the @ref OEM_COMMON_REG_ADDRESS register.
  *          The device address will also be updated in the device descriptor so
@@ -122,7 +132,7 @@ int oem_common_set_led_state(const oem_common_t *dev,
  *          Settings are retained in the sensor if the power is cut.
  *
  *          The address in the device descriptor will reverse to the default
- *          address you provided through OEM_COMMON_PARAM_ADDR after the
+ *          address you provided through @ref OEM_COMMON_PARAM_ADDR after the
  *          microcontroller restarts
  *
  * @param[in] dev   device descriptor
@@ -131,7 +141,7 @@ int oem_common_set_led_state(const oem_common_t *dev,
  * @return @ref OEM_COMMON_OK		 on success
  * @return @ref OEM_COMMON_WRITE_ERR if writing to the device failed
  */
-int oem_common_set_i2c_address(oem_common_t *dev, uint8_t addr);
+int oem_common_set_i2c_address(oem_common_dev_t *dev, uint8_t addr);
 
 /**
  * @brief   Starts a new reading by setting the device state to
@@ -147,18 +157,21 @@ int oem_common_set_i2c_address(oem_common_t *dev, uint8_t addr);
  * @return @ref OEM_COMMON_WRITE_ERR  if writing to the device failed
  * @return @ref OEM_COMMON_READ_ERR   if reading from the device failed
  */
-int oem_common_start_new_reading(const oem_common_t *dev);
+int oem_common_start_new_reading(const oem_common_dev_t *dev);
 
 /**
- * @brief   Clears all calibrations previously done
+ * @brief   Clears all previous calibrations
  *
- * @param[in] dev   device descriptor
+ * @param[in] dev          device descriptor
+ * @param[in] cali_reg     Calibration Request(R/W) or Calibration(write only) register
+ * @param[in] write_only   Must be true, if cali_reg is write only (e.g. for D.O. sensor)
  *
  * @return @ref OEM_COMMON_OK         on success
  * @return @ref OEM_COMMON_WRITE_ERR  if writing to the device failed
  * @return @ref OEM_COMMON_READ_ERR	  if reading from the device failed
  */
-int oem_common_clear_calibration(const oem_common_t *dev);
+int oem_common_clear_calibration(const oem_common_dev_t *dev, uint8_t cali_reg,
+                                 bool write_only);
 
 /**
  * @brief   Read the @ref OEM_COMMON_REG_CALIBRATION_CONFIRM register.
@@ -167,15 +180,14 @@ int oem_common_clear_calibration(const oem_common_t *dev);
  *          been done, by setting bits 0 - 3.
  *
  * @param[in]  dev                 device descriptor
- * @param[out] calibration_state   calibration state reflected by bits 0 - 3 <br>
- *                                 (0 = no calibration, 1 = calibrated to atmosphere
- *                                 2 = calibrated to 0 Dissolved Oxygen 3 = calibrated to
- *                                 both atmospheric and 0 dissolved Oxygen)
+ * @param[in]  cal_confirm_reg     Calibration Confirm register address
+ * @param[out] calibration_state   calibration state reflected by bits 0 - 3
  *
  * @return @ref OEM_COMMON_OK       on success
  * @return @ref OEM_COMMON_READ_ERR if reading from the device failed
  */
-int oem_common_read_calibration_state(const oem_common_t *dev,
+int oem_common_read_calibration_state(const oem_common_dev_t *dev,
+                                      uint8_t cal_confirm_reg,
                                       uint16_t *calibration_state);
 /**
  * @brief   The interrupt pin will not auto reset on option @ref OEM_COMMON_IRQ_RISING
@@ -190,10 +202,10 @@ int oem_common_read_calibration_state(const oem_common_t *dev,
  * @return @ref OEM_COMMON_OK        on success
  * @return @ref OEM_COMMON_WRITE_ERR if writing to the device failed
  */
-int oem_common_reset_interrupt_pin(const oem_common_t *dev);
+int oem_common_reset_interrupt_pin(const oem_common_dev_t *dev);
 
 /**
- * @brief   Enable the DO OEM interrupt pin if @ref oem_common_params_t.interrupt_pin
+ * @brief   Enable the XXX_OEM interrupt pin if @ref oem_common_params_t.interrupt_pin
  *          is defined.
  *          @note @ref oem_common_reset_interrupt_pin needs to be called in the
  *          callback if you use @ref OEM_COMMON_IRQ_FALLING or @ref OEM_COMMON_IRQ_RISING
@@ -217,7 +229,7 @@ int oem_common_reset_interrupt_pin(const oem_common_t *dev);
  * @return @ref OEM_COMMON_INTERRUPT_GPIO_UNDEF if the interrupt pin is undefined
  * @return @ref OEM_COMMON_GPIO_INIT_ERR        if initializing the interrupt gpio pin failed
  */
-int oem_common_enable_interrupt(oem_common_t *dev,
+int oem_common_enable_interrupt(oem_common_dev_t *dev,
                                 oem_common_interrupt_pin_cb_t cb,
                                 void *arg);
 /**
@@ -234,7 +246,7 @@ int oem_common_enable_interrupt(oem_common_t *dev,
  * @return @ref OEM_COMMON_OK           on success
  * @return @ref OEM_COMMON_WRITE_ERR    if writing to the device failed
  */
-int oem_common_set_device_state(const oem_common_t *dev,
+int oem_common_set_device_state(const oem_common_dev_t *dev,
                                 oem_common_device_state_t state);
 
 #ifdef __cplusplus

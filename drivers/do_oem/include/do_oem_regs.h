@@ -39,7 +39,7 @@ typedef enum ph_oem_reg {
     DO_OEM_REG_LED                      = 0x05, /**< LED control register (read/write) */
     DO_OEM_REG_HIBERNATE                = 0x06, /**< Active/hibernate register (read/write) */
     DO_OEM_REG_NEW_READING              = 0x07, /**< New reading available register (read/write)  */
-	DO_OEM_REG_CALIBRATION_REQUEST		= 0x08, /**< Calibration request register (read/write)  */
+	DO_OEM_REG_CALIBRATION		        = 0x08, /**< Calibration request register (write only)  */
 	DO_OEM_REG_CALIBRATION_CONFIRM      = 0x09, /**< Calibration confirm register (read only)*/
 	DO_OEM_REG_SALI_COMPENSATION_BASE   = 0x0A, /**< Salinity compensation register base address. Register order is: MSB, high byte, low byte, LSB (0x0A-0x0D) (read/write)  */
 	DO_OEM_REG_PRES_COMPENSATION_BASE   = 0x0E, /**< Pressure compensation register base address. Register order is: MSB, high byte, low byte, LSB (0x0E-0x11) (read/write)  */

@@ -27,25 +27,27 @@
 
 static int read_ph(const void *dev, phydat_t *res)
 {
-    const ph_oem_t *mydev = dev;
-    uint16_t ph_reading = 0;
-
-    if (mydev->params.interrupt_pin != GPIO_UNDEF) {
-        puts("interrupt pin not supported with SAUL yet");
-        return -ENOTSUP;
-    }
-
-    if (ph_oem_start_new_reading(mydev) < 0) {
-        return -ECANCELED;
-    }
-
-    /* Read raw pH value */
-    if (ph_oem_read_ph(mydev, &ph_reading) < 0) {
-        return -ECANCELED;
-    }
-    res->val[0] = (int16_t)ph_reading;
-    res->unit = UNIT_PH;
-    res->scale = -3;
+	(void) dev;
+	(void) res;
+//    const ph_oem_t *mydev = dev;
+//    uint16_t ph_reading = 0;
+//
+//    if (mydev->params.interrupt_pin != GPIO_UNDEF) {
+//        puts("interrupt pin not supported with SAUL yet");
+//        return -ENOTSUP;
+//    }
+//
+//    if (ph_oem_start_new_reading(mydev) < 0) {
+//        return -ECANCELED;
+//    }
+//
+//    /* Read raw pH value */
+//    if (ph_oem_read_ph(mydev, &ph_reading) < 0) {
+//        return -ECANCELED;
+//    }
+//    res->val[0] = (int16_t)ph_reading;
+//    res->unit = UNIT_PH;
+//    res->scale = -3;
 
     return 1;
 }
@@ -54,15 +56,17 @@ static int read_ph(const void *dev, phydat_t *res)
  * Valid temperature range is 1 - 20000 (0.01 °C  to  200.0 °C) */
 static int set_temp_compensation(const void *dev, phydat_t *res)
 {
-    const ph_oem_t *mydev = dev;
-
-    if (!(res->val[0] >= 1 && res->val[0] <= 20000)) {
-        return -ECANCELED;
-    }
-
-    if (ph_oem_set_compensation(mydev, res->val[0]) < 0) {
-        return -ECANCELED;
-    }
+	(void) dev;
+	(void) res;
+//    const ph_oem_t *mydev = dev;
+//
+//    if (!(res->val[0] >= 1 && res->val[0] <= 20000)) {
+//        return -ECANCELED;
+//    }
+//
+//    if (ph_oem_set_compensation(mydev, res->val[0]) < 0) {
+//        return -ECANCELED;
+//    }
     return 1;
 }
 

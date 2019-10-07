@@ -218,12 +218,16 @@ ifneq (,$(filter nrf24l01p,$(USEMODULE)))
   USEMODULE_INCLUDES += $(RIOTBASE)/drivers/nrf24l01p/include
 endif
 
-ifneq (,$(filter orp_oem,$(USEMODULE)))
-  USEMODULE_INCLUDES += $(RIOTBASE)/drivers/orp_oem/include
+ifneq (,$(filter oem_common,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(RIOTBASE)/drivers/oem_common/include
 endif
 
 ifneq (,$(filter opt3001,$(USEMODULE)))
   USEMODULE_INCLUDES += $(RIOTBASE)/drivers/opt3001/include
+endif
+
+ifneq (,$(filter orp_oem,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(RIOTBASE)/drivers/orp_oem/include
 endif
 
 ifneq (,$(filter pca9685,$(USEMODULE)))

@@ -102,10 +102,10 @@ typedef enum {
  * @brief   ORP OEM sensor params
  */
 typedef struct orp_oem_params {
-    i2c_t i2c;                      /**< I2C device the sensor is connected to */
-    uint8_t addr;                   /**< the slave address of the sensor on the I2C bus */
-    gpio_t interrupt_pin;           /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
-    gpio_mode_t gpio_mode;          /**< gpio mode of the interrupt pin */
+    i2c_t i2c;                       /**< I2C device the sensor is connected to */
+    uint8_t addr;                    /**< the slave address of the sensor on the I2C bus */
+    gpio_t interrupt_pin;            /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
+    gpio_mode_t gpio_mode;           /**< gpio mode of the interrupt pin */
     orp_oem_irq_option_t irq_option; /**< behavior of the interrupt pin, disabled by default */
 } orp_oem_params_t;
 
