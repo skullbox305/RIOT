@@ -92,8 +92,8 @@ typedef void (*oem_common_interrupt_pin_cb_t)(void *);
  * @brief   XXX_OEM device descriptor
  */
 typedef struct oem_common_dev {
-	oem_common_params_t params;         /**< device driver configuration */
-	oem_common_interrupt_pin_cb_t cb;   /**< interrupt pin callback */
+    oem_common_params_t params;         /**< device driver configuration */
+    oem_common_interrupt_pin_cb_t cb;   /**< interrupt pin callback */
 } oem_common_dev_t;
 
 /**
@@ -108,6 +108,60 @@ typedef struct oem_common_dev {
  * @return
  */
 int oem_common_init(oem_common_dev_t *dev, const oem_common_params_t *params);
+
+/**
+ * @brief   Write to a register (8 Bit) of a XXX_OEM sensor
+ *
+ * @param[in] dev            device descriptor
+ * @param[in] reg            register address
+ * @param[in] in             input value, which is written to reg
+ *
+ * @return OEM_COMMON_OK         on success
+ * @return OEM_COMMON_WRITE_ERR  if writing to the device failed
+ */
+int oem_common_write_reg(const oem_common_dev_t *dev, uint8_t reg, uint8_t in);
+
+/**
+ * @brief   Read from a register (8 Bit) of a XXX_OEM sensor
+ *
+ * @param[in] dev     device descriptor
+ * @param[in] reg     register address
+ * @param[in] out     output value, which is read from reg
+ *
+ * @return OEM_COMMON_OK         on success
+ * @return OEM_COMMON_WRITE_ERR  if writing to the device failed
+ */
+int oem_common_read_reg(const oem_common_dev_t *dev, uint8_t reg,
+                        uint8_t *out);
+
+/**
+ * @brief   Write 4x8 Bit to the registers of a XXX_OEM sensor, starting from
+ *          the register base address @p reg
+ *
+ * @param[in] dev    device descriptor
+ * @param[in] reg    register base address
+ * @param[in] in     input value, which is written to the registers
+ *
+ * @return OEM_COMMON_OK         on success
+ * @return OEM_COMMON_WRITE_ERR  if writing to the device failed
+ */
+int oem_common_write_reg32(const oem_common_dev_t *dev, uint8_t reg,
+                           uint32_t in);
+
+/**
+ * @brief   Read 4x8 Bit registers of a XXX_OEM sensor, starting from the register
+ *          base address @p reg
+ *
+ * @param[in] dev    device descriptor
+ * @param[in] reg    register base address
+ * @param[in] out    output value, which is read from the 4x8 Bit registers
+ *                   (must be uint32_t or int32_t)
+ *
+ * @return OEM_COMMON_OK         on success
+ * @return OEM_COMMON_WRITE_ERR  if writing to the device failed
+ */
+int oem_common_read_reg32(const oem_common_dev_t *dev, uint8_t reg, bool neg,
+                          void *out);
 
 /**
  * @brief   Set the LED state of the XXX_OEM sensor by writing to the
@@ -144,51 +198,36 @@ int oem_common_set_led_state(const oem_common_dev_t *dev,
 int oem_common_set_i2c_address(oem_common_dev_t *dev, uint8_t addr);
 
 /**
- * @brief   Starts a new reading by setting the device state to
- *          @ref OEM_COMMON_TAKE_READINGS.
+ * @brief   Sets the calibration base register (@p reg) to the
+ *          @p calibration_value which the device will be calibrated to.
  *
- * @note    If the @ref oem_common_params_t.interrupt_pin is @ref GPIO_UNDEF
- *          this function will poll every 20ms till a reading is done (~420ms)
- *          and stop the device from taking further readings
+ * @param[in] dev               device descriptor
+ * @param[in] calibration_value calibration value
  *
- * @param[in] dev   device descriptor
- *
- * @return @ref OEM_COMMON_OK		  on success
- * @return @ref OEM_COMMON_WRITE_ERR  if writing to the device failed
- * @return @ref OEM_COMMON_READ_ERR   if reading from the device failed
+ * @return OEM_COMMON_OK         on success
+ * @return OEM_COMMON_READ_ERR   if reading from the register failed
+ * @return OEM_COMMON_WRITE_ERR  if writing the calibration_value to the device failed
  */
-int oem_common_start_new_reading(const oem_common_dev_t *dev);
+int oem_common_set_calibration_value(const oem_common_dev_t *dev, uint8_t reg,
+                                     uint32_t calibration_value);
 
 /**
- * @brief   Clears all previous calibrations
+ * @brief   Sets the calibration based on the given @p option. The calibration
+ *          value must be set before (except for the D.O. sensor or when clearing
+ *          the calibration).
  *
  * @param[in] dev          device descriptor
- * @param[in] cali_reg     Calibration Request(R/W) or Calibration(write only) register
- * @param[in] write_only   Must be true, if cali_reg is write only (e.g. for D.O. sensor)
+ * @param[in] reg          Calibration Request(R/W) or Calibration(write only) register
+ * @param[in] option       Calibration option (e.g. 0x1 = clear, 0x2 = ...)
+ * @param[in] write_only   Must be true, if @p reg is write-only (e.g. for D.O. sensor)
  *
- * @return @ref OEM_COMMON_OK         on success
- * @return @ref OEM_COMMON_WRITE_ERR  if writing to the device failed
- * @return @ref OEM_COMMON_READ_ERR	  if reading from the device failed
+ * @return OEM_COMMON_OK         on success
+ * @return OEM_COMMON_READ_ERR   if reading from the register failed
+ * @return OEM_COMMON_WRITE_ERR  if writing the calibration_value to the device failed
  */
-int oem_common_clear_calibration(const oem_common_dev_t *dev, uint8_t cali_reg,
-                                 bool write_only);
+int oem_common_set_calibration(const oem_common_dev_t *dev, uint8_t reg,
+                               uint8_t option, bool write_only);
 
-/**
- * @brief   Read the @ref OEM_COMMON_REG_CALIBRATION_CONFIRM register.
- *          After a calibration event has been successfully carried out, the
- *          calibration confirmation register will reflect what calibration has
- *          been done, by setting bits 0 - 3.
- *
- * @param[in]  dev                 device descriptor
- * @param[in]  cal_confirm_reg     Calibration Confirm register address
- * @param[out] calibration_state   calibration state reflected by bits 0 - 3
- *
- * @return @ref OEM_COMMON_OK       on success
- * @return @ref OEM_COMMON_READ_ERR if reading from the device failed
- */
-int oem_common_read_calibration_state(const oem_common_dev_t *dev,
-                                      uint8_t cal_confirm_reg,
-                                      uint16_t *calibration_state);
 /**
  * @brief   The interrupt pin will not auto reset on option @ref OEM_COMMON_IRQ_RISING
  *          and @ref OEM_COMMON_IRQ_FALLING after interrupt fires,
@@ -197,10 +236,10 @@ int oem_common_read_calibration_state(const oem_common_dev_t *dev,
  * @note    The interrupt settings are not retained if the power is cut,
  *          so you have to call this function again after powering on the device.
  *
- * @param[in] dev                device descriptor
+ * @param[in] dev  device descriptor
  *
- * @return @ref OEM_COMMON_OK        on success
- * @return @ref OEM_COMMON_WRITE_ERR if writing to the device failed
+ * @return @ref OEM_COMMON_OK         on success
+ * @return @ref OEM_COMMON_WRITE_ERR  if writing to the device failed
  */
 int oem_common_reset_interrupt_pin(const oem_common_dev_t *dev);
 
@@ -208,7 +247,8 @@ int oem_common_reset_interrupt_pin(const oem_common_dev_t *dev);
  * @brief   Enable the XXX_OEM interrupt pin if @ref oem_common_params_t.interrupt_pin
  *          is defined.
  *          @note @ref oem_common_reset_interrupt_pin needs to be called in the
- *          callback if you use @ref OEM_COMMON_IRQ_FALLING or @ref OEM_COMMON_IRQ_RISING
+ *          interrupt handler if you use @ref OEM_COMMON_IRQ_FALLING or
+ *          @ref OEM_COMMON_IRQ_RISING
  *
  *          @note Provide the OEM_COMMON_PARAM_INTERRUPT_OPTION flag in your
  *          makefile. Valid options see: @ref oem_common_irq_option_t.
@@ -232,6 +272,23 @@ int oem_common_reset_interrupt_pin(const oem_common_dev_t *dev);
 int oem_common_enable_interrupt(oem_common_dev_t *dev,
                                 oem_common_interrupt_pin_cb_t cb,
                                 void *arg);
+
+/**
+ * @brief   Starts a new reading by setting the device state to
+ *          @ref OEM_COMMON_TAKE_READINGS.
+ *
+ * @note    If the @ref oem_common_params_t.interrupt_pin is @ref GPIO_UNDEF
+ *          this function will poll every 20ms till a reading is done (~420ms)
+ *          and stop the device from taking further readings
+ *
+ * @param[in] dev   device descriptor
+ *
+ * @return @ref OEM_COMMON_OK		  on success
+ * @return @ref OEM_COMMON_WRITE_ERR  if writing to the device failed
+ * @return @ref OEM_COMMON_READ_ERR   if reading from the device failed
+ */
+int oem_common_start_new_reading(const oem_common_dev_t *dev);
+
 /**
  * @brief   Sets the device state (active/hibernate) of the XXX_OEM sensor by
  *          writing to the @ref OEM_COMMON_REG_HIBERNATE register.

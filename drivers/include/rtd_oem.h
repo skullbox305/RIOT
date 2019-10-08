@@ -292,14 +292,15 @@ int rtd_oem_set_device_state(const rtd_oem_t *dev,
  *          rtd reading.
  *
  * @param[in]  dev        device descriptor
- * @param[out] rtd_value   raw rtd value <br>
+ * @param[out] rtd_value  raw temp value <br>
  *                        divide by 1000 for floating point <br>
- *                        e.g 25761 / 1000 = 25.761
+ *                        e.g 25761 / 1000 = 25.761<br>
+ *                        Range: -126000 – 1254000 (-126.000 °C – 1254 °C)
  *
  * @return @ref RTD_OEM_OK on success
  * @return @ref RTD_OEM_READ_ERR if reading from the device failed
  */
-int rtd_oem_read_temp(const rtd_oem_t *dev, int32_t *rtd_value);
+int rtd_oem_read_temp(const rtd_oem_t *dev, int32_t *temp_val);
 
 #ifdef __cplusplus
 }

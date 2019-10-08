@@ -34,45 +34,6 @@
 #define ADDR (dev->params.addr)
 #define IRQ_OPTION (dev->params.irq_option)
 
-//
-///**
-// * @brief   Setting the pH OEM interrupt mode to the defined mode provided
-// *          in the device descriptor
-// *
-// * @param[in] dev device descriptor
-// *
-// * @return PH_OEM_OK on success
-// * @return PH_OEM_WRITE_ERR if writing to the device failed
-// */
-//static int _set_interrupt_pin(const ph_oem_t *dev);
-//
-///**
-// * @brief   Polls the PH_OEM_REG_NEW_READING register as long as it does not
-// *          equal 0x01, which indicates that a new pH reading is available.
-// *          Polling is done in an interval of 20ms. Estimated completion ~420ms
-// *
-// * @param[in] dev device descriptor
-// *
-// * @return PH_OEM_OK on success
-// * @return PH_OEM_READ_ERR if reading from the register failed
-// * @return PH_OEM_WRITE_ERR if reseting the register failed
-// */
-//static int _new_reading_available(const ph_oem_t *dev);
-//
-///**
-// * @brief   Sets the PH_OEM_REG_CALIBRATION_BASE register to the pH
-// *          @p calibration_value which the device will be calibrated to.
-// *
-// * @param[in] dev device descriptor
-// * @param[in] calibration_value pH value the device will be calibrated to
-// *
-// * @return PH_OEM_OK on success
-// * @return PH_OEM_READ_ERR if reading from the register failed
-// * @return PH_OEM_WRITE_ERR if writing the calibration_value to the device failed
-// */
-//static int _set_calibration_value(const ph_oem_t *dev,
-//                                  uint16_t calibration_value);
-
 int ph_oem_init(ph_oem_t *dev, const oem_common_params_t *params)
 {
     return oem_common_init(&dev->oem_dev, params);
@@ -80,297 +41,59 @@ int ph_oem_init(ph_oem_t *dev, const oem_common_params_t *params)
 
 int ph_oem_clear_calibration(const ph_oem_t *dev)
 {
-    return oem_common_clear_calibration(&dev->oem_dev,
-                                        PH_OEM_REG_CALIBRATION_REQUEST,
-                                        false);
+    return oem_common_set_calibration(&dev->oem_dev,
+                                      PH_OEM_REG_CALIBRATION_REQUEST,
+                                      0x1,
+                                      false);
 }
 
 int ph_oem_read_calibration_state(const ph_oem_t *dev,
-                                  uint16_t *calibration_state)
+                                  uint32_t *calibration_state)
 {
-    return oem_common_read_calibration_state(&dev->oem_dev,
-                                             PH_OEM_REG_CALIBRATION_CONFIRM,
-                                             calibration_state);
-
+    assert(dev);
+    return oem_common_read_reg(&dev->oem_dev, PH_OEM_REG_CALIBRATION_CONFIRM,
+                               (uint8_t *)calibration_state);
 }
 
-//static int _set_interrupt_pin(const ph_oem_t *dev)
-//{
-//    assert(dev);
-//    i2c_acquire(DEV_I2C);
-//
-//    if (i2c_write_reg(DEV_I2C, ADDR, PH_OEM_REG_INTERRUPT, IRQ_OPTION,
-//                      0x0) < 0) {
-//        DEBUG("\n[ph_oem debug] Setting interrupt pin to option %d failed.\n",
-//              IRQ_OPTION);
-//        i2c_release(DEV_I2C);
-//        return PH_OEM_WRITE_ERR;
-//    }
-//
-//    i2c_release(DEV_I2C);
-//
-//    return PH_OEM_OK;
-//}
-//
-//int ph_oem_enable_interrupt(ph_oem_t *dev, ph_oem_interrupt_pin_cb_t cb,
-//                            void *arg)
-//{
-//    if (dev->params.interrupt_pin == GPIO_UNDEF) {
-//        return PH_OEM_INTERRUPT_GPIO_UNDEF;
-//    }
-//
-//    if (_set_interrupt_pin(dev) < 0) {
-//        return PH_OEM_WRITE_ERR;
-//    }
-//
-//    int gpio_flank = 0;
-//
-//    switch (IRQ_OPTION) {
-//        case PH_OEM_IRQ_FALLING:
-//            gpio_flank = GPIO_FALLING;
-//            break;
-//        case PH_OEM_IRQ_RISING:
-//            gpio_flank = GPIO_RISING;
-//            break;
-//        case PH_OEM_IRQ_BOTH:
-//            gpio_flank = GPIO_BOTH;
-//            break;
-//    }
-//
-//    dev->arg = arg;
-//    dev->cb = cb;
-//    if (gpio_init_int(dev->params.interrupt_pin,
-//                      dev->params.gpio_mode, gpio_flank, cb, arg) < 0) {
-//        DEBUG("\n[ph_oem debug] Initializing interrupt gpio pin failed.\n");
-//        return PH_OEM_GPIO_INIT_ERR;
-//    }
-//
-//    return PH_OEM_OK;
-//}
-//
-//int ph_oem_reset_interrupt_pin(const ph_oem_t *dev)
-//{
-//    /* no reset needed for mode PH_OEM_IRQ_BOTH */
-//    if (dev->params.irq_option == PH_OEM_IRQ_BOTH) {
-//        return PH_OEM_OK;
-//    }
-//
-//    if (_set_interrupt_pin(dev) < 0) {
-//        return PH_OEM_WRITE_ERR;
-//    }
-//    return PH_OEM_OK;
-//}
+int ph_oem_set_calibration(const ph_oem_t *dev, uint32_t calibration_value,
+                           ph_oem_cal_option_t option)
+{
+    if (oem_common_set_calibration_value(&dev->oem_dev,
+                                         PH_OEM_REG_CALIBRATION_BASE,
+                                         calibration_value) != OEM_COMMON_OK) {
+        return OEM_COMMON_WRITE_ERR;
+    }
 
-//int ph_oem_set_device_state(const ph_oem_t *dev, ph_oem_device_state_t state)
-//{
-//    assert(dev);
-//    i2c_acquire(DEV_I2C);
-//
-//    if (i2c_write_reg(DEV_I2C, ADDR, PH_OEM_REG_HIBERNATE, state, 0x0) < 0) {
-//        DEBUG("\n[ph_oem debug] Setting device state to %d failed\n", state);
-//        i2c_release(DEV_I2C);
-//        return PH_OEM_WRITE_ERR;
-//    }
-//    i2c_release(DEV_I2C);
-//
-//    return PH_OEM_OK;
-//}
-//
-//static int _new_reading_available(const ph_oem_t *dev)
-//{
-//    int8_t new_reading_available;
-//
-//    assert(dev);
-//    i2c_acquire(DEV_I2C);
-//    do {
-//        if (i2c_read_reg(DEV_I2C, ADDR, PH_OEM_REG_NEW_READING,
-//                         &new_reading_available, 0x0) < 0) {
-//            DEBUG("\n[ph_oem debug] Failed at reading PH_OEM_REG_NEW_READING\n");
-//            i2c_release(DEV_I2C);
-//            return PH_OEM_READ_ERR;
-//        }
-//        xtimer_usleep(20 * US_PER_MS);
-//    } while (new_reading_available == 0);
-//
-//    /* need to manually reset register back to 0x00 */
-//    if (i2c_write_reg(DEV_I2C, ADDR, PH_OEM_REG_NEW_READING, 0x00, 0x0) < 0) {
-//        DEBUG("\n[ph_oem debug] Resetting PH_OEM_REG_NEW_READING failed\n");
-//        i2c_release(DEV_I2C);
-//        return PH_OEM_WRITE_ERR;
-//    }
-//    i2c_release(DEV_I2C);
-//
-//    return PH_OEM_OK;
-//}
-//
-//int ph_oem_start_new_reading(const ph_oem_t *dev)
-//{
-//    if (ph_oem_set_device_state(dev, PH_OEM_TAKE_READINGS) < 0) {
-//        return PH_OEM_WRITE_ERR;
-//    }
-//
-//    /* if interrupt pin is undefined, poll till new reading was taken and stop
-//     * device form taking further readings */
-//    if (dev->params.interrupt_pin == GPIO_UNDEF) {
-//        int result = _new_reading_available(dev);
-//        if (result < 0) {
-//            return result;
-//        }
-//
-//        if (ph_oem_set_device_state(dev, PH_OEM_STOP_READINGS) < 0) {
-//            return PH_OEM_WRITE_ERR;
-//        }
-//    }
-//    return PH_OEM_OK;
-//}
-//
+    return oem_common_set_calibration(&dev->oem_dev,
+                                      PH_OEM_REG_CALIBRATION_REQUEST, option,
+                                      false);
+}
 
-//
-//static int _set_calibration_value(const ph_oem_t *dev,
-//                                  uint16_t calibration_value)
-//{
-//    uint8_t reg_value[4];
-//
-//    reg_value[0] = 0x00;
-//    reg_value[1] = 0x00;
-//    reg_value[2] = (uint8_t)(calibration_value >> 8);
-//    reg_value[3] = (uint8_t)(calibration_value & 0x00FF);
-//
-//    i2c_acquire(DEV_I2C);
-//
-//    if (i2c_write_regs(DEV_I2C, ADDR, PH_OEM_REG_CALIBRATION_BASE, &reg_value,
-//                       4, 0) < 0) {
-//        DEBUG("\n[ph_oem debug] Writing calibration value failed \n");
-//        i2c_release(DEV_I2C);
-//        return PH_OEM_WRITE_ERR;
-//    }
-//
-//    /* Calibration is critical, so check if written value is in fact correct */
-//    if (i2c_read_regs(DEV_I2C, ADDR, PH_OEM_REG_CALIBRATION_BASE, &reg_value, 4,
-//                      0) < 0) {
-//        DEBUG("\n[ph_oem debug] Reading the calibration value failed \n");
-//        i2c_release(DEV_I2C);
-//        return PH_OEM_READ_ERR;
-//    }
-//
-//    uint16_t confirm_value = (int16_t)(reg_value[2] << 8)
-//                             | (int16_t)(reg_value[3]);
-//
-//    if (confirm_value != calibration_value) {
-//        DEBUG("\n[ph_oem debug] Setting calibration register to pH raw %d "
-//              "failed \n", calibration_value);
-//        i2c_release(DEV_I2C);
-//        return PH_OEM_WRITE_ERR;
-//    }
-//
-//    i2c_release(DEV_I2C);
-//
-//    return PH_OEM_OK;
-//}
-//
-//int ph_oem_set_calibration(const ph_oem_t *dev, uint16_t calibration_value,
-//                           ph_oem_calibration_option_t option)
-//{
-//    assert(dev);
-//
-//    if (_set_calibration_value(dev, calibration_value) != PH_OEM_OK) {
-//        return PH_OEM_WRITE_ERR;
-//    }
-//
-//    uint8_t reg_value;
-//
-//    i2c_acquire(DEV_I2C);
-//
-//    if (i2c_write_reg(DEV_I2C, ADDR, PH_OEM_REG_CALIBRATION_REQUEST,
-//                      option, 0) < 0) {
-//        DEBUG("\n[ph_oem debug] Sending calibration request failed\n");
-//        return PH_OEM_WRITE_ERR;
-//    }
-//
-//    do {
-//        if (i2c_read_reg(DEV_I2C, ADDR, PH_OEM_REG_CALIBRATION_REQUEST,
-//                         &reg_value,
-//                         0) < 0) {
-//            DEBUG("\n[ph_oem debug] Reading calibration request status failed\n");
-//            i2c_release(DEV_I2C);
-//            return PH_OEM_READ_ERR;
-//        }
-//    } while (reg_value != 0x00);
-//
-//    i2c_release(DEV_I2C);
-//
-//    return PH_OEM_OK;
-//}
-//
+int ph_oem_set_compensation(const ph_oem_t *dev,
+                            uint16_t temp_compensation)
+{
+    if (!(temp_compensation >= 1 && temp_compensation <= 20000)) {
+        return OEM_COMMON_VAL_OUT_OF_RANGE;
+    }
 
-//
-//int ph_oem_set_compensation(const ph_oem_t *dev,
-//                            uint16_t temperature_compensation)
-//{
-//    if (!(temperature_compensation >= 1 && temperature_compensation <= 20000)) {
-//        return PH_OEM_TEMP_OUT_OF_RANGE;
-//    }
-//
-//    assert(dev);
-//    uint8_t reg_value[4];
-//
-//    reg_value[0] = 0x00;
-//    reg_value[1] = 0x00;
-//    reg_value[2] = (uint8_t)(temperature_compensation >> 8);
-//    reg_value[3] = (uint8_t)(temperature_compensation & 0x00FF);
-//
-//    i2c_acquire(DEV_I2C);
-//
-//    if (i2c_write_regs(DEV_I2C, ADDR, PH_OEM_REG_TEMP_COMPENSATION_BASE,
-//                       &reg_value, 4, 0) < 0) {
-//        DEBUG("\n[ph_oem debug] Setting temperature compensation of device to "
-//              "%d failed\n", temperature_compensation);
-//        i2c_release(DEV_I2C);
-//        return PH_OEM_WRITE_ERR;
-//    }
-//    i2c_release(DEV_I2C);
-//
-//    return PH_OEM_OK;
-//}
-//
-//int ph_oem_read_compensation(const ph_oem_t *dev,
-//                             uint16_t *temperature_compensation)
-//{
-//    uint8_t reg_value[4];
-//
-//    assert(dev);
-//    i2c_acquire(DEV_I2C);
-//
-//    if (i2c_read_regs(DEV_I2C, ADDR, PH_OEM_REG_TEMP_CONFIRMATION_BASE,
-//                      &reg_value, 4, 0) < 0) {
-//        DEBUG("[ph_oem debug] Getting temperature compensation value failed\n");
-//        i2c_release(DEV_I2C);
-//        return PH_OEM_READ_ERR;
-//    }
-//    *temperature_compensation = (int16_t)(reg_value[2] << 8) |
-//                                (int16_t)(reg_value[3]);
-//
-//    i2c_release(DEV_I2C);
-//
-//    return PH_OEM_OK;
-//}
-//
-//int ph_oem_read_ph(const ph_oem_t *dev, uint16_t *ph_value)
-//{
-//    uint8_t reg_value[4];
-//
-//    assert(dev);
-//    i2c_acquire(DEV_I2C);
-//
-//    if (i2c_read_regs(DEV_I2C, ADDR, PH_OEM_REG_PH_READING_BASE,
-//                      &reg_value, 4, 0) < 0) {
-//        DEBUG("[ph_oem debug] Getting pH value failed\n");
-//        i2c_release(DEV_I2C);
-//        return PH_OEM_READ_ERR;
-//    }
-//    *ph_value = (int16_t)(reg_value[2] << 8) | (int16_t)(reg_value[3]);
-//
-//    i2c_release(DEV_I2C);
-//
-//    return PH_OEM_OK;
-//}
+    assert(dev);
+    return oem_common_write_reg32(&dev->oem_dev,
+                                  PH_OEM_REG_TEMP_COMPENSATION_BASE,
+                                  temp_compensation);
+}
+
+int ph_oem_read_compensation(const ph_oem_t *dev,
+                             uint32_t *temperature_compensation)
+{
+    assert(dev);
+    return oem_common_read_reg32(&dev->oem_dev,
+                                 PH_OEM_REG_TEMP_CONFIRMATION_BASE,
+                                 false, temperature_compensation);
+}
+
+int ph_oem_read_ph(const ph_oem_t *dev, uint32_t *ph_value)
+{
+    assert(dev);
+    return oem_common_read_reg32(&dev->oem_dev, PH_OEM_REG_PH_READING_BASE,
+                                 false, ph_value);
+}

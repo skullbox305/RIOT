@@ -222,13 +222,14 @@ int do_oem_clear_calibration(const do_oem_t *dev);
  * @brief   Read the @ref DO_OEM_REG_CALIBRATION_CONFIRM register.
  *          After a calibration event has been successfully carried out, the
  *          calibration confirmation register will reflect what calibration has
- *          been done, by setting bits 0 - 3.
+ *          been done, by setting bits 0 - 2.
  *
  * @param[in]  dev                 device descriptor
- * @param[out] calibration_state   calibration state reflected by bits 0 - 3 <br>
- *                                 (0 = no calibration, 1 = calibrated to atmosphere
- *                                 2 = calibrated to 0 Dissolved Oxygen 3 = calibrated to
- *                                 both atmospheric and 0 dissolved Oxygen)
+ * @param[out] calibration_state   calibration state reflected by the bits 0 - 2 <br>
+ *                                 (0 dec = no calibration,
+ *                                  1 dec = calibrated to atmosphere,
+ *                                  2 dec = calibrated to 0 Dissolved Oxygen,
+ *                                  3 dec = calibrated to both atmospheric and 0 dissolved Oxygen)
  *
  * @return @ref DO_OEM_OK 		on success
  * @return @ref DO_OEM_READ_ERR if reading from the device failed

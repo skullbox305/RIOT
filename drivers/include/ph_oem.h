@@ -63,10 +63,10 @@ extern "C"
  * @brief   Calibration option values
  */
 typedef enum {
-    PH_OEM_CALIBRATE_LOW_POINT  = 0x02,     /**< Low point calibration option */
-    PH_OEM_CALIBRATE_MID_POINT  = 0x03,     /**< Mid point calibration option */
-    PH_OEM_CALIBRATE_HIGH_POINT = 0x04,     /**< High point calibration option */
-} ph_oem_calibration_option_t;
+    PH_OEM_CAL_LOW_POINT  = 0x02,     /**< Low point calibration */
+    PH_OEM_CAL_MID_POINT  = 0x03,     /**< Mid point calibration */
+    PH_OEM_CAL_HIGH_POINT = 0x04,     /**< High point calibration */
+} ph_oem_cal_option_t;
 
 /**
  * @brief   pH OEM device descriptor
@@ -103,174 +103,92 @@ int ph_oem_clear_calibration(const ph_oem_t *dev);
  * @brief   Read the @ref PH_OEM_REG_CALIBRATION_CONFIRM register.
  *          After a calibration event has been successfully carried out, the
  *          calibration confirmation register will reflect what calibration has
- *          been done, by setting bits 0 - 2.
+ *          been performed by setting bits 0 - 2. For exam
  *
  * @param[in]  dev                 device descriptor
  * @param[out] calibration_state   calibration state reflected by bits 0 - 2 <br>
- *                                 (0 = low, 1 = mid, 2 = high)
+ *                                 (Bit 0 = low, Bit 1 = mid, Bit 2 = high)
  *
  * @return @ref PH_OEM_OK on success
  * @return @ref PH_OEM_READ_ERR if reading from the device failed
  */
-int ph_oem_read_calibration_state(const ph_oem_t *dev, uint16_t *calibration_state);
-
-//
-///**
-// * @brief   Enable the pH OEM interrupt pin if @ref ph_oem_params_t.interrupt_pin
-// *          is defined.
-// *          @note @ref ph_oem_reset_interrupt_pin needs to be called in the
-// *          callback if you use @ref PH_OEM_IRQ_FALLING or @ref PH_OEM_IRQ_RISING
-// *
-// *          @note Provide the PH_OEM_PARAM_INTERRUPT_OPTION flag in your
-// *          makefile. Valid options see: @ref ph_oem_irq_option_t.
-// *          The default is @ref PH_OEM_IRQ_BOTH.
-// *
-// *          @note Also provide the @ref gpio_mode_t as a CFLAG in your makefile.
-// *          Most likely @ref GPIO_IN. If the pin is to sensitive use
-// *          @ref GPIO_IN_PU for @ref PH_OEM_IRQ_FALLING or
-// *          @ref GPIO_IN_PD for @ref PH_OEM_IRQ_RISING and
-// *          @ref PH_OEM_IRQ_BOTH. The default is @ref GPIO_IN_PD
-// *
-// *
-// * @param[in] dev       device descriptor
-// * @param[in] cb        callback called when the pH OEM interrupt pin fires
-// * @param[in] arg       callback argument
-// *
-// * @return @ref PH_OEM_OK on success
-// * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
-// * @return @ref PH_OEM_INTERRUPT_GPIO_UNDEF if the interrupt pin is undefined
-// * @return @ref PH_OEM_GPIO_INIT_ERR if initializing the interrupt gpio pin failed
-// */
-//int ph_oem_enable_interrupt(ph_oem_t *dev, ph_oem_interrupt_pin_cb_t cb,
-//                            void *arg);
-//
-///**
-// * @brief   The interrupt pin will not auto reset on option @ref PH_OEM_IRQ_RISING
-// *          and @ref PH_OEM_IRQ_FALLING after interrupt fires,
-// *          so call this function again to reset the pin state.
-// *
-// * @note    The interrupt settings are not retained if the power is cut,
-// *          so you have to call this function again after powering on the device.
-// *
-// * @param[in] dev    device descriptor
-// *
-// * @return @ref PH_OEM_OK on success
-// * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
-// */
-//int ph_oem_reset_interrupt_pin(const ph_oem_t *dev);
-
-//
-///**
-// * @brief   Sets the device state (active/hibernate) of the pH OEM sensor by
-// *          writing to the @ref PH_OEM_REG_HIBERNATE register.
-// *
-// *          @note Once the device has been woken up it will continuously take
-// *          readings every 420ms. Waking the device is the only way to take a
-// *          reading. Hibernating the device is the only way to stop taking readings.
-// *
-// * @param[in] dev   device descriptor
-// * @param[in] state @ref ph_oem_device_state_t
-// *
-// * @return @ref PH_OEM_OK on success
-// * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
-// */
-//int ph_oem_set_device_state(const ph_oem_t *dev, ph_oem_device_state_t state);
-//
-///**
-// * @brief   Starts a new reading by setting the device state to
-// *          @ref PH_OEM_TAKE_READINGS.
-// *
-// * @note    If the @ref ph_oem_params_t.interrupt_pin is @ref GPIO_UNDEF
-// *          this function will poll every 20ms till a reading is done (~420ms)
-// *          and stop the device from taking further readings
-// *
-// * @param[in] dev   device descriptor
-// *
-// * @return @ref PH_OEM_OK on success
-// * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
-// * @return @ref PH_OEM_READ_ERR if reading from the device failed
-// */
-//int ph_oem_start_new_reading(const ph_oem_t *dev);
+int ph_oem_read_calibration_state(const ph_oem_t *dev, uint32_t *calibration_state);
 
 
-//
-///**
-// * @brief   Sets the @ref PH_OEM_REG_CALIBRATION_BASE register to the
-// *          calibration_value which the pH OEM sensor will be
-// *          calibrated to. Multiply the floating point calibration value of your
-// *          solution by 1000 e.g. pH calibration solution => 7.002 * 1000 = 7002 = 0x00001B5A
-// *
-// *          The calibration value will be saved based on the given
-// *          @ref ph_oem_calibration_option_t and retained after the power is cut.
-// *
-// * @note    Calibrating with @ref PH_OEM_CALIBRATE_MID_POINT will reset the
-// *          previous calibrations.
-// *          Always start with @ref PH_OEM_CALIBRATE_MID_POINT if you doing
-// *          2 or 3 point calibration
-// *
-// * @param[in] dev                 device descriptor
-// * @param[in] calibration_value   pH value multiplied by 1000 e.g 7,002 * 1000 = 7002
-// * @param[in] option              @ref ph_oem_calibration_option_t
-// *
-// * @return @ref PH_OEM_OK on success
-// * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
-// * @return @ref PH_OEM_READ_ERR if reading from the device failed
-// */
-//int ph_oem_set_calibration(const ph_oem_t *dev, uint16_t calibration_value,
-//                           ph_oem_calibration_option_t option);
-//
+/**
+ * @brief   Sets the @ref PH_OEM_REG_CALIBRATION_BASE register to the
+ *          @p cal_value which the pH OEM sensor will be
+ *          calibrated to. Multiply the floating point calibration value of your
+ *          solution by 1000 e.g. pH calibration solution => 7.002 * 1000 = 7002 = 0x00001B5A
+ *
+ *          The calibration value will be saved based on the given
+ *          @ref ph_oem_calibration_option_t and retained after the power is cut.
+ *
+ * @note    Calibrating with @ref PH_OEM_CALIBRATE_MID_POINT will reset the
+ *          previous calibrations.
+ *          Always start with @ref PH_OEM_CALIBRATE_MID_POINT if you doing
+ *          2 or 3 point calibration
+ *
+ * @param[in] dev         device descriptor
+ * @param[in] cal_value   pH value multiplied by 1000 e.g 7,002 * 1000 = 7002
+ * @param[in] option      @ref ph_oem_calibration_option_t
+ *
+ * @return @ref PH_OEM_OK on success
+ * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
+ * @return @ref PH_OEM_READ_ERR if reading from the device failed
+ */
+int ph_oem_set_calibration(const ph_oem_t *dev, uint32_t cal_value,
+                           ph_oem_cal_option_t option);
 
-//
-///**
-// * @brief   Sets the @ref PH_OEM_REG_TEMP_COMPENSATION_BASE register to the
-// *          temperature_compensation value which the pH OEM sensor will use
-// *          to compensate the reading error.
-// *          Multiply the floating point temperature value by 100
-// *          e.g. temperature in degree Celsius = 34.26 * 100 = 3426
-// *
-// *  @note   The temperature compensation will not be retained if the power is cut.
-// *
-// * @param[in] dev                        device descriptor
-// * @param[in] temperature_compensation   valid temperature range is
-// *                                       1 - 20000 (0.01 °C  to  200.0 °C)
-// *
-// * @return @ref PH_OEM_OK on success
-// * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
-// * @return @ref PH_OEM_TEMP_OUT_OF_RANGE if the temperature_compensation is not in
-// *                                       the valid range
-// */
-//int ph_oem_set_compensation(const ph_oem_t *dev,
-//                            uint16_t temperature_compensation);
-//
-///**
-// * @brief   Reads the @ref PH_OEM_REG_TEMP_CONFIRMATION_BASE register to verify
-// *          the temperature compensation value that was used to take the pH
-// *          reading is set to the correct temperature.
-// *
-// * @param[in]  dev                       device descriptor
-// * @param[out] temperature_compensation  raw temperature compensation value. <br>
-// *                                       Divide by 100 for floating point <br>
-// *                                       e.g 3426 / 100 = 34.26
-// *
-// * @return @ref PH_OEM_OK on success
-// * @return @ref PH_OEM_READ_ERR if reading from the device failed
-// */
-//int ph_oem_read_compensation(const ph_oem_t *dev,
-//                             uint16_t *temperature_compensation);
-//
-///**
-// * @brief   Reads the @ref PH_OEM_REG_PH_READING_BASE register to get the current
-// *          pH reading.
-// *
-// * @param[in]  dev        device descriptor
-// * @param[out] ph_value   raw pH value <br>
-// *                        divide by 1000 for floating point <br>
-// *                        e.g 8347 / 1000 = 8.347
-// *
-// * @return @ref PH_OEM_OK on success
-// * @return @ref PH_OEM_READ_ERR if reading from the device failed
-// */
-//int ph_oem_read_ph(const ph_oem_t *dev, uint16_t *ph_value);
+/**
+ * @brief   Sets the @ref PH_OEM_REG_TEMP_COMPENSATION_BASE register to the
+ *          temperature_compensation value which the pH OEM sensor will use
+ *          to compensate the reading error.
+ *          Multiply the floating point temperature value by 100
+ *          e.g. temperature in degree Celsius = 34.26 * 100 = 3426
+ *
+ *  @note   The temperature compensation will not be retained if the power is cut.
+ *
+ * @param[in] dev                 device descriptor
+ * @param[in] temp_compensation   valid temperature range is
+ *                                1 - 20000 (0.01 °C  to  200.0 °C)
+ *
+ * @return @ref PH_OEM_OK on success
+ * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
+ * @return @ref PH_OEM_TEMP_OUT_OF_RANGE if the temperature_compensation is not in
+ *                                       the valid range
+ */
+int ph_oem_set_compensation(const ph_oem_t *dev, uint16_t temp_compensation);
+
+/**
+ * @brief   Reads the @ref PH_OEM_REG_TEMP_CONFIRMATION_BASE register to verify
+ *          the temperature compensation value that was used to take the pH
+ *          reading is set to the correct temperature.
+ *
+ * @param[in]  dev                       device descriptor
+ * @param[out] temperature_compensation  raw temperature compensation value. <br>
+ *                                       Divide by 100 for floating point <br>
+ *                                       e.g 3426 / 100 = 34.26
+ *
+ * @return @ref PH_OEM_OK on success
+ * @return @ref PH_OEM_READ_ERR if reading from the device failed
+ */
+int ph_oem_read_compensation(const ph_oem_t *dev,
+                             uint32_t *temperature_compensation);
+
+/**
+ * @brief   Reads the @ref PH_OEM_REG_PH_READING_BASE register to get the current
+ *          pH reading.
+ *
+ * @param[in]  dev        device descriptor
+ * @param[out] ph_value   raw pH value <br>
+ *                        divide by 1000 for floating point <br>
+ *                        e.g 8347 / 1000 = 8.347
+ *
+ * @return @ref PH_OEM_OK on success
+ * @return @ref PH_OEM_READ_ERR if reading from the device failed
+ */
+int ph_oem_read_ph(const ph_oem_t *dev, uint32_t *ph_value);
 
 #ifdef __cplusplus
 }
