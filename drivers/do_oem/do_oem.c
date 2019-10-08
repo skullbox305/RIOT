@@ -13,8 +13,8 @@
  * @file
  * @brief       DO OEM device driver
  *
- * @author      Ting Xu <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
+ * @author      Ting Xu <timtsui@outlook.com>
  * @}
  */
 
@@ -24,8 +24,8 @@
 #include "periph/gpio.h"
 
 #include "do_oem.h"
-#include "include/do_oem_params.h"
-#include "include/do_oem_regs.h"
+#include "do_oem_params.h"
+#include "do_oem_regs.h"
 
 #define ENABLE_DEBUG    (1)
 #include "debug.h"
@@ -61,7 +61,7 @@ static int _set_interrupt_pin(const do_oem_t *dev);
  *          equal 0x01, which indicates that a new EC reading is available.
  *          Polling is done in an interval of 20ms. Estimated completion ~640ms
  *
- * @param[in] dev device descriptor
+ * @param[in] dev device descriptor^
  *
  * @return DO_OEM_OK 		on success
  * @return DO_OEM_READ_ERR  if reading from the register failed

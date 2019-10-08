@@ -132,6 +132,7 @@ ifneq (,$(filter do_oem,$(USEMODULE)))
   FEATURES_REQUIRED += periph_gpio_irq
   FEATURES_REQUIRED += periph_i2c
   USEMODULE += xtimer
+  USEMODULE += oem_common
 endif
 
 ifneq (,$(filter ds1307,$(USEMODULE)))
@@ -166,6 +167,7 @@ ifneq (,$(filter ec_oem,$(USEMODULE)))
   FEATURES_REQUIRED += periph_gpio_irq
   FEATURES_REQUIRED += periph_i2c
   USEMODULE += xtimer
+  USEMODULE += oem_common
 endif
 
 ifneq (,$(filter enc28j60,$(USEMODULE)))
@@ -430,6 +432,7 @@ ifneq (,$(filter orp_oem,$(USEMODULE)))
   FEATURES_REQUIRED += periph_gpio_irq
   FEATURES_REQUIRED += periph_i2c
   USEMODULE += xtimer
+  USEMODULE += oem_common
 endif
 
 ifneq (,$(filter pcd8544,$(USEMODULE)))
@@ -449,6 +452,7 @@ ifneq (,$(filter ph_oem,$(USEMODULE)))
   FEATURES_REQUIRED += periph_gpio_irq
   FEATURES_REQUIRED += periph_i2c
   USEMODULE += xtimer
+  USEMODULE += oem_common
 endif
 
 ifneq (,$(filter pir,$(USEMODULE)))
@@ -490,6 +494,7 @@ ifneq (,$(filter rtd_oem,$(USEMODULE)))
   FEATURES_REQUIRED += periph_gpio_irq
   FEATURES_REQUIRED += periph_i2c
   USEMODULE += xtimer
+  USEMODULE += oem_common
 endif
 
 ifneq (,$(filter sdcard_spi,$(USEMODULE)))

@@ -22,21 +22,21 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "include/orp_oem_regs.h"
+#include "orp_oem_regs.h"
 #include "saul.h"
 #include "orp_oem.h"
 
 static int read_orp(const void *dev, phydat_t *res)
 {
     const orp_oem_t *mydev = dev;
-    int16_t orp_reading;
+    int32_t orp_reading;
 
-    if (mydev->params.interrupt_pin != GPIO_UNDEF) {
+    if (mydev->oem_dev.params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
         return -ENOTSUP;
     }
 
-    if (orp_oem_start_new_reading(mydev) < 0) {
+    if (oem_common_start_new_reading(&mydev->oem_dev) < 0) {
         return -ECANCELED;
     }
 

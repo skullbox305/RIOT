@@ -38,6 +38,11 @@ typedef enum ph_oem_reg {
     PH_OEM_REG_PH_READING_BASE          = 0x16, /**< pH reading register base address, order= MSB, high byte, low byte, LSB (0x16-0x19) (read only) */
 } ph_oem_reg_t;
 
+/**
+ * @brief Device ID of the @ref OEM_COMMON_REG_DEVICE_TYPE register of a pH OEM sensor
+ */
+#define PH_OEM_DEVICE_TYPE_ID  0x01
+
 #ifdef __cplusplus
 }
 #endif

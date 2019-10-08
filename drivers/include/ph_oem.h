@@ -63,16 +63,17 @@ extern "C"
  * @brief   Calibration option values
  */
 typedef enum {
-    PH_OEM_CAL_LOW_POINT  = 0x02,     /**< Low point calibration */
-    PH_OEM_CAL_MID_POINT  = 0x03,     /**< Mid point calibration */
-    PH_OEM_CAL_HIGH_POINT = 0x04,     /**< High point calibration */
+    PH_OEM_CAL_CLEAR        = 0x01,     /**< Clear calibration */
+    PH_OEM_CAL_LOW_POINT    = 0x02,     /**< Low point calibration */
+    PH_OEM_CAL_MID_POINT    = 0x03,     /**< Mid point calibration */
+    PH_OEM_CAL_HIGH_POINT   = 0x04,     /**< High point calibration */
 } ph_oem_cal_option_t;
 
 /**
  * @brief   pH OEM device descriptor
  */
 typedef struct ph_oem {
-	oem_common_dev_t oem_dev;         /**< common OEM device driver configuration */
+    oem_common_dev_t oem_dev;  /**< common OEM device driver configuration */
 } ph_oem_t;
 
 /**
@@ -81,8 +82,8 @@ typedef struct ph_oem {
  * @param[in,out]   dev      device descriptor
  * @param[in]       params   device configuration
  *
- * @return @ref PH_OEM_OK on success
- * @return @ref PH_OEM_NODEV if no device is found on the bus
+ * @return @ref PH_OEM_OK     on success
+ * @return @ref PH_OEM_NODEV  if no device is found on the bus
  * @return @ref PH_OEM_NOT_PH if the device found at the address is not a pH OEM device
  * @return
  */
@@ -103,7 +104,7 @@ int ph_oem_clear_calibration(const ph_oem_t *dev);
  * @brief   Read the @ref PH_OEM_REG_CALIBRATION_CONFIRM register.
  *          After a calibration event has been successfully carried out, the
  *          calibration confirmation register will reflect what calibration has
- *          been performed by setting bits 0 - 2. For exam
+ *          been performed by setting bits 0 - 2.
  *
  * @param[in]  dev                 device descriptor
  * @param[out] calibration_state   calibration state reflected by bits 0 - 2 <br>
@@ -112,8 +113,8 @@ int ph_oem_clear_calibration(const ph_oem_t *dev);
  * @return @ref PH_OEM_OK on success
  * @return @ref PH_OEM_READ_ERR if reading from the device failed
  */
-int ph_oem_read_calibration_state(const ph_oem_t *dev, uint32_t *calibration_state);
-
+int ph_oem_read_calibration_state(const ph_oem_t *dev,
+                                  uint8_t *calibration_state);
 
 /**
  * @brief   Sets the @ref PH_OEM_REG_CALIBRATION_BASE register to the
@@ -126,11 +127,11 @@ int ph_oem_read_calibration_state(const ph_oem_t *dev, uint32_t *calibration_sta
  *
  * @note    Calibrating with @ref PH_OEM_CALIBRATE_MID_POINT will reset the
  *          previous calibrations.
- *          Always start with @ref PH_OEM_CALIBRATE_MID_POINT if you doing
+ *          Always start with @ref PH_OEM_CALIBRATE_MID_POINT if you're doing
  *          2 or 3 point calibration
  *
  * @param[in] dev         device descriptor
- * @param[in] cal_value   pH value multiplied by 1000 e.g 7,002 * 1000 = 7002
+ * @param[in] cal_value   pH calibration value
  * @param[in] option      @ref ph_oem_calibration_option_t
  *
  * @return @ref PH_OEM_OK on success
@@ -150,11 +151,12 @@ int ph_oem_set_calibration(const ph_oem_t *dev, uint32_t cal_value,
  *  @note   The temperature compensation will not be retained if the power is cut.
  *
  * @param[in] dev                 device descriptor
- * @param[in] temp_compensation   valid temperature range is
+ * @param[in] temp_compensation   temperature compensation value <br>
+ *                                valid temperature range is
  *                                1 - 20000 (0.01 °C  to  200.0 °C)
  *
- * @return @ref PH_OEM_OK on success
- * @return @ref PH_OEM_WRITE_ERR if writing to the device failed
+ * @return @ref PH_OEM_OK                on success
+ * @return @ref PH_OEM_WRITE_ERR         if writing to the device failed
  * @return @ref PH_OEM_TEMP_OUT_OF_RANGE if the temperature_compensation is not in
  *                                       the valid range
  */
@@ -165,16 +167,15 @@ int ph_oem_set_compensation(const ph_oem_t *dev, uint16_t temp_compensation);
  *          the temperature compensation value that was used to take the pH
  *          reading is set to the correct temperature.
  *
- * @param[in]  dev                       device descriptor
- * @param[out] temperature_compensation  raw temperature compensation value. <br>
- *                                       Divide by 100 for floating point <br>
- *                                       e.g 3426 / 100 = 34.26
+ * @param[in]  dev                 device descriptor
+ * @param[out] temp_compensation   raw temperature compensation value. <br>
+ *                                 Divide by 100 for floating point <br>
+ *                                 e.g 3426 / 100 = 34.26
  *
  * @return @ref PH_OEM_OK on success
  * @return @ref PH_OEM_READ_ERR if reading from the device failed
  */
-int ph_oem_read_compensation(const ph_oem_t *dev,
-                             uint32_t *temperature_compensation);
+int ph_oem_read_compensation(const ph_oem_t *dev, uint32_t *temp_compensation);
 
 /**
  * @brief   Reads the @ref PH_OEM_REG_PH_READING_BASE register to get the current

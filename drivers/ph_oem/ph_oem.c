@@ -43,16 +43,16 @@ int ph_oem_clear_calibration(const ph_oem_t *dev)
 {
     return oem_common_set_calibration(&dev->oem_dev,
                                       PH_OEM_REG_CALIBRATION_REQUEST,
-                                      0x1,
+									  PH_OEM_CAL_CLEAR,
                                       false);
 }
 
 int ph_oem_read_calibration_state(const ph_oem_t *dev,
-                                  uint32_t *calibration_state)
+                                  uint8_t *calibration_state)
 {
     assert(dev);
     return oem_common_read_reg(&dev->oem_dev, PH_OEM_REG_CALIBRATION_CONFIRM,
-                               (uint8_t *)calibration_state);
+                               calibration_state);
 }
 
 int ph_oem_set_calibration(const ph_oem_t *dev, uint32_t calibration_value,
@@ -82,13 +82,12 @@ int ph_oem_set_compensation(const ph_oem_t *dev,
                                   temp_compensation);
 }
 
-int ph_oem_read_compensation(const ph_oem_t *dev,
-                             uint32_t *temperature_compensation)
+int ph_oem_read_compensation(const ph_oem_t *dev, uint32_t *temp_compensation)
 {
     assert(dev);
     return oem_common_read_reg32(&dev->oem_dev,
                                  PH_OEM_REG_TEMP_CONFIRMATION_BASE,
-                                 false, temperature_compensation);
+                                 false, temp_compensation);
 }
 
 int ph_oem_read_ph(const ph_oem_t *dev, uint32_t *ph_value)

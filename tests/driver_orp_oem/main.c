@@ -13,8 +13,8 @@
  * @file
  * @brief       Test application for the Atlas Scientific ORP OEM sensor driver
  *
- * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
+ * @author      Ting XU <timtsui@outlook.com>
  *
  * @}
  */
@@ -41,18 +41,17 @@ static event_t event = { .handler = reading_available_event_callback };
 static void reading_available_event_callback(event_t *event)
 {
     (void)event;
-    int16_t data;
+    int32_t data = 0;
 
     puts("\n[EVENT - reading ORP value from the device]");
 
     /* stop ORP sensor from taking further readings*/
-    orp_oem_set_device_state(&dev, ORP_OEM_STOP_READINGS);
-
+    oem_common_set_device_state(&dev.oem_dev, OEM_COMMON_STOP_READINGS);
     /* reset interrupt pin in case of falling or rising flank */
-    orp_oem_reset_interrupt_pin(&dev);
+    oem_common_reset_interrupt_pin(&dev.oem_dev);
 
     orp_oem_read_orp(&dev, &data);
-    printf("ORP value raw: %d\n", data);
+    printf("ORP value raw: %ld\n", data);
 
 }
 
@@ -71,18 +70,16 @@ static void interrupt_pin_callback(void *arg)
 
 int main(void)
 {
-    //output is really fast after reset, sleep 2 sec so we see all ouputs
-    xtimer_sleep(2);
 
-    uint16_t data = 0;
-    int16_t reading = 0;
+	xtimer_sleep(2);
+    uint32_t data = 0;
 
     puts("Atlas Scientific ORP OEM sensor driver test application\n");
 
     printf("Initializing ORP OEM sensor at I2C_%i, address 0x%02x...",
            ORP_OEM_PARAM_I2C, ORP_OEM_PARAM_ADDR);
 
-    if (orp_oem_init(&dev, orp_oem_params) == ORP_OEM_OK) {
+    if (orp_oem_init(&dev, orp_oem_params) == 0) {
         puts("[OK]");
     }
     else {
@@ -91,7 +88,7 @@ int main(void)
     }
 
     printf("Turning LED off... ");
-    if (orp_oem_set_led_state(&dev, ORP_OEM_LED_OFF) == ORP_OEM_OK) {
+    if (oem_common_set_led_state(&dev.oem_dev, OEM_COMMON_LED_OFF) == 0) {
         puts("[OK]");
         /* Sleep 2 seconds to actually see it turning off */
         xtimer_sleep(2);
@@ -102,7 +99,7 @@ int main(void)
     }
 
     printf("Turning LED on... ");
-    if (orp_oem_set_led_state(&dev, ORP_OEM_LED_ON) == ORP_OEM_OK) {
+    if (oem_common_set_led_state(&dev.oem_dev, OEM_COMMON_LED_ON) == 0) {
         puts("[OK]");
     }
     else {
@@ -110,11 +107,11 @@ int main(void)
         return -1;
     }
 
-    /* Test changing the ORP OEM i2c address to 0x67 and back to 0x66 in the
-     * sensor as well as dev->params.addr
+    /* Test changing the ORP OEM i2c address to 0x63 and back to the default
+     * 0x66 in the sensor as well as dev->oem_dev.params.addr
      */
-    printf("Setting device address to 0x67... ");
-    if (orp_oem_set_i2c_address(&dev, 0x67) == ORP_OEM_OK) {
+    printf("Setting device address to 0x63... ");
+    if (oem_common_set_i2c_address(&dev.oem_dev, 0x63) == 0) {
         puts("[OK]");
     }
     else {
@@ -123,7 +120,7 @@ int main(void)
     }
 
     printf("Setting device address back to the default address 0x66... ");
-    if (orp_oem_set_i2c_address(&dev, 0x66) == ORP_OEM_OK) {
+    if (oem_common_set_i2c_address(&dev.oem_dev, 0x66) == 0) {
         puts("[OK]");
     }
     else {
@@ -134,7 +131,7 @@ int main(void)
     if (CALIBRATION_TEST_ENABLED) {
         /* Test the calibration */
         printf("Clearing all previous calibrations... ");
-        if (orp_oem_clear_calibration(&dev) == ORP_OEM_OK) {
+        if (orp_oem_clear_calibration(&dev) == 0) {
             puts("[OK]");
         }
         else {
@@ -143,7 +140,7 @@ int main(void)
         }
 
         printf("Reading calibration state, should be 0... ");
-        if (orp_oem_read_calibration_state(&dev, &data) == ORP_OEM_OK
+        if (orp_oem_read_calibration_state(&dev, (uint8_t *)&data) == 0
             && data == 0) {
             puts("[OK]");
         }
@@ -154,8 +151,7 @@ int main(void)
 
         printf("Single point calibration... ");
         if (orp_oem_set_calibration(&dev, 10000,
-                                    ORP_OEM_CALIBRATE_SINGLE_POINT) ==
-            ORP_OEM_OK) {
+                                    ORP_OEM_CAL_SINGLE_POINT) == 0) {
             puts("[OK]");
         }
         else {
@@ -164,7 +160,7 @@ int main(void)
         }
 
         printf("Reading calibration state, should be 1... ");
-        if (orp_oem_read_calibration_state(&dev, &data) == ORP_OEM_OK
+        if (orp_oem_read_calibration_state(&dev, (uint8_t *)&data) == 0
             && data == 1) {
             puts("[OK]");
         }
@@ -174,15 +170,15 @@ int main(void)
         }
     }
 
-    if (dev.params.interrupt_pin != GPIO_UNDEF) {
+    if (dev.oem_dev.params.interrupt_pin != GPIO_UNDEF) {
         /* initiate an event-queue. An event will be posted by the
          * "interrupt_pin_callback" after an IRQ occurs. */
         event_queue_init(&event_queue);
 
         /* Setting up and enabling the interrupt pin of the ORP OEM */
         printf("Enabling interrupt pin... ");
-        if (orp_oem_enable_interrupt(&dev, interrupt_pin_callback,
-                                     &data) == ORP_OEM_OK) {
+        if (oem_common_enable_interrupt(&dev.oem_dev, interrupt_pin_callback,
+                                        &data) == 0) {
             puts("[OK]");
         }
         else {
@@ -197,10 +193,10 @@ int main(void)
     while (1) {
         puts("\n[MAIN - Initiate reading]");
 
-        /* blocking for ~420ms till reading is done if no interrupt pin defined */
-        orp_oem_start_new_reading(&dev);
+        /* blocking for ~420ms until reading is done, if no interrupt pin defined */
+        oem_common_start_new_reading(&dev.oem_dev);
 
-        if (dev.params.interrupt_pin != GPIO_UNDEF) {
+        if (dev.oem_dev.params.interrupt_pin != GPIO_UNDEF) {
             /* when interrupt is defined, wait for the IRQ to fire and
              * the event to be posted, so the "reading_available_event_callback"
              * can be executed after */
@@ -208,10 +204,9 @@ int main(void)
             ev->handler(ev);
         }
 
-        if (dev.params.interrupt_pin == GPIO_UNDEF) {
-
-            if (orp_oem_read_orp(&dev, &reading) == ORP_OEM_OK) {
-                printf("ORP value raw: %d\n", reading);
+        if (dev.oem_dev.params.interrupt_pin == GPIO_UNDEF) {
+            if (orp_oem_read_orp(&dev, (int32_t *)&data) == 0) {
+                printf("ORP value raw: %ld\n", data);
             }
             else {
                 puts("[Reading ORP failed]");

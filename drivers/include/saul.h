@@ -111,7 +111,7 @@ enum {
 	SAUL_SENSE_PSS		   = 0x9d,	   /**< sensor: PSS */
 	SAUL_SENSE_DO_MG	   = 0x9e,	   /**< sensor: D.O. in mg/L*/
 	SAUL_SENSE_DO_P		   = 0x9f,	   /**< sensor: D.O. in % saturation */
-	SAUL_SENSE_RGB         = 0xa0,     /**< sensor: CO2 Gas */
+	SAUL_SENSE_RGB         = 0xa0,     /**< sensor: RGB */
     SAUL_CLASS_ANY         = 0xff      /**< any device - wildcard */
     /* extend this list as needed... */
 };

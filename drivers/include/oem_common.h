@@ -154,6 +154,7 @@ int oem_common_write_reg32(const oem_common_dev_t *dev, uint8_t reg,
  *
  * @param[in] dev    device descriptor
  * @param[in] reg    register base address
+ * @param[in] neg    must be true, if output value can be negative
  * @param[in] out    output value, which is read from the 4x8 Bit registers
  *                   (must be uint32_t or int32_t)
  *

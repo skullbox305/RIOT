@@ -6,7 +6,7 @@ USEMODULE += event_callback
 # Example for providing settings through CFLAGS. Change them based on your setup
 RTD_OEM_PARAM_I2C  ?= I2C_DEV\(0\)
 RTD_OEM_PARAM_ADDR ?= 0x68
-RTD_OEM_PARAM_INTERRUPT_PIN ?= GPIO_PIN\(0,29\)
+RTD_OEM_PARAM_INTERRUPT_PIN ?= GPIO_PIN\(0,28\)
 
 # Most likely just GPIO_IN. Else GPIO_IN_PU for RTD_OEM_IRQ_FALLING and GPIO_IN_PD
 # for RTD_OEM_IRQ _RISING and RTD_OEM_IRQ_BOTH

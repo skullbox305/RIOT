@@ -13,8 +13,8 @@
  * @file
  * @brief       RTD OEM adaption to the sensor/actuator abstraction layer
  *
- * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
+ * @author      Ting XU <timtsui@outlook.com>
  *
  * @}
  */
@@ -29,14 +29,14 @@
 static int read_temp(const void *dev, phydat_t *res)
 {
     const rtd_oem_t *mydev = dev;
-    int32_t rtd_reading;
+    int32_t rtd_reading = 0;
 
-    if (mydev->params.interrupt_pin != GPIO_UNDEF) {
+    if (mydev->oem_dev.params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
         return -ENOTSUP;
     }
 
-    if (rtd_oem_start_new_reading(mydev) < 0) {
+    if (oem_common_start_new_reading(&mydev->oem_dev) < 0) {
         return -ECANCELED;
     }
 
@@ -44,6 +44,7 @@ static int read_temp(const void *dev, phydat_t *res)
     if (rtd_oem_read_temp(mydev, &rtd_reading) < 0) {
         return -ECANCELED;
     }
+    /* int16_t to small. Needs to be 32. How? */
     res->val[0] = (int16_t)rtd_reading;
     res->unit = UNIT_TEMP_C;
     res->scale = -3;

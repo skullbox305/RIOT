@@ -13,8 +13,8 @@
  * @file
  * @brief       Default configuration for Atlas Scientific ORP OEM sensors
  *
- * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
+ * @author      Ting XU <timtsui@outlook.com>
  */
 
 #ifndef ORP_OEM_PARAMS_H
@@ -43,7 +43,7 @@ extern "C" {
 #define ORP_OEM_PARAM_INTERRUPT_PIN        (GPIO_UNDEF)
 #endif
 #ifndef ORP_OEM_PARAM_INTERRUPT_OPTION
-#define ORP_OEM_PARAM_INTERRUPT_OPTION     (ORP_OEM_IRQ_BOTH)
+#define ORP_OEM_PARAM_INTERRUPT_OPTION     (OEM_COMMON_IRQ_BOTH)
 #endif
 #ifndef ORP_OEM_PARAM_INTERRUPT_GPIO_MODE
 #define ORP_OEM_PARAM_INTERRUPT_GPIO_MODE  (GPIO_IN_PD)
@@ -54,7 +54,8 @@ extern "C" {
                               .addr = ORP_OEM_PARAM_ADDR,       \
                               .interrupt_pin = ORP_OEM_PARAM_INTERRUPT_PIN, \
                               .gpio_mode = ORP_OEM_PARAM_INTERRUPT_GPIO_MODE, \
-                              .irq_option = ORP_OEM_PARAM_INTERRUPT_OPTION }
+                              .irq_option = ORP_OEM_PARAM_INTERRUPT_OPTION, \
+                              .device_type_id = ORP_OEM_DEVICE_TYPE_ID}
 #endif
 #ifndef ORP_OEM_SAUL_INFO
 #define ORP_OEM_SAUL_INFO       { .name = "ORP OEM sensor" }
@@ -63,7 +64,7 @@ extern "C" {
 /**
  * @brief   ORP OEM defaults if not defined for a board or application
  */
-static const orp_oem_params_t orp_oem_params[] =
+static const oem_common_params_t orp_oem_params[] =
 {
     ORP_OEM_PARAMS
 };

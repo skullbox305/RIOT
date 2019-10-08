@@ -13,7 +13,6 @@
  * @file
  * @brief       ORP OEM device driver
  *
- * @author      Ting XU <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
  * @}
  */
@@ -164,16 +163,16 @@ int oem_common_read_reg32(const oem_common_dev_t *dev, uint8_t reg, bool neg,
     }
 
     if (neg) {
+        *(int32_t *)out =   (int32_t)(reg_values[0] << 24)
+                          | (int32_t)(reg_values[1] << 16)
+                          | (int32_t)(reg_values[2] << 8)
+                          | (int32_t)(reg_values[3]);
+    }
+    else {
         *(uint32_t *)out =  (uint32_t)(reg_values[0] << 24)
                           | (uint32_t)(reg_values[1] << 16)
                           | (uint32_t)(reg_values[2] << 8)
                           | (uint32_t)(reg_values[3]);
-    }
-    else {
-        *(uint32_t *)out =  (int32_t)(reg_values[0] << 24)
-                          | (int32_t)(reg_values[1] << 16)
-                          | (int32_t)(reg_values[2] << 8)
-                          | (int32_t)(reg_values[3]);
     }
 
     i2c_release(DEV_I2C);

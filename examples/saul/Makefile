@@ -17,8 +17,7 @@ USEMODULE += shell
 USEMODULE += shell_commands
 # additional modules for debugging:
 USEMODULE += ps
-USEMODULE += rtd_oem
-USEMODULE += ec_oem
+USEMODULE += orp_oem
 
 
 

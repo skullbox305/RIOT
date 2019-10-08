@@ -21,7 +21,6 @@
 
 #include "board.h" /* THIS INCLUDE IS MANDATORY */
 #include "saul_reg.h"
-#include "oem_common.h"
 #include "ph_oem.h"
 #include "ph_oem_regs.h"
 
@@ -55,7 +54,7 @@ extern "C" {
                               .interrupt_pin = PH_OEM_PARAM_INTERRUPT_PIN, \
                               .gpio_mode = PH_OEM_PARAM_INTERRUPT_GPIO_MODE, \
                               .irq_option = PH_OEM_PARAM_INTERRUPT_OPTION, \
-                              .device_type_id = 0x01 }
+                              .device_type_id = PH_OEM_DEVICE_TYPE_ID }
 #endif
 #ifndef PH_OEM_SAUL_INFO
 #define PH_OEM_SAUL_INFO       { .name = "pH OEM sensor" }

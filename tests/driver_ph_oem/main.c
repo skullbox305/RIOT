@@ -73,8 +73,6 @@ static void interrupt_pin_callback(void *arg)
 
 int main(void)
 {
-    xtimer_sleep(2);
-
     uint32_t data = 0;
 
     puts("Atlas Scientific pH OEM sensor driver test application\n");
@@ -82,7 +80,7 @@ int main(void)
     printf("Initializing pH OEM sensor at I2C_%i, address 0x%02x...",
            PH_OEM_PARAM_I2C, PH_OEM_PARAM_ADDR);
 
-    if (ph_oem_init(&dev, ph_oem_params) == OEM_COMMON_OK) {
+    if (ph_oem_init(&dev, ph_oem_params) == 0) {
         puts("[OK]");
     }
     else {
@@ -91,8 +89,7 @@ int main(void)
     }
 
     printf("Turning LED off... ");
-    if (oem_common_set_led_state(&dev.oem_dev,
-                                 OEM_COMMON_LED_OFF) == OEM_COMMON_OK) {
+    if (oem_common_set_led_state(&dev.oem_dev, OEM_COMMON_LED_OFF) == 0) {
         puts("[OK]");
         /* Sleep 2 seconds to actually see it turning off */
         xtimer_sleep(2);
@@ -103,8 +100,7 @@ int main(void)
     }
 
     printf("Turning LED on... ");
-    if (oem_common_set_led_state(&dev.oem_dev,
-                                 OEM_COMMON_LED_ON) == OEM_COMMON_OK) {
+    if (oem_common_set_led_state(&dev.oem_dev, OEM_COMMON_LED_ON) == 0) {
         puts("[OK]");
     }
     else {
@@ -112,21 +108,20 @@ int main(void)
         return -1;
     }
 
-    /* Test changing the pH OEM i2c address to 0x66 and back to 0x65 in the
-     * sensor as well as dev.oem_dev.params.addr
+    /* Test changing the pH OEM i2c address to 0x62 and back to the default
+     * 0x65 in the sensor, as well as dev->oem_dev.params.addr
      */
-    printf("Setting device address to 0x66... ");
-    if (oem_common_set_i2c_address(&dev.oem_dev, 0x66) == OEM_COMMON_OK) {
+    printf("Setting device address to 0x62... ");
+    if (oem_common_set_i2c_address(&dev.oem_dev, 0x62) == 0) {
         puts("[OK]");
     }
     else {
         puts("[Failed]");
         return -1;
     }
-
 
     printf("Setting device address back to the default address 0x65... ");
-    if (oem_common_set_i2c_address(&dev.oem_dev, 0x65) == OEM_COMMON_OK) {
+    if (oem_common_set_i2c_address(&dev.oem_dev, 0x65) == 0) {
         puts("[OK]");
     }
     else {
@@ -138,7 +133,7 @@ int main(void)
      * pH OEM calibration confirm register */
     if (CALIBRATION_TEST_ENABLED) {
         printf("Clearing all previous calibrations... ");
-        if (ph_oem_clear_calibration(&dev) == OEM_COMMON_OK) {
+        if (ph_oem_clear_calibration(&dev) == 0) {
             puts("[OK]");
         }
         else {
@@ -147,7 +142,7 @@ int main(void)
         }
 
         printf("Reading calibration state, should be 0... ");
-        if (ph_oem_read_calibration_state(&dev, &data) == OEM_COMMON_OK
+        if (ph_oem_read_calibration_state(&dev, (uint8_t *)&data) == 0
             && data == 0) {
             puts("[OK]");
         }
@@ -158,7 +153,7 @@ int main(void)
 
         /* Don't forget to provide the temperature compensation for the calibration */
         printf("Setting temperature compensation to 22 Celsius... ");
-        if (ph_oem_set_compensation(&dev, 2200) == OEM_COMMON_OK) {
+        if (ph_oem_set_compensation(&dev, 2200) == 0) {
             puts("[OK]");
         }
         else {
@@ -168,8 +163,7 @@ int main(void)
 
         /* Always start with mid point when doing a new calibration  */
         printf("Calibrating to midpoint... ");
-        if (ph_oem_set_calibration(&dev, 6870, PH_OEM_CAL_MID_POINT)
-            == OEM_COMMON_OK) {
+        if (ph_oem_set_calibration(&dev, 6870, PH_OEM_CAL_MID_POINT) == 0) {
             puts("[OK]");
         }
         else {
@@ -178,7 +172,7 @@ int main(void)
         }
 
         printf("Reading calibration state, should be 2... ");
-        if (ph_oem_read_calibration_state(&dev, &data) == OEM_COMMON_OK
+        if (ph_oem_read_calibration_state(&dev, (uint8_t *)&data) == 0
             && data == 2) {
             puts("[OK]");
         }
@@ -188,8 +182,7 @@ int main(void)
         }
 
         printf("Calibrating to lowpoint... ");
-        if (ph_oem_set_calibration(&dev, 4000, PH_OEM_CAL_LOW_POINT)
-            == OEM_COMMON_OK) {
+        if (ph_oem_set_calibration(&dev, 4000, PH_OEM_CAL_LOW_POINT) == 0) {
             puts("[OK]");
         }
         else {
@@ -198,7 +191,7 @@ int main(void)
         }
 
         printf("Reading calibration state, should be 3... ");
-        if (ph_oem_read_calibration_state(&dev, &data) == OEM_COMMON_OK
+        if (ph_oem_read_calibration_state(&dev, (uint8_t *)&data) == 0
             && data == 3) {
             puts("[OK]");
         }
@@ -208,8 +201,7 @@ int main(void)
         }
 
         printf("Calibrating to highpoint... ");
-        if (ph_oem_set_calibration(&dev, 9210, PH_OEM_CAL_HIGH_POINT)
-            == OEM_COMMON_OK) {
+        if (ph_oem_set_calibration(&dev, 9210, PH_OEM_CAL_HIGH_POINT) == 0) {
             puts("[OK]");
         }
         else {
@@ -218,7 +210,7 @@ int main(void)
         }
 
         printf("Reading calibration state, should be 7... ");
-        if (ph_oem_read_calibration_state(&dev, &data) == OEM_COMMON_OK
+        if (ph_oem_read_calibration_state(&dev, (uint8_t *)&data) == 0
             && data == 7) {
             puts("[OK]");
         }
@@ -232,7 +224,7 @@ int main(void)
         /* Setting up and enabling the interrupt pin of the pH OEM */
         printf("Enabling interrupt pin... ");
         if (oem_common_enable_interrupt(&dev.oem_dev, interrupt_pin_callback,
-                                        &data) == OEM_COMMON_OK) {
+                                        &data) == 0) {
             puts("[OK]");
         }
         else {
@@ -249,7 +241,7 @@ int main(void)
     }
 
     printf("Setting temperature compensation to 22 °C... ");
-    if (ph_oem_set_compensation(&dev, 2200) == OEM_COMMON_OK) {
+    if (ph_oem_set_compensation(&dev, 2200) == 0) {
         puts("[OK]");
     }
     else {
@@ -273,14 +265,14 @@ int main(void)
 
         if (dev.oem_dev.params.interrupt_pin == GPIO_UNDEF) {
 
-            if (ph_oem_read_ph(&dev, &data) == OEM_COMMON_OK) {
+            if (ph_oem_read_ph(&dev, &data) == 0) {
                 printf("pH value raw: %ld\n", data);
             }
             else {
                 puts("[Reading pH failed]");
             }
 
-            if (ph_oem_read_compensation(&dev, &data) == OEM_COMMON_OK) {
+            if (ph_oem_read_compensation(&dev, &data) == 0) {
                 printf("pH reading was taken at %ld Celsius\n", data);
             }
             else {

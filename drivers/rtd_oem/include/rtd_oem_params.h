@@ -13,8 +13,8 @@
  * @file
  * @brief       Default configuration for Atlas Scientific RTD OEM sensors
  *
- * @author      Ting XU <your-email@placeholder.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
+ * @author      Ting XU <your-email@placeholder.com>
  */
 
 #ifndef RTD_OEM_PARAMS_H
@@ -22,6 +22,7 @@
 
 #include "board.h" /* THIS INCLUDE IS MANDATORY */
 #include "saul_reg.h"
+#include "oem_common.h"
 #include "rtd_oem.h"
 #include "rtd_oem_regs.h"
 
@@ -43,7 +44,7 @@ extern "C" {
 #define RTD_OEM_PARAM_INTERRUPT_PIN        (GPIO_UNDEF)
 #endif
 #ifndef RTD_OEM_PARAM_INTERRUPT_OPTION
-#define RTD_OEM_PARAM_INTERRUPT_OPTION     (RTD_OEM_IRQ_BOTH)
+#define RTD_OEM_PARAM_INTERRUPT_OPTION     (OEM_COMMON_IRQ_BOTH)
 #endif
 #ifndef RTD_OEM_PARAM_INTERRUPT_GPIO_MODE
 #define RTD_OEM_PARAM_INTERRUPT_GPIO_MODE  (GPIO_IN_PD)
@@ -54,7 +55,8 @@ extern "C" {
                               .addr = RTD_OEM_PARAM_ADDR,       \
                               .interrupt_pin = RTD_OEM_PARAM_INTERRUPT_PIN, \
                               .gpio_mode = RTD_OEM_PARAM_INTERRUPT_GPIO_MODE, \
-                              .irq_option = RTD_OEM_PARAM_INTERRUPT_OPTION }
+                              .irq_option = RTD_OEM_PARAM_INTERRUPT_OPTION, \
+                              .device_type_id = RTD_OEM_DEVICE_TYPE_ID}
 #endif
 #ifndef RTD_OEM_SAUL_INFO
 #define RTD_OEM_SAUL_INFO       { .name = "RTD OEM sensor" }
@@ -63,7 +65,7 @@ extern "C" {
 /**
  * @brief   RTD OEM defaults if not defined for a board or application
  */
-static const rtd_oem_params_t rtd_oem_params[] =
+static const oem_common_params_t rtd_oem_params[] =
 {
     RTD_OEM_PARAMS
 };

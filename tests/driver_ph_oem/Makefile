@@ -1,6 +1,5 @@
 include ../Makefile.tests_common
 
-USEMODULE += oem_common
 USEMODULE += ph_oem
 USEMODULE += event_callback
 
