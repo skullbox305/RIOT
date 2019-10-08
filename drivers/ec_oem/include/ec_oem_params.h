@@ -13,17 +13,17 @@
  * @file
  * @brief       Default configuration for Atlas Scientific EC OEM sensors
  *
- * @author      Ting Xu <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
+ * @author      Ting Xu <timtsui@outlook.com>
  */
 
 #ifndef EC_OEM_PARAMS_H
 #define EC_OEM_PARAMS_H
 
 #include "board.h" /* THIS INCLUDE IS MANDATORY */
-#include "ec_oem_regs.h"
 #include "saul_reg.h"
 #include "ec_oem.h"
+#include "ec_oem_regs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +43,7 @@ extern "C" {
 #define EC_OEM_PARAM_INTERRUPT_PIN        (GPIO_UNDEF)
 #endif
 #ifndef EC_OEM_PARAM_INTERRUPT_OPTION
-#define EC_OEM_PARAM_INTERRUPT_OPTION     (EC_OEM_IRQ_BOTH)
+#define EC_OEM_PARAM_INTERRUPT_OPTION     (OEM_COMMON_IRQ_BOTH)
 #endif
 #ifndef EC_OEM_PARAM_INTERRUPT_GPIO_MODE
 #define EC_OEM_PARAM_INTERRUPT_GPIO_MODE  (GPIO_IN_PD)
@@ -54,7 +54,8 @@ extern "C" {
                               .addr = EC_OEM_PARAM_ADDR,       \
                               .interrupt_pin = EC_OEM_PARAM_INTERRUPT_PIN, \
                               .gpio_mode = EC_OEM_PARAM_INTERRUPT_GPIO_MODE, \
-                              .irq_option = EC_OEM_PARAM_INTERRUPT_OPTION }
+                              .irq_option = EC_OEM_PARAM_INTERRUPT_OPTION, \
+                              .device_type_id = EC_OEM_DEVICE_TYPE_ID }
 #endif
 #ifndef EC_OEM_SAUL_INFO
 #define EC_OEM_SAUL_INFO       { .name = "EC OEM sensor" }
@@ -63,7 +64,7 @@ extern "C" {
 /**
  * @brief   EC OEM defaults if not defined for a board or application
  */
-static const ec_oem_params_t ec_oem_params[] =
+static const oem_common_params_t ec_oem_params[] =
 {
     EC_OEM_PARAMS
 };

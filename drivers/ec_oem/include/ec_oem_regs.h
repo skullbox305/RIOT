@@ -31,15 +31,7 @@ extern "C" {
  *
  */
 typedef enum ph_oem_reg {
-    EC_OEM_REG_DEVICE_TYPE              = 0x00, /**< Device type register (read only) */
-    EC_OEM_REG_FIRMWARE_VERSION         = 0x01, /**< Firmware version register (read only) */
-    EC_OEM_REG_UNLOCK                   = 0x02, /**< SMBus/I²C address lock/unlock register (read/write) */
-    EC_OEM_REG_ADDRESS                  = 0x03, /**< SMBus/I²C address register (read/write) */
-    EC_OEM_REG_INTERRUPT                = 0x04, /**< Interrupt control register (read/write) */
-    EC_OEM_REG_LED                      = 0x05, /**< LED control register (read/write) */
-    EC_OEM_REG_HIBERNATE                = 0x06, /**< Active/hibernate register (read/write) */
-    EC_OEM_REG_NEW_READING              = 0x07, /**< New reading available register (read/write)  */
-	EC_OEM_REG_SET_PROBE_TYPE			= 0x08, /**< Set probe type available register (read/write)  */
+    EC_OEM_REG_SET_PROBE_TYPE			= 0x08, /**< Set probe type available register (read/write)  */
 	EC_OEM_REG_CALIBRATION_BASE         = 0x0A, /**< Calibration value register base address. Register order is: MSB, high byte, low byte, LSB (0x08-0x0B) (read/write) */
     EC_OEM_REG_CALIBRATION_REQUEST      = 0x0E, /**< Calibration request register (read/write) */
     EC_OEM_REG_CALIBRATION_CONFIRM      = 0x0F, /**< Calibration confirm register (read only) */

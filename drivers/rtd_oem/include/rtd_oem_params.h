@@ -22,7 +22,6 @@
 
 #include "board.h" /* THIS INCLUDE IS MANDATORY */
 #include "saul_reg.h"
-#include "oem_common.h"
 #include "rtd_oem.h"
 #include "rtd_oem_regs.h"
 

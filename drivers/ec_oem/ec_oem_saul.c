@@ -13,8 +13,8 @@
  * @file
  * @brief       EC OEM adaption to the sensor/actuator abstraction layer
  *
- * @author      Ting Xu <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
+ * @author      Ting Xu <timtsui@outlook.com>
  *
  * @}
  */

@@ -58,46 +58,9 @@ extern "C"
 {
 #endif
 
+#include "oem_common.h"
 #include "periph/i2c.h"
 #include "periph/gpio.h"
-
-/**
- * @brief   Named return values
- */
-typedef enum {
-    EC_OEM_OK                   =  0,   /**< Everything was fine */
-    EC_OEM_NODEV                = -1,   /**< No device found on the bus */
-    EC_OEM_READ_ERR             = -2,   /**< Reading to device failed*/
-    EC_OEM_WRITE_ERR            = -3,   /**< Writing to device failed */
-    EC_OEM_NOT_EC               = -4,   /**< Not an Atlas Scientific EC OEM device */
-    EC_OEM_INTERRUPT_GPIO_UNDEF = -5,   /**< Interrupt pin is @ref GPIO_UNDEF */
-    EC_OEM_GPIO_INIT_ERR        = -6,   /**< Error while initializing GPIO PIN */
-    EC_OEM_TEMP_OUT_OF_RANGE    = -7    /**< Temperature is out of range */
-} ec_oem_named_returns_t;
-
-/**
- * @brief   LED state values
- */
-typedef enum {
-    EC_OEM_LED_ON   = 0x01, /**< LED on state */
-    EC_OEM_LED_OFF  = 0x00, /**< LED off state */
-} ec_oem_led_state_t;
-
-/**
- * @brief   Device state values
- */
-typedef enum {
-    EC_OEM_TAKE_READINGS    = 0x01, /**< Device active state */
-    EC_OEM_STOP_READINGS    = 0x00, /**< Device hibernate state */
-} ec_oem_device_state_t;
-/**
- * @brief   Interrupt pin option values
- */
-typedef enum {
-    EC_OEM_IRQ_RISING   = 0x02, /**< Pin high on new reading (manually reset) */
-    EC_OEM_IRQ_FALLING  = 0x04, /**< Pin low on new reading (manually reset) */
-    EC_OEM_IRQ_BOTH     = 0x08, /**< Invert state on new reading (automatically reset) */
-} ec_oem_irq_option_t;
 
 /**
  * @brief   Calibration option values
@@ -110,28 +73,10 @@ typedef enum {
 } ec_oem_calibration_option_t;
 
 /**
- * @brief   EC OEM sensor params
- */
-typedef struct ec_oem_params {
-    i2c_t i2c;                      /**< I2C device the sensor is connected to */
-    uint8_t addr;                   /**< the slave address of the sensor on the I2C bus */
-    gpio_t interrupt_pin;           /**< interrupt pin (@ref GPIO_UNDEF if not defined) */
-    gpio_mode_t gpio_mode;          /**< gpio mode of the interrupt pin */
-    ec_oem_irq_option_t irq_option; /**< behavior of the interrupt pin, disabled by default */
-} ec_oem_params_t;
-
-/**
- * @brief   EC OEM interrupt pin callback
- */
-typedef void (*ec_oem_interrupt_pin_cb_t)(void *);
-
-/**
  * @brief   EC OEM device descriptor
  */
 typedef struct ec_oem {
-    ec_oem_params_t params;         /**< device driver configuration */
-    ec_oem_interrupt_pin_cb_t cb;   /**< interrupt pin callback */
-    void *arg;                      /**< interrupt pin callback param */
+    oem_common_dev_t oem_dev;  /**< common OEM device driver configuration */
 } ec_oem_t;
 
 /**
@@ -140,136 +85,29 @@ typedef struct ec_oem {
  * @param[in,out]   dev      device descriptor
  * @param[in]       params   device configuration
  *
- * @return @ref EC_OEM_OK on success
- * @return @ref EC_OEM_NODEV if no device is found on the bus
+ * @return @ref EC_OEM_OK     on success
+ * @return @ref EC_OEM_NODEV  if no device is found on the bus
  * @return @ref EC_OEM_NOT_EC if the device found at the address is not a EC OEM
  * device
  * @return
  */
-int ec_oem_init(ec_oem_t *dev, const ec_oem_params_t *params);
+int ec_oem_init(ec_oem_t *dev, const oem_common_params_t *params);
 
 /**
- * @brief   Sets the probe type to the EC OEM device by writing the probe type to
- *          the @ref EC_OEM_REG_SET_PROBE_TYPE register. Example: K 0.01 - K 600
+ * @brief   Sets the probe type connected to the EC OEM device, by writing
+ *          @p probe_type to the @ref EC_OEM_REG_SET_PROBE_TYPE register.
+ *          Supported probes: K 0.01 - K 600 any brand.
+ *          Multiply floating point by 100, e.g. K9.8 * 100 = 980
  *
  *          Settings are retained in the sensor if the power is cut.
  *
  * @param[in] dev         device descriptor
- * @param[in] probe_type  probe type for the device. Range: 0,01-600
+ * @param[in] probe_type  probe type for the device. Range: K 0,01-600
  *
  * @return @ref EC_OEM_OK on success
  * @return @ref EC_OEM_WRITE_ERR if writing to the device failed
  */
 int ec_oem_set_probe_type (ec_oem_t *dev, uint16_t probe_type);
-
-/**
- * @brief   Sets a new address to the EC OEM device by unlocking the
- *          @ref EC_OEM_REG_UNLOCK register and  writing a new address to
- *          the @ref EC_OEM_REG_ADDRESS register.
- *          The device address will also be updated in the device descriptor so
- *          it is still usable.
- *
- *          Settings are retained in the sensor if the power is cut.
- *
- *          The address in the device descriptor will reverse to the default
- *          address you provided through EC_OEM_PARAM_ADDR after the
- *          microcontroller restarts
- *
- * @param[in] dev   device descriptor
- * @param[in] addr  new address for the device. Range: 0x01 - 0x7f
- *
- * @return @ref EC_OEM_OK on success
- * @return @ref EC_OEM_WRITE_ERR if writing to the device failed
- */
-int ec_oem_set_i2c_address(ec_oem_t *dev, uint8_t addr);
-
-/**
- * @brief   Enable the EC OEM interrupt pin if @ref ec_oem_params_t.interrupt_pin
- *          is defined.
- *          @note @ref ec_oem_reset_interrupt_pin needs to be called in the
- *          callback if you use @ref EC_OEM_IRQ_FALLING or @ref EC_OEM_IRQ_RISING
- *
- *          @note Provide the EC_OEM_PARAM_INTERRUPT_OPTION flag in your
- *          makefile. Valid options see: @ref ec_oem_irq_option_t.
- *          The default is @ref EC_OEM_IRQ_BOTH.
- *
- *          @note Also provide the @ref gpio_mode_t as a CFLAG in your makefile.
- *          Most likely @ref GPIO_IN. If the pin is to sensitive use
- *          @ref GPIO_IN_PU for @ref EC_OEM_IRQ_FALLING or
- *          @ref GPIO_IN_PD for @ref EC_OEM_IRQ_RISING and
- *          @ref EC_OEM_IRQ_BOTH. The default is @ref GPIO_IN_PD
- *
- *
- * @param[in] dev       device descriptor
- * @param[in] cb        callback called when the EC OEM interrupt pin fires
- * @param[in] arg       callback argument
- *
- * @return @ref EC_OEM_OK on success
- * @return @ref EC_OEM_WRITE_ERR if writing to the device failed
- * @return @ref EC_OEM_INTERRUPT_GPIO_UNDEF if the interrupt pin is undefined
- * @return @ref EC_OEM_GPIO_INIT_ERR if initializing the interrupt gpio pin failed
- */
-int ec_oem_enable_interrupt(ec_oem_t *dev, ec_oem_interrupt_pin_cb_t cb,
-                            void *arg);
-
-/**
- * @brief   The interrupt pin will not auto reset on option @ref EC_OEM_IRQ_RISING
- *          and @ref EC_OEM_IRQ_FALLING after interrupt fires,
- *          so call this function again to reset the pin state.
- *
- * @note    The interrupt settings are not retained if the power is cut,
- *          so you have to call this function again after powering on the device.
- *
- * @param[in] dev    device descriptor
- *
- * @return @ref EC_OEM_OK on success
- * @return @ref EC_OEM_WRITE_ERR if writing to the device failed
- */
-int ec_oem_reset_interrupt_pin(const ec_oem_t *dev);
-
-/**
- * @brief   Set the LED state of the EC OEM sensor by writing to the
- *          @ref EC_OEM_REG_LED register
- *
- * @param[in] dev       device descriptor
- * @param[in] state     @ref ec_oem_led_state_t
- *
- * @return @ref EC_OEM_OK on success
- * @return @ref EC_OEM_WRITE_ERR if writing to the device failed
- */
-int ec_oem_set_led_state(const ec_oem_t *dev, ec_oem_led_state_t state);
-
-/**
- * @brief   Sets the device state (active/hibernate) of the EC OEM sensor by
- *          writing to the @ref EC_OEM_REG_HIBERNATE register.
- *
- *          @note Once the device has been woken up it will continuously take
- *          readings every 640ms. Waking the device is the only way to take a
- *          reading. Hibernating the device is the only way to stop taking readings.
- *
- * @param[in] dev   device descriptor
- * @param[in] state @ref ec_oem_device_state_t
- *
- * @return @ref EC_OEM_OK on success
- * @return @ref EC_OEM_WRITE_ERR if writing to the device failed
- */
-int ec_oem_set_device_state(const ec_oem_t *dev, ec_oem_device_state_t state);
-
-/**
- * @brief   Starts a new reading by setting the device state to
- *          @ref EC_OEM_TAKE_READINGS.
- *
- * @note    If the @ref ec_oem_params_t.interrupt_pin is @ref GPIO_UNDEF
- *          this function will poll every 20ms till a reading is done (~640ms)
- *          and stop the device from taking further readings
- *
- * @param[in] dev   device descriptor
- *
- * @return @ref EC_OEM_OK on success
- * @return @ref EC_OEM_WRITE_ERR if writing to the device failed
- * @return @ref EC_OEM_READ_ERR if reading from the device failed
- */
-int ec_oem_start_new_reading(const ec_oem_t *dev);
 
 /**
  * @brief   Clears all calibrations previously done
@@ -315,7 +153,7 @@ int ec_oem_set_calibration(const ec_oem_t *dev, uint32_t calibration_value,
  * @return @ref EC_OEM_OK on success
  * @return @ref EC_OEM_READ_ERR if reading from the device failed
  */
-int ec_oem_read_calibration_state(const ec_oem_t *dev, uint16_t *calibration_state);
+int ec_oem_read_calibration_state(const ec_oem_t *dev, uint8_t *calibration_state);
 
 /**
  * @brief   Sets the @ref EC_OEM_REG_TEMP_COMPENSATION_BASE register to the
@@ -352,7 +190,7 @@ int ec_oem_set_compensation(const ec_oem_t *dev,
  * @return @ref EC_OEM_READ_ERR if reading from the device failed
  */
 int ec_oem_read_compensation(const ec_oem_t *dev,
-                             uint16_t *temperature_compensation);
+                             uint32_t *temperature_compensation);
 
 /**
  * @brief   Reads the @ref EC_OEM_REG_EC_READING_BASE register to get the current
