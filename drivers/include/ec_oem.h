@@ -66,10 +66,11 @@ extern "C"
  * @brief   Calibration option values
  */
 typedef enum {
-    EC_OEM_CALIBRATE_DRY 			 = 0x02,     /**< Dry point calibration option */
-    EC_OEM_CALIBRATE_SINGLE_POINT 	 = 0x03,     /**< Single point calibration option */
-    EC_OEM_CALIBRATE_DUAL_LOW		 = 0x04,     /**< Dual point calibration low option */
-	EC_OEM_CALIBRATE_DUAL_HIGH		 = 0x05,	 /**< Dual point calibration high option */
+	EC_OEM_CAL_CLEAR 	     = 0x01,     /**< Clear calibration */
+	EC_OEM_CAL_DRY 			 = 0x02,     /**< Dry point calibration option */
+    EC_OEM_CAL_SINGLE_POINT  = 0x03,     /**< Single point calibration option */
+    EC_OEM_CAL_DUAL_LOW		 = 0x04,     /**< Dual point calibration low option */
+	EC_OEM_CAL_DUAL_HIGH     = 0x05,	 /**< Dual point calibration high option */
 } ec_oem_calibration_option_t;
 
 /**
@@ -173,8 +174,7 @@ int ec_oem_read_calibration_state(const ec_oem_t *dev, uint8_t *calibration_stat
  * @return @ref EC_OEM_TEMP_OUT_OF_RANGE if the temperature_compensation is not in
  *                                       the valid range
  */
-int ec_oem_set_compensation(const ec_oem_t *dev,
-                            uint16_t temperature_compensation);
+int ec_oem_set_compensation(const ec_oem_t *dev, uint16_t temp_compensation);
 
 /**
  * @brief   Reads the @ref EC_OEM_REG_TEMP_CONFIRMATION_BASE register to verify
@@ -189,12 +189,11 @@ int ec_oem_set_compensation(const ec_oem_t *dev,
  * @return @ref EC_OEM_OK on success
  * @return @ref EC_OEM_READ_ERR if reading from the device failed
  */
-int ec_oem_read_compensation(const ec_oem_t *dev,
-                             uint32_t *temperature_compensation);
+int ec_oem_read_compensation(const ec_oem_t *dev, uint32_t *temp_compensation);
 
 /**
  * @brief   Reads the @ref EC_OEM_REG_EC_READING_BASE register to get the current
- *          EC reading.
+ *          EC reading (electrical conductivity - Unit: μS/cm).
  *
  * @param[in]  dev        device descriptor
  * @param[out] ec_value   raw EC value <br>
@@ -208,7 +207,7 @@ int ec_oem_read_ec(const ec_oem_t *dev, uint32_t *ec_value);
 
 /**
  * @brief   Reads the @ref EC_OEM_REG_TDS_READING_BASE register to get the current
- *          TDS reading.
+ *          TDS reading (Total dissolved solids. Unit: parts per million: ppm).
  *
  * @param[in]  dev        device descriptor
  * @param[out] tds_value  raw TDS value <br>
@@ -222,7 +221,7 @@ int ec_oem_read_tds(const ec_oem_t *dev, uint32_t *tds_value);
 
 /**
  * @brief   Reads the @ref EC_OEM_REG_PSS_READING_BASE register to get the current
- *          PSS reading.
+ *          PSS reading (Practical Salinity Scale. Unit: parts per thousand - ppt).
  *
  * @param[in]  dev        device descriptor
  * @param[out] pss_value  raw PSS value <br>

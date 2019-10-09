@@ -101,8 +101,6 @@ enum {
     /* electrochemical */
     UNIT_PH,        /**< pH  */
 	UNIT_ORP,       /**< ORP */
-	UNIT_TDS,		/**< TDS */
-	UNIT_PSS,		/**< PSS */
 	UNIT_EC,		/**< EC */
 	UNIT_DO_MG,		/**< D.O. in mg/L */
 	UNIT_DO_P,		/**< D.O. in % saturation */
@@ -116,6 +114,7 @@ enum {
     UNIT_CTS,       /**< counts */
     UNIT_PERCENT,   /**< out of 100 */
     UNIT_PERMILL,   /**< out of 1000 */
+	UNIT_PPT,		/**< parts per thousand */
     UNIT_PPM,       /**< part per million */
     UNIT_PPB,       /**< part per billion */
     /* aggregate values */

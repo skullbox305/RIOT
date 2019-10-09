@@ -44,7 +44,7 @@ static int read_temp(const void *dev, phydat_t *res)
     if (rtd_oem_read_temp(mydev, &rtd_reading) < 0) {
         return -ECANCELED;
     }
-    /* int16_t to small. Needs to be 32. How? */
+    /* should be 32 Bit. Split into two inidices? But how does phydat dump/print it? */
     res->val[0] = (int16_t)rtd_reading;
     res->unit = UNIT_TEMP_C;
     res->scale = -3;

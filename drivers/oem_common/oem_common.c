@@ -106,6 +106,8 @@ int oem_common_init(oem_common_dev_t *dev, const oem_common_params_t *params)
 
 int oem_common_write_reg(const oem_common_dev_t *dev, uint8_t reg, uint8_t in)
 {
+	assert(dev);
+
     i2c_acquire(DEV_I2C);
 
     if (i2c_write_reg(DEV_I2C, ADDR, reg, in, 0x0) < 0) {
@@ -119,6 +121,8 @@ int oem_common_write_reg(const oem_common_dev_t *dev, uint8_t reg, uint8_t in)
 
 int oem_common_read_reg(const oem_common_dev_t *dev, uint8_t reg, uint8_t *out)
 {
+	assert(dev);
+
     i2c_acquire(DEV_I2C);
 
     if (i2c_read_reg(DEV_I2C, ADDR, reg, out, 0) < 0) {
@@ -132,6 +136,8 @@ int oem_common_read_reg(const oem_common_dev_t *dev, uint8_t reg, uint8_t *out)
 int oem_common_write_reg32(const oem_common_dev_t *dev, uint8_t reg,
                            uint32_t in)
 {
+	assert(dev);
+
     uint8_t reg_values[4];
 
     reg_values[0] = (uint8_t)(in >> 24);
@@ -153,6 +159,8 @@ int oem_common_write_reg32(const oem_common_dev_t *dev, uint8_t reg,
 int oem_common_read_reg32(const oem_common_dev_t *dev, uint8_t reg, bool neg,
                           void *out)
 {
+	assert(dev);
+
     uint8_t reg_values[4];
 
     i2c_acquire(DEV_I2C);
@@ -183,7 +191,6 @@ int oem_common_read_reg32(const oem_common_dev_t *dev, uint8_t reg, bool neg,
 int oem_common_set_led_state(const oem_common_dev_t *dev,
                              oem_common_led_state_t state)
 {
-    assert(dev);
     return oem_common_write_reg(dev, OEM_COMMON_REG_LED, state);
 }
 
@@ -380,7 +387,6 @@ int oem_common_reset_interrupt_pin(const oem_common_dev_t *dev)
 int oem_common_set_device_state(const oem_common_dev_t *dev,
                                 oem_common_device_state_t state)
 {
-    assert(dev);
     return oem_common_write_reg(dev, OEM_COMMON_REG_HIBERNATE, state);
 }
 

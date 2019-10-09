@@ -50,7 +50,6 @@ int ph_oem_clear_calibration(const ph_oem_t *dev)
 int ph_oem_read_calibration_state(const ph_oem_t *dev,
                                   uint8_t *calibration_state)
 {
-    assert(dev);
     return oem_common_read_reg(&dev->oem_dev, PH_OEM_REG_CALIBRATION_CONFIRM,
                                calibration_state);
 }
@@ -76,7 +75,6 @@ int ph_oem_set_compensation(const ph_oem_t *dev,
         return OEM_COMMON_VAL_OUT_OF_RANGE;
     }
 
-    assert(dev);
     return oem_common_write_reg32(&dev->oem_dev,
                                   PH_OEM_REG_TEMP_COMPENSATION_BASE,
                                   temp_compensation);
@@ -84,7 +82,6 @@ int ph_oem_set_compensation(const ph_oem_t *dev,
 
 int ph_oem_read_compensation(const ph_oem_t *dev, uint32_t *temp_compensation)
 {
-    assert(dev);
     return oem_common_read_reg32(&dev->oem_dev,
                                  PH_OEM_REG_TEMP_CONFIRMATION_BASE,
                                  false, temp_compensation);
@@ -92,7 +89,6 @@ int ph_oem_read_compensation(const ph_oem_t *dev, uint32_t *temp_compensation)
 
 int ph_oem_read_ph(const ph_oem_t *dev, uint32_t *ph_value)
 {
-    assert(dev);
     return oem_common_read_reg32(&dev->oem_dev, PH_OEM_REG_PH_READING_BASE,
                                  false, ph_value);
 }

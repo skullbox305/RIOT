@@ -50,7 +50,6 @@ int rtd_oem_clear_calibration(const rtd_oem_t *dev)
 int rtd_oem_read_calibration_state(const rtd_oem_t *dev,
                                    uint8_t *calibration_state)
 {
-    assert(dev);
     return oem_common_read_reg(&dev->oem_dev, RTD_OEM_REG_CALIBRATION_CONFIRM,
                                calibration_state);
 }
@@ -71,7 +70,6 @@ int rtd_oem_set_calibration(const rtd_oem_t *dev, uint32_t calibration_value,
 
 int rtd_oem_read_temp(const rtd_oem_t *dev, int32_t *rtd_value)
 {
-    assert(dev);
     return oem_common_read_reg32(&dev->oem_dev, RTD_OEM_REG_RTD_READING_BASE,
                                  true, rtd_value);
 }

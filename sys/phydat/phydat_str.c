@@ -109,8 +109,7 @@ const char *phydat_unit_to_str(uint8_t unit)
         case UNIT_ORP:      return "mV";
         case UNIT_TIME:     return "s";
         case UNIT_EC:      	return "μS/cm";
-        case UNIT_TDS:      return "ppm";
-        case UNIT_PSS:      return "ppt";
+        case UNIT_PPT:      return "ppt";
         case UNIT_DO_MG:    return "mg/L";
         case UNIT_DO_P:     return "% sat";
         default:            return "";

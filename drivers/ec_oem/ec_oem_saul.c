@@ -31,12 +31,12 @@ static int read_ec(const void *dev, phydat_t *res)
     const ec_oem_t *mydev = dev;
     uint32_t ec_reading = 0;
 
-    if (mydev->params.interrupt_pin != GPIO_UNDEF) {
+    if (mydev->oem_dev.params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
         return -ENOTSUP;
     }
 
-    if (ec_oem_start_new_reading(mydev) < 0) {
+    if (oem_common_start_new_reading(&mydev->oem_dev) < 0) {
         return -ECANCELED;
     }
 
@@ -44,6 +44,8 @@ static int read_ec(const void *dev, phydat_t *res)
     if (ec_oem_read_ec(mydev, &ec_reading) < 0) {
         return -ECANCELED;
     }
+
+    /* must be 32 Bit. Split into two inidices? But how does phydat dump/print it? */
     res->val[0] = (int16_t)ec_reading;
     res->unit = UNIT_EC;
     res->scale = -2;
@@ -56,12 +58,12 @@ static int read_tds(const void *dev, phydat_t *res)
     const ec_oem_t *mydev = dev;
     uint32_t tds_reading = 0;
 
-    if (mydev->params.interrupt_pin != GPIO_UNDEF) {
+    if (mydev->oem_dev.params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
         return -ENOTSUP;
     }
 
-    if (ec_oem_start_new_reading(mydev) < 0) {
+    if (oem_common_start_new_reading(&mydev->oem_dev) < 0) {
         return -ECANCELED;
     }
 
@@ -70,7 +72,7 @@ static int read_tds(const void *dev, phydat_t *res)
         return -ECANCELED;
     }
     res->val[0] = (int16_t)tds_reading;
-    res->unit = UNIT_TDS;
+    res->unit = UNIT_PPM;
     res->scale = -2;
 
     return 1;
@@ -81,12 +83,12 @@ static int read_pss(const void *dev, phydat_t *res)
     const ec_oem_t *mydev = dev;
     uint32_t pss_reading = 0;
 
-    if (mydev->params.interrupt_pin != GPIO_UNDEF) {
+    if (mydev->oem_dev.params.interrupt_pin != GPIO_UNDEF) {
         puts("interrupt pin not supported with SAUL yet");
         return -ENOTSUP;
     }
 
-    if (ec_oem_start_new_reading(mydev) < 0) {
+    if (oem_common_start_new_reading(&mydev->oem_dev) < 0) {
         return -ECANCELED;
     }
 
@@ -95,7 +97,7 @@ static int read_pss(const void *dev, phydat_t *res)
         return -ECANCELED;
     }
     res->val[0] = (int16_t)pss_reading;
-    res->unit = UNIT_PSS;
+    res->unit = UNIT_PPT;
     res->scale = -2;
 
     return 1;
