@@ -46,8 +46,8 @@
  * @brief       Device driver for Atlas Scientific EC OEM Sensor with SMBus/I2C interface
 
 
- * @author      Ting Xu <timtsui@outlook.com>
  * @author      Igor Knippenberg <igor.knippenberg@gmail.com>
+ * @author      Ting Xu <timtsui@outlook.com>
  */
 
 #ifndef EC_OEM_H

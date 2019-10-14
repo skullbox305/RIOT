@@ -30,10 +30,6 @@
 #define ENABLE_DEBUG    (1)
 #include "debug.h"
 
-#define I2C (dev->params.i2c)
-#define ADDR (dev->params.addr)
-#define IRQ_OPTION (dev->params.irq_option)
-
 int orp_oem_init(orp_oem_t *dev, const oem_common_params_t *params)
 {
     return oem_common_init(&dev->oem_dev, params);

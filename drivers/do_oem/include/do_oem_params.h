@@ -43,7 +43,7 @@ extern "C" {
 #define DO_OEM_PARAM_INTERRUPT_PIN        (GPIO_UNDEF)
 #endif
 #ifndef DO_OEM_PARAM_INTERRUPT_OPTION
-#define DO_OEM_PARAM_INTERRUPT_OPTION     (DO_OEM_IRQ_BOTH)
+#define DO_OEM_PARAM_INTERRUPT_OPTION     (OEM_COMMON_IRQ_BOTH)
 #endif
 #ifndef DO_OEM_PARAM_INTERRUPT_GPIO_MODE
 #define DO_OEM_PARAM_INTERRUPT_GPIO_MODE  (GPIO_IN_PD)
@@ -54,7 +54,8 @@ extern "C" {
                               .addr = DO_OEM_PARAM_ADDR,       \
                               .interrupt_pin = DO_OEM_PARAM_INTERRUPT_PIN, \
                               .gpio_mode = DO_OEM_PARAM_INTERRUPT_GPIO_MODE, \
-                              .irq_option = DO_OEM_PARAM_INTERRUPT_OPTION }
+                              .irq_option = DO_OEM_PARAM_INTERRUPT_OPTION, \
+                              .device_type_id = DO_OEM_DEVICE_TYPE_ID }
 #endif
 #ifndef DO_OEM_SAUL_INFO
 #define DO_OEM_SAUL_INFO       { .name = "DO OEM sensor" }
@@ -63,7 +64,7 @@ extern "C" {
 /**
  * @brief   DO OEM defaults if not defined for a board or application
  */
-static const do_oem_params_t do_oem_params[] =
+static const oem_common_params_t do_oem_params[] =
 {
     DO_OEM_PARAMS
 };

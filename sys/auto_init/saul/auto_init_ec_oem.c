@@ -40,9 +40,10 @@
 static ec_oem_t ec_oem_devs[EC_OEM_NUM];
 
 /**
- * @brief EC OEM provides three sensor measurments (EC, TDS, PSS)
+ * @brief EC OEM provides three sensor measurements (EC, TDS, PSS) and one
+ *        saul device for temperature compensation
  */
-#define SENSORS_NUMOF 3
+#define SENSORS_NUMOF 4
 
 /**
  * @brief   Memory for the SAUL registry entries
@@ -60,6 +61,7 @@ static saul_reg_t saul_entries[EC_OEM_NUM * SENSORS_NUMOF];
 extern saul_driver_t ec_oem_ec_saul_driver;
 extern saul_driver_t ec_oem_tds_saul_driver;
 extern saul_driver_t ec_oem_pss_saul_driver;
+extern saul_driver_t ec_oem_temp_comp_saul_driver;
 
 void auto_init_ec_oem(void)
 {
@@ -92,6 +94,13 @@ void auto_init_ec_oem(void)
 		saul_entries[ix].dev = &(ec_oem_devs[i]);
 		saul_entries[ix].name = ec_oem_saul_info[i].name;
 		saul_entries[ix].driver = &ec_oem_pss_saul_driver;
+		saul_reg_add(&(saul_entries[ix]));
+		ix++;
+
+		/* temp compensation */
+		saul_entries[ix].dev = &(ec_oem_devs[i]);
+		saul_entries[ix].name = ec_oem_saul_info[i].name;
+		saul_entries[ix].driver = &ec_oem_temp_comp_saul_driver;
 		saul_reg_add(&(saul_entries[ix]));
 	}
 }

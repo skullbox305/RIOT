@@ -45,7 +45,7 @@ static int read_ec(const void *dev, phydat_t *res)
         return -ECANCELED;
     }
 
-    /* must be 32 Bit. Split into two inidices? But how does phydat dump/print it? */
+    /* must be 32 Bit. Split into two indices? But how does phydat dump/print it? */
     res->val[0] = (int16_t)ec_reading;
     res->unit = UNIT_EC;
     res->scale = -2;
@@ -121,18 +121,24 @@ static int set_temp_compensation(const void *dev, phydat_t *res)
 
 const saul_driver_t ec_oem_ec_saul_driver = {
     .read = read_ec,
-    .write = set_temp_compensation ,
+    .write = saul_notsup ,
     .type = SAUL_SENSE_EC,
 };
 
 const saul_driver_t ec_oem_tds_saul_driver = {
     .read = read_tds,
-    .write = set_temp_compensation,
+    .write = saul_notsup,
     .type = SAUL_SENSE_TDS,
 };
 
 const saul_driver_t ec_oem_pss_saul_driver = {
     .read = read_pss,
-    .write = set_temp_compensation,
+    .write = saul_notsup,
     .type = SAUL_SENSE_PSS,
+};
+
+const saul_driver_t ec_oem_temp_comp_saul_driver = {
+    .read = saul_notsup,
+    .write = set_temp_compensation,
+    .type = SAUL_SENSE_TEMP,
 };
