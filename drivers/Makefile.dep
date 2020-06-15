@@ -60,7 +60,11 @@ ifneq (,$(filter ina3221_%,$(USEMODULE)))
   USEMODULE += ina3221
 endif
 
-ifneq (,$(filter itg320x_%,$(USEMODULE)))
+ifneq (,$(filter isbd,$(USEMODULE)))
+  USEMODULE += isbd
+endif
+
+ifneq (,$(filter itg320x_int,$(USEMODULE)))
   USEMODULE += itg320x
 endif
 
