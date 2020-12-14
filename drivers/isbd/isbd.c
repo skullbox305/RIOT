@@ -153,8 +153,9 @@ int isbd_start_tx(isbd_t *dev)
             dev->_internal.tx_retries = 0;
             dev->_internal.tx_pending = false;
         }
-    } else {
-//    	LED1_OFF;
+    }
+    else {
+//      LED1_OFF;
     }
 #endif
 
@@ -256,14 +257,15 @@ static void isbd_network_avail_isr(void *arg)
 {
     isbd_t *dev = (isbd_t *)arg;
 
-    if (isbd_get_state(dev) == ISBD_STATE_TX && dev->_internal.is_sending == false) {
+    if (isbd_get_state(dev) == ISBD_STATE_TX &&
+        dev->_internal.is_sending == false) {
         isbd_on_isr(dev, ISBD_IRQ_NETWORK_AVAILABLE);
     }
 }
 
 static void isbd_new_msg_isr(void *arg)
 {
-	(void) arg;
+    (void)arg;
     isbd_t *dev = (isbd_t *)arg;
 
     /* Interrupt pin pulls low after wake up and pulls high immediately again.
