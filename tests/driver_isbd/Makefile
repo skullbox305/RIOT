@@ -9,17 +9,17 @@ USEMODULE += ps
 
 
 # set board specific peripheral configurations
-#ifeq (,$(filter nrf52840-mdk,$(BOARD)))
-#  ISBD_PARAM_SLEEP_PIN  ?= GPIO_PIN\(0,25\) 
-#  ISBD_PARAM_NET_AVAIL_PIN ?= GPIO_PIN\(0,21\)
-#  ISBD_PARAM_RING_PIN ?= GPIO_PIN\(0,12\)
-#endif
+ifneq (,$(filter nrf52840-mdk,$(BOARD)))
+  ISBD_PARAM_SLEEP_PIN  ?= GPIO_PIN\(0,25\) 
+  ISBD_PARAM_NET_AVAIL_PIN ?= GPIO_PIN\(0,21\)
+  ISBD_PARAM_RING_PIN ?= GPIO_PIN\(0,12\)
+endif
 
-#ifeq (,$(filter nucleo-l031k6,$(BOARD)))
-#  ISBD_PARAM_SLEEP_PIN  ?= GPIO_PIN\(0,25\) 
-#  ISBD_PARAM_NET_AVAIL_PIN ?= GPIO_PIN\(0,21\)
-#  ISBD_PARAM_RING_PIN ?= GPIO_PIN\(0,12\)
-#endif
+ifneq (,$(filter nucleo-l031k6,$(BOARD)))
+  ISBD_PARAM_SLEEP_PIN  ?= GPIO_PIN\(0,25\) 
+  ISBD_PARAM_NET_AVAIL_PIN ?= GPIO_PIN\(0,21\)
+  ISBD_PARAM_RING_PIN ?= GPIO_PIN\(0,12\)
+endif
 
 #Print AT echos + responses for debugging purposes
 AT_PRINT_INCOMING ?= 1
@@ -27,9 +27,9 @@ AT_PRINT_INCOMING ?= 1
 AT_SEND_ECHO_NO_EOL_2 ?= 1
 
 # fallback: set pins to default values
-ISBD_PARAM_SLEEP_PIN  ?= GPIO_UNDEF 
-ISBD_PARAM_NET_AVAIL_PIN ?= GPIO_UNDEF 
-ISBD_PARAM_RING_PIN ?= GPIO_UNDEF 
+#ISBD_PARAM_SLEEP_PIN  ?= GPIO_UNDEF 
+#ISBD_PARAM_NET_AVAIL_PIN ?= GPIO_UNDEF 
+#ISBD_PARAM_RING_PIN ?= GPIO_UNDEF 
 
 # export parameters 
 CFLAGS += -DISBD_PARAM_SLEEP_PIN=$(ISBD_PARAM_SLEEP_PIN)

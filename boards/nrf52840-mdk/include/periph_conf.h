@@ -46,9 +46,15 @@ static const uart_conf_t uart_config[] = {
 #endif
         .irqn       = UARTE0_UART0_IRQn,
     },
+	{   .dev        = NRF_UARTE1,
+        .rx_pin     = GPIO_PIN(0, 28),
+		.tx_pin     = GPIO_PIN(0, 29),
+	    .irqn       = UARTE1_IRQn,
+    }
 };
 
 #define UART_0_ISR          (isr_uart0)
+#define UART_1_ISR          (isr_uarte1)
 
 #define UART_NUMOF          ARRAY_SIZE(uart_config)
 /** @} */
