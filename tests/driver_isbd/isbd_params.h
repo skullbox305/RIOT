@@ -36,13 +36,13 @@ extern "C" {
 #define ISBD_PARAM_BAUDRATE        (19200U)
 #endif
 #ifndef ISBD_PARAM_SLEEP_PIN
-#define ISBD_PARAM_SLEEP_PIN       (GPIO_UNDEF)
+#define ISBD_PARAM_SLEEP_PIN       GPIO_PIN(0,25)
 #endif
 #ifndef ISBD_PARAM_RING_PIN
-#define ISBD_PARAM_RING_PIN        (GPIO_UNDEF)
+#define ISBD_PARAM_RING_PIN        GPIO_PIN(0,12)
 #endif
 #ifndef ISBD_PARAM_NET_AVAIL_PIN
-#define ISBD_PARAM_NET_AVAIL_PIN   (GPIO_UNDEF)
+#define ISBD_PARAM_NET_AVAIL_PIN   GPIO_PIN(0,21)
 #endif
 
 #ifndef ISBD_PARAMS

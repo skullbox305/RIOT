@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 University of Applied Sciences Emden / Leer
+ * Copyright (C) 2020 Igor Knippenberg
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -46,7 +46,7 @@ static int _send(netdev_t *netdev, const iolist_t *iolist)
     }
 
     uint8_t size = iolist_size(iolist);
-    isbd_set_flow_control_off(dev);
+//    isbd_set_flow_control_off(dev);
 
     /* Write payload to tx buf if size > 0, else it is a mailbox check with payload size 0.
      * Used for receiving queued rx messages */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 University of Applied Sciences Emden / Leer
+ * Copyright (C) 2020 Igor Knippenberg
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -29,18 +29,13 @@
 static int _init_at_dev(isbd_t *dev);
 static int _init_gpios(isbd_t *dev);
 
-#if !ISBD_TEST_MODE
 static void _start_timeout_timer(isbd_t *dev, uint32_t seconds,
                                  isbd_timer_cb_t cb);
-#endif
 
 /* ISBD interrupt handlers initialization */
 static void isbd_on_isr(isbd_t *dev, isbd_flags_t flag);
-
-#if !ISBD_TEST_MODE
 static void isbd_tx_resend_isr(void *arg);
 static void isbd_tx_timeout_isr(void *arg);
-#endif
 static void isbd_network_avail_isr(void *arg);
 static void isbd_new_msg_isr(void *arg);
 //static void isbd_net_register_isr(void *arg);
@@ -86,7 +81,7 @@ int isbd_init(isbd_t *dev)
     }
 
     /* Enables the AT command echo */
-    isbd_set_at_echo(dev, true);
+    isbd_set_at_echo(dev);
 
     /* Both below in case of 3-wire UART (RX,TX,GND) */
     /* Disable RTS/CTS flow control */
@@ -94,8 +89,8 @@ int isbd_init(isbd_t *dev)
     /* Disable Data Terminal Ready control signal */
     isbd_set_dtr_off(dev);
 
-//    isbd_set_sbd_session_timeout(dev, ISBD_DEFAULT_SBD_SESSION_TIMEOUT);
-//    isbd_set_ring_alert(dev);
+//    isbd_set_sbd_session_timeout(dev, CONFIG_ISBD_SBD_SESSION_TIMEOUT);
+//    isbd_set_ring_alert(dev, true);
 
     /* Initialize the TX timer */
     dev->_internal.tx_retries = 0;
@@ -117,12 +112,12 @@ int isbd_start_tx(isbd_t *dev)
 {
     int res;
 
-#if ISBD_TEST_MODE
+#if IS_ACTIVE(CONFIG_ISBD_TEST_MODE)
     res = isbd_tx_test(dev);
 #else
     if ((res = isbd_tx(dev)) < 0) {
         dev->_internal.is_sending = false;
-        if (dev->_internal.tx_retries < ISBD_DEFAULT_SBDIX_MAX_RETRIES) {
+        if (dev->_internal.tx_retries < CONFIG_ISBD_SBDIX_RETRIES) {
 
             /* error not due to no network, so start timer and try again in isr.
              * Also check if network avail pin is really high = no signal.
@@ -133,16 +128,16 @@ int isbd_start_tx(isbd_t *dev)
                  gpio_read(dev->params.network_avail_pin) > 0)) {
                 DEBUG(
                     "[isbd] sending failed with code: %d, trying again in %d sec...\n",
-                    res, ISBD_DEFAULT_TX_WAIT);
-                _start_timeout_timer(dev, ISBD_DEFAULT_TX_WAIT,
+                    res, CONFIG_ISBD_TX_RETRY_INTERVAL);
+                _start_timeout_timer(dev, CONFIG_ISBD_TX_RETRY_INTERVAL,
                                      isbd_tx_resend_isr);
             }
             /* no network available, start timeout timer so it won't wait
              * indefinitely for a signal. */
             else {
                 DEBUG("[isbd] waiting %d sec for network signal...\n",
-                      ISBD_DEFAULT_NET_SIGNAL_WAIT);
-                _start_timeout_timer(dev, ISBD_DEFAULT_NET_SIGNAL_WAIT,
+                      CONFIG_ISBD_TIMEOUT_IF_NO_SIGNAL);
+                _start_timeout_timer(dev, CONFIG_ISBD_TIMEOUT_IF_NO_SIGNAL,
                                      isbd_tx_timeout_isr);
             }
         }
@@ -158,11 +153,9 @@ int isbd_start_tx(isbd_t *dev)
 //      LED1_OFF;
     }
 #endif
-
     return res;
 }
-
-#if !ISBD_TEST_MODE
+#if IS_ACTIVE(CONFIG_ISBD_TEST_MODE)
 int isbd_start_network_registration(isbd_t *dev)
 {
     if (isbd_get_state(dev) == ISBD_STATE_OFF) {
@@ -184,6 +177,7 @@ int isbd_start_network_registration(isbd_t *dev)
                              sizeof(dev->_internal.resp_buf),
                              60 * US_PER_SEC) < 0) {
         puts("reg fail - at err"); //<----- why?
+        isbd_set_state(dev, ISBD_STATE_STANDBY);
         return ISBD_ERR_AT;
     }
 
@@ -195,9 +189,9 @@ int isbd_start_network_registration(isbd_t *dev)
 
         if (reg_err == 32 && gpio_read(dev->params.network_avail_pin) == 0) {
             DEBUG("[isbd] waiting %d sec for network signal...\n",
-                  ISBD_DEFAULT_NET_SIGNAL_WAIT);
+                  CONFIG_ISBD_TIMEOUT_IF_NO_SIGNAL);
 
-            _start_timeout_timer(dev, ISBD_DEFAULT_NET_SIGNAL_WAIT,
+            _start_timeout_timer(dev, CONFIG_ISBD_TIMEOUT_IF_NO_SIGNAL,
                                  isbd_tx_timeout_isr);
             return ISBD_ERR_NO_NETWORK;
         }
@@ -211,8 +205,9 @@ int isbd_start_network_registration(isbd_t *dev)
 
             DEBUG(
                 "[isbd] registration failed with code: %d, trying again in %d sec...\n", reg_err,
-                ISBD_DEFAULT_TX_WAIT);
-            _start_timeout_timer(dev, ISBD_DEFAULT_TX_WAIT, isbd_tx_resend_isr);
+                CONFIG_ISBD_TX_RETRY_INTERVAL);
+            _start_timeout_timer(dev, CONFIG_ISBD_TX_RETRY_INTERVAL,
+                                 isbd_tx_resend_isr);
             return reg_err;
         }
     }
@@ -238,7 +233,6 @@ static void isbd_on_isr(isbd_t *dev, isbd_flags_t flag)
     isbd_isr((netdev_t *)dev);
 }
 
-#if !ISBD_TEST_MODE
 static void isbd_tx_resend_isr(void *arg)
 {
     isbd_t *dev = (isbd_t *)arg;
@@ -251,7 +245,6 @@ static void isbd_tx_timeout_isr(void *arg)
 {
     isbd_on_isr((isbd_t *)arg, ISBD_IRQ_TX_TIMEOUT);
 }
-#endif
 
 static void isbd_network_avail_isr(void *arg)
 {
@@ -259,6 +252,7 @@ static void isbd_network_avail_isr(void *arg)
 
     if (isbd_get_state(dev) == ISBD_STATE_TX &&
         dev->_internal.is_sending == false) {
+        puts("net");
         isbd_on_isr(dev, ISBD_IRQ_NETWORK_AVAILABLE);
     }
 }
@@ -280,7 +274,7 @@ static void isbd_new_msg_isr(void *arg)
     }
 
     if (isbd_get_state(dev) == ISBD_STATE_IDLE) {
-        dev->_internal.ring_alert_flag = true;
+        dev->_internal.ring_alert_flag = false;
         isbd_on_isr(dev, ISBD_IRQ_NEW_MSG);
     }
 }
@@ -292,8 +286,8 @@ static int _init_at_dev(isbd_t *dev)
 {
     /* Initialize the AT device */
     int res = at_dev_init(&dev->at_dev, dev->params.uart,
-                          dev->params.baudrate, dev->_internal.isrpipe_buf,
-                          sizeof(dev->_internal.isrpipe_buf));
+                          dev->params.baudrate, dev->_internal.uart_buf,
+                          sizeof(dev->_internal.uart_buf));
 
     /* check the UART initialization return value */
     if (res == UART_NODEV) {
@@ -348,7 +342,7 @@ static int _init_gpios(isbd_t *dev)
     return res;
 }
 
-#if !ISBD_TEST_MODE
+
 static void _start_timeout_timer(isbd_t *dev, uint32_t seconds,
                                  isbd_timer_cb_t cb)
 {
@@ -356,4 +350,3 @@ static void _start_timeout_timer(isbd_t *dev, uint32_t seconds,
     xtimer_set(&dev->_internal.timeout_timer,
                (uint32_t)seconds * US_PER_SEC);
 }
-#endif

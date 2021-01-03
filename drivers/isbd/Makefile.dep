@@ -4,5 +4,4 @@ FEATURES_REQUIRED += periph_gpio_irq
 
 USEMODULE += iolist
 USEMODULE += fmt
-
-#USEMODULE += netif
+USEMODULE += at
