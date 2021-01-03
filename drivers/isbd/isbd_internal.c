@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 University of Applied Sciences Emden/Leer
+ * Copyright (C) 2020 Igor Knippenberg
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -89,7 +89,7 @@ static int _process_sbdix_tx_response(isbd_t *dev)
             break;
         case 32:
             result = ISBD_ERR_NO_NETWORK;
-            DEBUG("[isbd] +sbdix tx: No network service.\n");
+            DEBUG("[isbd] tx: No network service.\n");
             break;
         case 33:
 //            result = ISBD_ERR_SBDIX_ANTENNA_FAULT;
@@ -172,12 +172,12 @@ static int _process_sbdix_rx_response(isbd_t *dev)
     }
 
     if (mt_status == 1 && mt_length > 0) {
-        DEBUG("[isbd] +sbdix rx: Message received. Still queued: %d\n",
+        DEBUG("[isbd] rx: Message received. Still queued: %d\n",
               dev->_internal.rx_queued);
         dev->_internal.rx_received = true;
     }
     else if (mt_status == 2) {
-        DEBUG("[isbd] +sbdix rx: Error on mailbox check or message reception!\n");
+        DEBUG("[isbd] rx: Error on mailbox check or message reception!\n");
         return ISBD_ERR_SBDIX_RX_FAILED;
     }
 
@@ -204,16 +204,16 @@ int isbd_tx(isbd_t *dev)
     dev->_internal.is_sending = true;
 
     /* blocking, till system time was received from the network */
-    isbd_request_sys_time(dev);
+//    isbd_request_sys_time(dev);
 
     char cmd[10];
 
     /* if alert flag is set, answer it with +sbdixa, instead of +sbdix */
     if (dev->_internal.ring_alert_flag == true) {
-        snprintf(cmd, sizeof(cmd), "at+sbdixa");
+        snprintf(cmd, sizeof(cmd), ISBD_SBDIXA);
     }
     else {
-        snprintf(cmd, sizeof(cmd) - 1, "at+sbdix");
+        snprintf(cmd, sizeof(cmd) - 1, ISBD_SBDIX);
     }
 
     DEBUG("SBDIX start\n");
@@ -221,15 +221,15 @@ int isbd_tx(isbd_t *dev)
     /* start transmission */
     if (at_send_cmd_get_resp(&dev->at_dev, cmd, dev->_internal.resp_buf,
                              sizeof(dev->_internal.resp_buf),
-                             (ISBD_DEFAULT_SBD_SESSION_TIMEOUT) *
+                             (CONFIG_ISBD_SBD_SESSION_TIMEOUT + 1) *
                              US_PER_SEC) < 0) {
-    	DEBUG("SBDIX timeout\n");
+    	DEBUG("\nSBDIX timeout\n");
 //    	LED2_OFF;
         return ISBD_ERR_AT;
     }
 
 //    LED2_OFF;
-    DEBUG("SBDIX done \n");
+    DEBUG("SBDIX done\n");
 
     /* check the response of the transmission. Might fail, but we still could've received a msg */
     res = _process_sbdix_tx_response(dev);
@@ -274,6 +274,7 @@ int isbd_tx(isbd_t *dev)
     return res;
 }
 
+#if IS_ACTIVE(CONFIG_ISBD_TEST_MODE)
 int isbd_tx_test(isbd_t *dev)
 {
     if (isbd_get_state(dev) == ISBD_STATE_OFF) {
@@ -284,7 +285,7 @@ int isbd_tx_test(isbd_t *dev)
     netdev_t *netdev = (netdev_t *)dev;
 
     isbd_set_state(dev, ISBD_STATE_TX);
-    at_send_cmd_get_resp(&dev->at_dev, "at+sbdtc", dev->_internal.resp_buf,
+    at_send_cmd_get_resp(&dev->at_dev, ISBD_SBDTC, dev->_internal.resp_buf,
                          sizeof(dev->_internal.resp_buf), 2 * US_PER_SEC);
 
     int len = atoi(dev->_internal.resp_buf + 50);
@@ -295,13 +296,15 @@ int isbd_tx_test(isbd_t *dev)
     }
 
     netdev->event_callback(netdev, NETDEV_EVENT_TX_COMPLETE);
-    isbd_clear_buffer(dev, ISBD_CLEAR_TX);
+//    isbd_clear_buffer(dev, ISBD_CLEAR_TX);
     isbd_set_state(dev, ISBD_STATE_RX);
     isbd_read_rx_buf(dev);
     netdev->event_callback(netdev, NETDEV_EVENT_RX_COMPLETE);
+    isbd_set_state(dev, ISBD_STATE_STANDBY);
 
     return ISBD_OK;
 }
+#endif
 
 static int _process_sbdwb_response(isbd_t *dev)
 {
@@ -312,19 +315,19 @@ static int _process_sbdwb_response(isbd_t *dev)
 
     if (len == 0) {
         ret = ISBD_ERR_AT;
-        DEBUG("[isbd] +sbdwb: Device didn't answer after writing bytes\n");
+        DEBUG("[isbd] Write TX buf: Device didn't answer after writing bytes\n");
     }
     else if (dev->_internal.resp_buf[2] == '1') {
         ret = ISBD_ERR_SBDWB_TIMEOUT;
         DEBUG(
-            "[isbd] +sbdwb: Timeout - insufficient number of bytes transfered\n");
+            "[isbd] Write TX buf: Timeout - insufficient number of bytes transfered\n");
     }
     else if (dev->_internal.resp_buf[2] == '2') {
         ret = ISBD_ERR_SBDWB_CHKSM;
-        DEBUG("[isbd] +sbdwb: Wrong checksum transfered\n");
+        DEBUG("[isbd] Write TX buf: Wrong checksum transfered\n");
     }
 
-    DEBUG("[isbd] +sbdwb response: %c\n", dev->_internal.resp_buf[2]);
+    DEBUG("[isbd] Write TX buf Response %c\n", dev->_internal.resp_buf[2]);
 
     return ret;
 }
@@ -364,9 +367,9 @@ int isbd_write_tx_buf(isbd_t *dev, uint8_t *payload, uint16_t payload_len)
         return ISBD_ERR_SLEEP_MODE;
     }
 
-    if (payload_len == 0 || payload_len > ISBD_MAX_TX_LEN) {
+    if (payload_len == 0 || payload_len > CONFIG_ISBD_MAX_TX_LEN) {
         DEBUG("[isbd] write tx: Payload length should be > 0 and <= %d - "
-              "but is: %d Bytes\n", ISBD_MAX_TX_LEN, payload_len);
+              "but is: %d Bytes\n", CONFIG_ISBD_MAX_TX_LEN, payload_len);
         return ISBD_ERR_SBDWB_INCORRECT_LEN;
     }
 
@@ -374,7 +377,7 @@ int isbd_write_tx_buf(isbd_t *dev, uint8_t *payload, uint16_t payload_len)
     uint8_t old_state = isbd_get_state(dev);
 
     /* Initate a binary write */
-    snprintf(command, sizeof(command) - 1, "at+sbdwb=%d ", payload_len);
+    snprintf(command, sizeof(command) - 1, ISBD_SBDWB, payload_len);
 
     at_send_cmd_get_resp(&dev->at_dev, command, dev->_internal.resp_buf,
                          sizeof(dev->_internal.resp_buf), 10 * US_PER_SEC);
@@ -398,7 +401,7 @@ int isbd_clear_buffer(isbd_t *dev, isbd_clear_buf_opt_t option)
     DEBUG("[isbd] clearing %s buffer\n", option ? "RX" : "TX");
 
     char command[10];
-    snprintf(command, sizeof(command) - 1, "at+sbdd%d", option);
+    snprintf(command, sizeof(command) - 1, ISBD_SBDD, option);
 
     at_send_cmd_get_resp(&dev->at_dev, command, dev->_internal.resp_buf,
                          sizeof(dev->_internal.resp_buf), 3 * US_PER_SEC);
@@ -418,23 +421,24 @@ int isbd_read_rx_buf(isbd_t *dev)
         return ISBD_ERR_SLEEP_MODE;
     }
 
-    if (at_send_cmd_get_resp(&dev->at_dev, "at+sbdrb", dev->_internal.resp_buf,
+    if (at_send_cmd_get_resp(&dev->at_dev, ISBD_SBDRB, dev->_internal.resp_buf,
                              sizeof(dev->_internal.resp_buf),
                              10 * US_PER_SEC) < 0) {
+    	DEBUG("[isbd] read RX buf failed\n");
         return ISBD_ERR_AT;
     }
 //    isbd_clear_buffer(dev, ISBD_CLEAR_RX);
 
-//    int i = 0;
-//    bool stop = false;
-//    while(!stop){
-//      printf("%d ", dev->resp_buf[i]);
-//      i++;
-//      if(dev->resp_buf[i] == 0){
-//          stop = true;
-//      }
-//    }
-//    puts("");
+    int i = 0;
+    bool stop = false;
+    while(!stop){
+      printf("%x ", dev->_internal.resp_buf[i]);
+      i++;
+      if(dev->_internal.resp_buf[i] == 0){
+          stop = true;
+      }
+    }
+    puts("");
     return ISBD_OK;
 }
 
@@ -462,7 +466,7 @@ int isbd_on(isbd_t *dev)
 
     while ((isbd_get_state(dev) != ISBD_STATE_STANDBY) &&
            xtimer_less(xtimer_diff(xtimer_now(), dev->_internal.power_on_time),
-                       xtimer_ticks_from_usec(ISBD_DEFAULT_STARTUP_MAX_TIME
+                       xtimer_ticks_from_usec(CONFIG_ISBD_STARTUP_TIME
                                               * US_PER_SEC))) {
 
         if (at_send_cmd_wait_ok(&dev->at_dev, "AT", 1 * US_PER_SEC) == 0) {
@@ -477,13 +481,15 @@ int isbd_on(isbd_t *dev)
 
 int isbd_flush_eeprom(isbd_t *dev)
 {
-    if (at_send_cmd_wait_ok(&dev->at_dev, "AT*F", 10 * US_PER_SEC) < 0) {
+    if (at_send_cmd_wait_ok(&dev->at_dev, ISBD_FLUSH_EEPROM, 10 * US_PER_SEC) < 0) {
         DEBUG("[isbd] flush: Flushing EEPROM failed\n");
         return ISBD_ERR_AT;
     }
     return ISBD_OK;
 }
 
+
+/* TODO increase tx retries here too */
 int isbd_request_sys_time(isbd_t *dev)
 {
     bool recv_sys_time_pending = true;
@@ -491,7 +497,7 @@ int isbd_request_sys_time(isbd_t *dev)
     while (recv_sys_time_pending) {
 
 
-        if (at_send_cmd_get_resp(&dev->at_dev, "AT-MSSTM",
+        if (at_send_cmd_get_resp(&dev->at_dev, ISBD_MSSTM,
                                  dev->_internal.resp_buf,
                                  sizeof(dev->_internal.resp_buf),
                                  10 * US_PER_SEC) < 0) {
@@ -502,8 +508,8 @@ int isbd_request_sys_time(isbd_t *dev)
         if (strcmp(dev->_internal.resp_buf,
                    "-MSSTM: no network service") == 0) {
             DEBUG("[isbd] sys time: %s, waiting %d sec\n",
-                  dev->_internal.resp_buf, ISBD_MSSTM_RETRY_INTERVAL);
-            xtimer_sleep(ISBD_MSSTM_RETRY_INTERVAL);
+                  dev->_internal.resp_buf, CONFIG_ISBD_MSSTM_RETRY_INTERVAL);
+            xtimer_sleep(CONFIG_ISBD_MSSTM_RETRY_INTERVAL);
         }
         else {
             DEBUG("[isbd] sys time: %s\n", dev->_internal.resp_buf);

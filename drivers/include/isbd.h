@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 University of Applied Sciences Emden / Leer
+ * Copyright (C) 2020 Igor Knippenberg
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -9,15 +9,18 @@
 /**
  * @defgroup    drivers_isbd Iridium Short Burst Data (ISBD) satellite transceiver driver
  * @ingroup     drivers_netdev
- * @brief       Device driver for Iridium SBD transceivers (9601,9602, 9602-SB 9603).
+ * @brief       Device driver for Iridium SBD transceivers
  *
- *              ISBD devices allow you to send and receive short messages (SBD)
- *              from anywhere on Earth with a clear view of the sky. It works far
- *              beyond the reach of other radio networks. Maybe you want to
- *              transmit weather information from mid-ocean? Or use it to control
- *              your robot in the middle of the desert? Perhaps you need to
- *              communicate in an emergency, when other networks might not be
- *              available?
+ * ISBD devices allow you to send and receive short messages (SBD)
+ * from anywhere on Earth with a clear view of the sky.
+ *
+ * It works far beyond the reach of other radio networks.
+ * Maybe you want to transmit weather information from mid-ocean?
+ * Or use it to control your robot in the middle of the desert?
+ * Perhaps you need to communicate in an emergency, when other networks might not be
+ * available?
+ *
+ * It was tested with a 9603 modem, but should work with other ISBD device too.
  * @{
  *
  * @file
@@ -43,68 +46,80 @@
  */
 
 /**
- * @brief   Maximum size of a TX payload
+ * @brief   Maximum size of a TX payload supported by the modem
  */
-#define ISBD_MAX_TX_LEN                 (340U)
+#ifndef CONFIG_ISBD_MAX_TX_LEN
+#define CONFIG_ISBD_MAX_TX_LEN              (340U)
+#endif
 
 /**
  * @brief   Maximum size of an ISBD response (RX)
  */
-#define ISBD_MAX_RESP_BUF               (360U)
-
-/**
- * @brief   Maximum size of the isrpipe buffer
- */
-#define ISBD_MAX_ISRPIPE_BUF            (2U) //?????
-
-/**
- * @brief   Default max time for the capacitors to charge after cold start/wake up
- *          (depending on the power supply)
- */
-#ifndef ISBD_DEFAULT_STARTUP_MAX_TIME
-#define ISBD_DEFAULT_STARTUP_MAX_TIME   (10U)
+#ifndef CONFIG_ISBD_MAX_RX_BUF
+#define CONFIG_ISBD_MAX_RX_BUF              (360U)
 #endif
 
 /**
- * @brief   Default timeout in sec for the response of the AT+ABSDIX command
+ * @brief   Size of the UART buffer
  */
-#ifndef ISBD_DEFAULT_SBD_SESSION_TIMEOUT
-#define ISBD_DEFAULT_SBD_SESSION_TIMEOUT (300U)
+#ifndef CONFIG_ISBD_UART_BUF
+#define CONFIG_ISBD_UART_BUF                (512U)
 #endif
 
 /**
- * @brief   Default timeout in sec until a transmission with no network service
+ * @brief   Startup time for the capacitors to charge after a cold start/wake up
+ *          (value depends on the power supply)
+ */
+#ifndef CONFIG_ISBD_STARTUP_TIME
+#define CONFIG_ISBD_STARTUP_TIME            (10U)
+#endif
+
+/**
+ * @brief   Timeout in sec for the response of the AT+SBDIX[A] command
+ */
+#ifndef CONFIG_ISBD_SBD_SESSION_TIMEOUT
+#define CONFIG_ISBD_SBD_SESSION_TIMEOUT     (300U)
+#endif
+
+/**
+ * @brief   Timeout in sec until a transmission with no network service
  *          gets canceled
  */
-#ifndef ISBD_DEFAULT_NET_SIGNAL_WAIT
-#define ISBD_DEFAULT_NET_SIGNAL_WAIT    (300U)
+#ifndef CONFIG_ISBD_TIMEOUT_IF_NO_SIGNAL
+#define CONFIG_ISBD_TIMEOUT_IF_NO_SIGNAL    (15U)
 #endif
 
 /**
- * @brief   Default interval time between a failed (TX/RX) and a retry.
+ * @brief   Interval time between a failed (TX/RX) and a retry.
  *          Retrying to fast depletes the capacitors and if your VCC is not
  *          providing enough power, the device will stop working till the
  *          capacitors are sufficiently charged again.
  */
-#ifndef ISBD_DEFAULT_TX_WAIT
-#define ISBD_DEFAULT_TX_WAIT            (10U)
+#ifndef CONFIG_ISBD_TX_RETRY_INTERVAL
+#define CONFIG_ISBD_TX_RETRY_INTERVAL       (10U)
 #endif
 
 /**
- * @brief   Default wait time between system time requests (in case the system
+ * @brief   Interval time between system time requests (in case the system
  *          time was not received on the first attempt)
  */
-#ifndef ISBD_MSSTM_RETRY_INTERVAL
-#define ISBD_MSSTM_RETRY_INTERVAL       (10U)
+#ifndef CONFIG_ISBD_MSSTM_RETRY_INTERVAL
+#define CONFIG_ISBD_MSSTM_RETRY_INTERVAL    (10U)
 #endif
 
 /**
- * @brief   Default max number of SBDIX retries till it is considered as failed
+ * @brief   Number of SBDIX retries until a transmission is considered as failed
  */
-#ifndef ISBD_DEFAULT_SBDIX_MAX_RETRIES
-#define ISBD_DEFAULT_SBDIX_MAX_RETRIES  (15U)
+#ifndef CONFIG_ISBD_SBDIX_RETRIES
+#define CONFIG_ISBD_SBDIX_RETRIES           (3U)
 #endif
 
+/**
+ * @brief   Time increments between SBDIX retries
+ */
+#ifndef CONFIG_ISBD_SBDIX_TIME_INCREMENT
+#define CONFIG_ISBD_SBDIX_TIME_INCREMENT    (3U)
+#endif
 
 /**
  * @brief   If the test mode is enabled, all transmissions get redirected from the
@@ -113,18 +128,59 @@
  *          by an RX event. No actual connection is established to the satellite
  *          network and therefore no fees will be charged.
  */
-#ifndef ISBD_TEST_MODE
-#define ISBD_TEST_MODE                  (false)
+#ifndef CONFIG_ISBD_TEST_MODE
+#define CONFIG_ISBD_TEST_MODE
 #endif
 /** @} */
 
 /**
- * @brief   ISBD IRQ flags
+ * @name    ISBD AT-Commands
+ * @{
  */
-#define ISBD_IRQ_NETWORK_AVAILABLE      (1 << 0)    /**< Network Available IRQ flag */
+
+/** @brief Initiate an SBD Session Extended */
+#define ISBD_SBDIX                   ("at+sbdix")
+/** @brief Same as SBDIX, but as answer to a ring alert) */
+#define ISBD_SBDIXA                  ("at+sbdixa")
+/** @brief Enable/Disable Mobile-Terminated Alert */
+#define ISBD_SBDMTA                  ("at+sbdmta=%d")
+/** @brief Session Timeout for SBDIX[A] and SBDREG commands */
+#define ISBD_SBDST                   ("at+sbdst=%d")
+/** @brief Write Binary Data to the modem MO buffer */
+#define ISBD_SBDWB                   ("at+sbdwb=%d")
+/** @brief Read Binary Data from the modem MT buffer */
+#define ISBD_SBDRB                   ("at+sbdrb")
+/** @brief TX test command: Transfer MO Buffer directly to MT Buffer */
+#define ISBD_SBDTC                   ("at+sbdtc")
+/** @brief Clear SBD Message Buffer(s) */
+#define ISBD_SBDD                    ("at+sbdd%d")
+/** @brief Get the device revision */
+#define ISBD_CGMR                    ("at+cgmr")
+/** @brief Store Active Configuration */
+#define ISBD_STORE_CFG               ("at&w%d")
+/** @brief Default Reset Profile after power-up */
+#define ISBD_RST_PROFILE              ("at&y0")
+/** @brief Query the latest Iridium system time received from the network */
+#define ISBD_MSSTM                   ("at-msstm")
+/** @brief Flush the EEPROM */
+#define ISBD_FLUSH_EEPROM            ("at*f")
+/** @brief Disable Flow Control */
+#define ISBD_FLOW_CTR_OFF            ("at&k0")
+/** @brief Disable the Data Terminal Ready control signal */
+#define ISBD_DTR_OFF                 ("at&d0")
+/** @brief Enable the AT command echo.*/
+#define ISBD_AT_ECHO_ON              ("ate1")
+/** @} */
+
+/**
+ * @name    ISBD IRQ flags
+ * @{
+ */
+#define ISBD_IRQ_NETWORK_AVAILABLE      (1 << 0)    /**< Signal Available IRQ flag */
 #define ISBD_IRQ_NEW_MSG                (1 << 1)    /**< Ring Alarm IRQ flag */
 #define ISBD_IRQ_TX_RETRY               (1 << 2)    /**< TX Retry IRQ flag */
 #define ISBD_IRQ_TX_TIMEOUT             (1 << 3)    /**< TX Timeout IRQ flag */
+/** @} */
 
 /**
  * @brief   Radio driver internal state machine states definition.
@@ -155,13 +211,13 @@ enum {
     ISBD_ERR_GPIO                   = -6,   /**< Failed to initialize GPIO */
     ISBD_ERR_GPIO_UNDEF             = -7,   /**< GPIO is @ref GPIO_UNDEF */
     ISBD_ERR_WAKE_TIMEOUT           = -8,   /**< Device didn't respond during
-                                             *   @ref ISBD_DEFAULT_STARTUP_MAX_TIME
+                                             *   @ref CONFIG_ISBD_STARTUP_TIME
                                              *   after exiting sleep mode */
     ISBD_ERR_SBDWB_TIMEOUT          = -9,   /**< Write Timeout: insufficient number
                                              *   of bytes were transfered. */
     ISBD_ERR_SBDWB_CHKSM            = -10,  /**< Transfered checksum does not match
                                              *   the internally calculated checksum */
-    ISBD_ERR_SBDWB_INCORRECT_LEN    = -11,  /**< When Payload 0 or > @ref ISBD_MAX_TX_LEN */
+    ISBD_ERR_SBDWB_INCORRECT_LEN    = -11,  /**< When Payload 0 or > @ref CONFIG_ISBD_MAX_TX_LEN */
 
     /* GSS (gateway)-reported errors: */
     ISBD_ERR_SBDIX_MT_OVERSZIZE     = -12,  /**< MO message, if any, transferred successfully,
@@ -214,8 +270,8 @@ typedef enum {
  */
 typedef struct {
     uint8_t state;                          /**< Radio state */
-    char isrpipe_buf[ISBD_MAX_ISRPIPE_BUF]; /**< ISR Pipe buffer */
-    char resp_buf[ISBD_MAX_RESP_BUF];       /**< Response buffer */
+    char uart_buf[CONFIG_ISBD_UART_BUF];    /**< UART buffer */
+    char resp_buf[CONFIG_ISBD_MAX_RX_BUF];  /**< Response buffer */
     xtimer_ticks32_t power_on_time;         /**< Timestamp of when the device
                                              *   was turned on. Best practice
                                              *   suggests waiting at least 2 sec
@@ -334,11 +390,11 @@ int isbd_start_network_registration(isbd_t *dev);
 uint8_t isbd_get_state(const isbd_t *dev);
 
 /**
- * @brief   Gets the current state of the transceiver
+ * @brief   Gets the firmware version (AT+CGMR)
  *
  * @param[in] dev            The ISBD device descriptor
  *
- * @return Firmware version (AT+CGMR)
+ * @return Firmware version
  */
 uint8_t isbd_get_fw_version(const isbd_t *dev);
 
@@ -379,20 +435,21 @@ void isbd_set_standby(isbd_t *dev);
 void isbd_set_idle(isbd_t *dev);
 
 /**
- * @brief   Enables the assertion of the ring alert pin of the radio.
+ * @brief   Enables/disables the assertion of the ring alert pin of the radio.
  *          Incoming messages will pull the pin low (works only after device
  *          registered to the network).
  *
  *          @note Not saved after power off!
  *
  * @param[in] dev             The ISBD device descriptor
+ * @param[in] enable          Enable/disable ring alert
  */
-void isbd_set_ring_alert(isbd_t *dev);
+void isbd_set_ring_alert(isbd_t *dev, bool enable);
 
 /**
  * @brief   Set the SBD session timeout in seconds for the +SBDIX, +SBDREG and
- *          +SBDDET commands. Setting is not saved after power off. Default on
- *          power on is 0, which means a command can take infinite amount of seconds.
+ *          +SBDDET commands. Default on power on is 0, which means a command
+ *          can take infinite amount of seconds.
  *
  *          @note Not saved after power off!
  *
@@ -403,7 +460,6 @@ void isbd_set_sbd_session_timeout(isbd_t *dev, uint16_t timeout_sec);
 
 /**
  * @brief   Disable the RTS/CTS flow control in case of 3-wire mode (RX,TX,GND).
- *
  *          @note Not saved after power off!
  *
  * @param[in] dev             The ISBD device descriptor
@@ -421,13 +477,12 @@ void isbd_set_flow_control_off(isbd_t *dev);
 void isbd_set_dtr_off(isbd_t *dev);
 
 /**
- * @brief   Enable/disable the AT command echo. Echo ON by default
- *
+ * @brief   Enable the AT command echo.
  *          @note Not saved after power off!
  *
  * @param[in] dev             The ISBD device descriptor
  */
-void isbd_set_at_echo(isbd_t *dev, bool echo);
+void isbd_set_at_echo(isbd_t *dev);
 
 /**
  * @brief   Store the active profile in non-volatile memory.
@@ -441,8 +496,8 @@ void isbd_set_store_config(isbd_t *dev, uint8_t profile_nr);
 
 /**
  * @brief   Select profile for use after power-up.
-            0 Select profile 0 (default).
-            1 Select profile 1
+            0 Select profile 0 (default) (AT&Y0)
+            1 Select profile 1           (AT&Y1)
  *
  * @param[in] dev             The ISBD device descriptor
  */

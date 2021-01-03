@@ -127,6 +127,13 @@ extern "C" {
 #endif
 
 /**
+ * @brief Special case: echo will not be terminated by CR and LF characters.
+ */
+#ifndef AT_RECV_NO_EOL
+#define AT_RECV_NO_EOL 0
+#endif
+
+/**
  * @brief default OK reply of an AT device.
  */
 #ifndef CONFIG_AT_RECV_OK
