@@ -39,10 +39,14 @@ static int _send(netdev_t *netdev, const iolist_t *iolist)
     isbd_t *dev = (isbd_t *)netdev;
     uint8_t state = isbd_get_state(dev);
 
-    if (state != ISBD_STATE_IDLE && state != ISBD_STATE_STANDBY) {
+    if (state == ISBD_STATE_TX || state == ISBD_STATE_RX) {
         DEBUG("[isbd] netdev: device still busy\n");
         netdev->event_callback(netdev, NETDEV_EVENT_TX_MEDIUM_BUSY);
         return -ENOTSUP;
+    }
+
+    if(state == ISBD_STATE_OFF) {
+    	isbd_set_standby(dev);
     }
 
     uint8_t size = iolist_size(iolist);
@@ -91,10 +95,6 @@ static int _recv(netdev_t *netdev, void *buf, size_t len, void *info)
         calc_checksum += dev->_internal.resp_buf[i];
     }
 
-    /* checksum is unreliable. The modem sometimes doesn't send the correct checksum,
-     * even if the payload is in fact correctly received. Sometimes there is even no
-     * checksum received at all, no idea why.
-     */
     if (checksum != calc_checksum) {
         DEBUG("[isbd] netdev: received checksum: %d\n", checksum);
         DEBUG("[isbd] netdev: calculated checksum: %d\n", calc_checksum);
@@ -102,7 +102,7 @@ static int _recv(netdev_t *netdev, void *buf, size_t len, void *info)
     }
 
     memcpy(buf, dev->_internal.resp_buf + 2, size);
-//    isbd_clear_buffer(dev, ISBD_CLEAR_RX);
+    isbd_clear_buffer(dev, ISBD_CLEAR_RX);
 //    isbd_set_state(dev, ISBD_STATE_IDLE);
 
     return 0;

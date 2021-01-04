@@ -27,7 +27,7 @@ uint8_t isbd_get_state(const isbd_t *dev)
     return dev->_internal.state;
 }
 
-void isbd_set_state(isbd_t *dev, uint8_t state)
+void isbd_set_state(isbd_t *dev, isbd_states_t state)
 {
 #if ENABLE_DEBUG
     printf("[isbd] state: ");
@@ -112,7 +112,7 @@ void isbd_set_idle(isbd_t *dev)
         isbd_set_standby(dev);
     }
 
-#if IS_ACTIVE(CONFIG_ISBD_TEST_MODE)
+#ifndef CONFIG_ISBD_TEST_MODE
     isbd_start_network_registration(dev);
 #endif
 }
