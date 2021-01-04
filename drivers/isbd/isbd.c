@@ -112,7 +112,7 @@ int isbd_start_tx(isbd_t *dev)
 {
     int res;
 
-#if IS_ACTIVE(CONFIG_ISBD_TEST_MODE)
+#ifdef CONFIG_ISBD_TEST_MODE
     res = isbd_tx_test(dev);
 #else
     if ((res = isbd_tx(dev)) < 0) {
@@ -155,7 +155,7 @@ int isbd_start_tx(isbd_t *dev)
 #endif
     return res;
 }
-#if IS_ACTIVE(CONFIG_ISBD_TEST_MODE)
+#ifndef CONFIG_ISBD_TEST_MODE
 int isbd_start_network_registration(isbd_t *dev)
 {
     if (isbd_get_state(dev) == ISBD_STATE_OFF) {

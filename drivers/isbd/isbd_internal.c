@@ -29,106 +29,106 @@ static int _process_sbdix_tx_response(isbd_t *dev)
     int mo_status = atoi(strtok(dev->_internal.resp_buf + 8, ","));
 
     switch (mo_status) {
-        case 0:
-            result = ISBD_OK;
-            DEBUG("[isbd] +sbdix tx: Successfully transferred.\n");
-            break;
-        case 1:
-            //result = ISBD_ERR_SBDIX_MT_OVERSZIZE;
-            result = ISBD_OK;
-            DEBUG(
-                "[isbd] +sbdix tx: Successfully transferred, but MT msg to big.\n");
-            break;
-        case 2:
+    case 0:
+        result = ISBD_OK;
+        DEBUG("[isbd] +sbdix tx: Successfully transferred.\n");
+        break;
+    case 1:
+        //result = ISBD_ERR_SBDIX_MT_OVERSZIZE;
+        result = ISBD_OK;
+        DEBUG(
+            "[isbd] +sbdix tx: Successfully transferred, but MT msg to big.\n");
+        break;
+    case 2:
 //            result = ISBD_ERR_SBDIX_LOCATION;
-            result = ISBD_OK;
-            DEBUG(
-                "[isbd] +sbdix tx: Successfully transferred, but Location Update was not accepted\n");
-            break;
-        case 10:
+        result = ISBD_OK;
+        DEBUG(
+            "[isbd] +sbdix tx: Successfully transferred, but Location Update was not accepted\n");
+        break;
+    case 10:
 //            result = ISBD_ERR_SBDIX_GSS_TIMEOUT;
-            DEBUG(
-                "[isbd] +sbdix tx: transmission did not complete in the allowed time.\n");
-            break;
-        case 11:
+        DEBUG(
+            "[isbd] +sbdix tx: transmission did not complete in the allowed time.\n");
+        break;
+    case 11:
 //            result = ISBD_ERR_SBDIX_MO_QUEUE_FULL;
-            DEBUG("[isbd] +sbdix tx: MO message queue at the GSS is full.\n");
-            break;
-        case 12:
+        DEBUG("[isbd] +sbdix tx: MO message queue at the GSS is full.\n");
+        break;
+    case 12:
 //            result = ISBD_ERR_SBDIX_MO_SEGMENTS;
-            DEBUG("[isbd] +sbdix tx: MO message has too many segments.\n");
-            break;
-        case 13:
+        DEBUG("[isbd] +sbdix tx: MO message has too many segments.\n");
+        break;
+    case 13:
 //            result = ISBD_ERR_SBDIX_INCOMPLETE_SESS;
-            DEBUG(
-                "[isbd] +sbdix tx: GSS reported that the session did not complete.\n");
-            break;
-        case 14:
+        DEBUG(
+            "[isbd] +sbdix tx: GSS reported that the session did not complete.\n");
+        break;
+    case 14:
 //            result = ISBD_ERR_SBDIX_INVALID_SEG_SIZ;
-            DEBUG("[isbd] +sbdix tx: Invalid segment size.\n");
-            break;
-        case 15:
+        DEBUG("[isbd] +sbdix tx: Invalid segment size.\n");
+        break;
+    case 15:
 //            result = ISBD_ERR_SBDIX_ACCESS_DENIED;
-            DEBUG("[isbd] +sbdix tx: Access is denied.\n");
-            break;
-        case 16:
+        DEBUG("[isbd] +sbdix tx: Access is denied.\n");
+        break;
+    case 16:
 //            result = ISBD_ERR_SBDIX_LOCKED;
-            DEBUG("[isbd] +sbdix tx: ISU locked the transmission.\n");
-            break;
-        case 17:
+        DEBUG("[isbd] +sbdix tx: ISU locked the transmission.\n");
+        break;
+    case 17:
 //            result = ISBD_ERR_SBDIX_TIMEOUT;
-            DEBUG("[isbd] +sbdix tx: Gateway not responding.\n");
-            break;
-        case 18:
+        DEBUG("[isbd] +sbdix tx: Gateway not responding.\n");
+        break;
+    case 18:
 //            result = ISBD_ERR_SBDIX_RF_DROP;
-            DEBUG("[isbd] +sbdix tx: Connection lost (RF drop).\n");
-            break;
-        case 19:
+        DEBUG("[isbd] +sbdix tx: Connection lost (RF drop).\n");
+        break;
+    case 19:
 //            result = ISBD_ERR_SBDIX_LINK_FAILURE;
-            DEBUG("[isbd]] +sbdix tx: Link failure.\n");
-            break;
-        case 32:
-            result = ISBD_ERR_NO_NETWORK;
-            DEBUG("[isbd] tx: No network service.\n");
-            break;
-        case 33:
+        DEBUG("[isbd]] +sbdix tx: Link failure.\n");
+        break;
+    case 32:
+        result = ISBD_ERR_NO_NETWORK;
+        DEBUG("[isbd] tx: No network service.\n");
+        break;
+    case 33:
 //            result = ISBD_ERR_SBDIX_ANTENNA_FAULT;
-            DEBUG("[isbd] +sbdix tx: Antenna fault.\n");
-            break;
-        case 34:
+        DEBUG("[isbd] +sbdix tx: Antenna fault.\n");
+        break;
+    case 34:
 //            result = ISBD_ERR_SBDIX_RADIO_DISABLED;
-            DEBUG("[isbd] +sbdix tx: Radio is disabled.\n");
-            break;
-        case 35:
+        DEBUG("[isbd] +sbdix tx: Radio is disabled.\n");
+        break;
+    case 35:
 //            result = ISBD_ERR_SBDIX_BUSY;
-            DEBUG("[isbd] +sbdix tx: ISU is busy, unable to initiate call.\n");
-            break;
-        case 36:
+        DEBUG("[isbd] +sbdix tx: ISU is busy, unable to initiate call.\n");
+        break;
+    case 36:
 //            result = ISBD_ERR_SBDIX_WAIT
-            DEBUG(
-                "[isbd] +sbdix tx: Try later, must wait 3 minutes since last registration.\n");
-            break;
-        case 37:
+        DEBUG(
+            "[isbd] +sbdix tx: Try later, must wait 3 minutes since last registration.\n");
+        break;
+    case 37:
 //            result = ISBD_ERR_SBDIX_SBD_SERVICE_OFF;
-            DEBUG("[isbd] +sbdix tx: SBD service is temporarily disabled.\n");
-            break;
-        case 38:
+        DEBUG("[isbd] +sbdix tx: SBD service is temporarily disabled.\n");
+        break;
+    case 38:
 //            result = ISBD_ERR_SBDIX_TRAFFIC_MANAG;
-            DEBUG("[isbd] +sbdix tx: Try later, traffic management period.\n");
-            break;
-        case 64:
+        DEBUG("[isbd] +sbdix tx: Try later, traffic management period.\n");
+        break;
+    case 64:
 //            result = ISBD_ERR_SBDIX_BAND_VIOLATION;
-            DEBUG("[isbd] +sbdix tx: Band violation.\n");
-            break;
-        case 65:
+        DEBUG("[isbd] +sbdix tx: Band violation.\n");
+        break;
+    case 65:
 //            result = ISBD_ERR_SBDIX_PLL_LOCK_FAIL;
-            DEBUG("[isbd] +sbdix tx: PLL lock failure.\n");
-            break;
-        default:
+        DEBUG("[isbd] +sbdix tx: PLL lock failure.\n");
+        break;
+    default:
 //            result = ISBD_ERR_AT;
-            DEBUG("[isbd] +sbdix tx: Command failed, unknowm error code: %d\n",
-                  mo_status);
-            break;
+        DEBUG("[isbd] +sbdix tx: Command failed, unknowm error code: %d\n",
+              mo_status);
+        break;
     }
 
     if (result == ISBD_OK) {
@@ -204,7 +204,7 @@ int isbd_tx(isbd_t *dev)
     dev->_internal.is_sending = true;
 
     /* blocking, till system time was received from the network */
-//    isbd_request_sys_time(dev);
+    isbd_request_sys_time(dev);
 
     char cmd[10];
 
@@ -223,8 +223,8 @@ int isbd_tx(isbd_t *dev)
                              sizeof(dev->_internal.resp_buf),
                              (CONFIG_ISBD_SBD_SESSION_TIMEOUT + 1) *
                              US_PER_SEC) < 0) {
-    	DEBUG("\nSBDIX timeout\n");
-//    	LED2_OFF;
+        DEBUG("\nSBDIX timeout\n");
+//      LED2_OFF;
         return ISBD_ERR_AT;
     }
 
@@ -274,7 +274,7 @@ int isbd_tx(isbd_t *dev)
     return res;
 }
 
-#if IS_ACTIVE(CONFIG_ISBD_TEST_MODE)
+#ifdef CONFIG_ISBD_TEST_MODE
 int isbd_tx_test(isbd_t *dev)
 {
     if (isbd_get_state(dev) == ISBD_STATE_OFF) {
@@ -296,7 +296,7 @@ int isbd_tx_test(isbd_t *dev)
     }
 
     netdev->event_callback(netdev, NETDEV_EVENT_TX_COMPLETE);
-//    isbd_clear_buffer(dev, ISBD_CLEAR_TX);
+    isbd_clear_buffer(dev, ISBD_CLEAR_TX);
     isbd_set_state(dev, ISBD_STATE_RX);
     isbd_read_rx_buf(dev);
     netdev->event_callback(netdev, NETDEV_EVENT_RX_COMPLETE);
@@ -327,7 +327,7 @@ static int _process_sbdwb_response(isbd_t *dev)
         DEBUG("[isbd] Write TX buf: Wrong checksum transfered\n");
     }
 
-    DEBUG("[isbd] Write TX buf Response %c\n", dev->_internal.resp_buf[2]);
+//    DEBUG("[isbd] Write TX buf Response %c\n", dev->_internal.resp_buf[2]);
 
     return ret;
 }
@@ -393,11 +393,6 @@ int isbd_write_tx_buf(isbd_t *dev, uint8_t *payload, uint16_t payload_len)
 
 int isbd_clear_buffer(isbd_t *dev, isbd_clear_buf_opt_t option)
 {
-    if (isbd_get_state(dev) == ISBD_STATE_OFF) {
-        DEBUG("[isbd] ABORT: Device is in sleep mode\n");
-        return ISBD_ERR_SLEEP_MODE;
-    }
-
     DEBUG("[isbd] clearing %s buffer\n", option ? "RX" : "TX");
 
     char command[10];
@@ -416,29 +411,37 @@ int isbd_clear_buffer(isbd_t *dev, isbd_clear_buf_opt_t option)
 
 int isbd_read_rx_buf(isbd_t *dev)
 {
-    if (isbd_get_state(dev) == ISBD_STATE_OFF) {
-        DEBUG("[isbd] ABORT: Device is in sleep mode\n");
-        return ISBD_ERR_SLEEP_MODE;
+    int res;
+    size_t cmdlen = strlen(ISBD_SBDRB);
+    size_t len = sizeof(dev->_internal.resp_buf);
+
+    at_drain(&dev->at_dev);
+
+    /* special case: echo will not have AT_RECV_EOL_1 and AT_RECV_EOL_2,
+     * so do command send manually */
+    uart_write(dev->at_dev.uart, (const uint8_t *)ISBD_SBDRB, cmdlen);
+    uart_write(dev->at_dev.uart, (const uint8_t *)CONFIG_AT_SEND_EOL,
+               AT_SEND_EOL_LEN);
+
+
+    if (at_expect_bytes(&dev->at_dev, ISBD_SBDRB, 2 * US_PER_SEC)) {
+        return -1;
     }
 
-    if (at_send_cmd_get_resp(&dev->at_dev, ISBD_SBDRB, dev->_internal.resp_buf,
-                             sizeof(dev->_internal.resp_buf),
-                             10 * US_PER_SEC) < 0) {
-    	DEBUG("[isbd] read RX buf failed\n");
-        return ISBD_ERR_AT;
+    if (at_expect_bytes(&dev->at_dev, CONFIG_AT_SEND_EOL, 2 * US_PER_SEC)) {
+        return -2;
     }
-//    isbd_clear_buffer(dev, ISBD_CLEAR_RX);
 
-    int i = 0;
-    bool stop = false;
-    while(!stop){
-      printf("%x ", dev->_internal.resp_buf[i]);
-      i++;
-      if(dev->_internal.resp_buf[i] == 0){
-          stop = true;
-      }
+    memset(dev->_internal.resp_buf, 0, sizeof(dev->_internal.resp_buf));
+
+    res = at_recv_bytes_until_string(&dev->at_dev, "\r\n\0",
+                                     dev->_internal.resp_buf, &len,
+                                     10 * US_PER_SEC);
+    if (res < 0) {
+        DEBUG("[isbd] read rx buf failed");
+        return -1;
     }
-    puts("");
+
     return ISBD_OK;
 }
 
@@ -462,6 +465,8 @@ int isbd_on(isbd_t *dev)
     gpio_set(dev->params.sleep_pin);
     at_dev_poweron(&dev->at_dev);
 
+    /*  Best practice suggests waiting at least 2 sec to turn off again, so
+     *  save power on timestamp */
     dev->_internal.power_on_time = xtimer_now();
 
     while ((isbd_get_state(dev) != ISBD_STATE_STANDBY) &&
@@ -481,28 +486,28 @@ int isbd_on(isbd_t *dev)
 
 int isbd_flush_eeprom(isbd_t *dev)
 {
-    if (at_send_cmd_wait_ok(&dev->at_dev, ISBD_FLUSH_EEPROM, 10 * US_PER_SEC) < 0) {
+    if (at_send_cmd_wait_ok(&dev->at_dev, ISBD_FLUSH_EEPROM,
+                            10 * US_PER_SEC) < 0) {
         DEBUG("[isbd] flush: Flushing EEPROM failed\n");
         return ISBD_ERR_AT;
     }
     return ISBD_OK;
 }
 
-
-/* TODO increase tx retries here too */
 int isbd_request_sys_time(isbd_t *dev)
 {
-    bool recv_sys_time_pending = true;
+    uint8_t retries;
+    int res = ISBD_OK;
 
-    while (recv_sys_time_pending) {
-
+    for (retries = 0; retries < CONFIG_ISBD_MSSTM_RETRIES; retries++) {
 
         if (at_send_cmd_get_resp(&dev->at_dev, ISBD_MSSTM,
                                  dev->_internal.resp_buf,
                                  sizeof(dev->_internal.resp_buf),
                                  10 * US_PER_SEC) < 0) {
             DEBUG("[isbd] msstm: System time request failed\n");
-            return ISBD_ERR_AT;
+            res = ISBD_ERR_AT;
+            break;
         }
 
         if (strcmp(dev->_internal.resp_buf,
@@ -513,9 +518,8 @@ int isbd_request_sys_time(isbd_t *dev)
         }
         else {
             DEBUG("[isbd] sys time: %s\n", dev->_internal.resp_buf);
-            recv_sys_time_pending = false;
+            break;
         }
-
     }
-    return ISBD_OK;
+    return res;
 }

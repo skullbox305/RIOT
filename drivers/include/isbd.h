@@ -53,10 +53,11 @@
 #endif
 
 /**
- * @brief   Maximum size of an ISBD response (RX)
+ * @brief   Maximum size of an ISBD response packet (RX).
+ *          Usually 270 Bytes + 4 Bytes length and checksum.
  */
-#ifndef CONFIG_ISBD_MAX_RX_BUF
-#define CONFIG_ISBD_MAX_RX_BUF              (360U)
+#ifndef CONFIG_ISBD_MAX_RX_LEN
+#define CONFIG_ISBD_MAX_RX_LEN              (274U)
 #endif
 
 /**
@@ -67,8 +68,9 @@
 #endif
 
 /**
- * @brief   Startup time for the capacitors to charge after a cold start/wake up
- *          (value depends on the power supply)
+ * @brief   Startup time in sec for the capacitors to charge after a
+ *          cold start/wake up. If your power supply is sufficiently powerful
+ *          the value can be decreased.
  */
 #ifndef CONFIG_ISBD_STARTUP_TIME
 #define CONFIG_ISBD_STARTUP_TIME            (10U)
@@ -86,17 +88,25 @@
  *          gets canceled
  */
 #ifndef CONFIG_ISBD_TIMEOUT_IF_NO_SIGNAL
-#define CONFIG_ISBD_TIMEOUT_IF_NO_SIGNAL    (15U)
+#define CONFIG_ISBD_TIMEOUT_IF_NO_SIGNAL    (300U)
 #endif
 
 /**
  * @brief   Interval time between a failed (TX/RX) and a retry.
  *          Retrying to fast depletes the capacitors and if your VCC is not
  *          providing enough power, the device will stop working till the
- *          capacitors are sufficiently charged again.
+ *          capacitors are sufficiently charged again. The value can be
+ *          decreased if the power supply is able to provide enough burst current.
  */
 #ifndef CONFIG_ISBD_TX_RETRY_INTERVAL
 #define CONFIG_ISBD_TX_RETRY_INTERVAL       (10U)
+#endif
+
+/**
+ * @brief   Number of MSSTM retries until the request is considered as failed
+ */
+#ifndef CONFIG_ISBD_MSSTM_RETRIES
+#define CONFIG_ISBD_MSSTM_RETRIES           (3U)
 #endif
 
 /**
@@ -115,21 +125,10 @@
 #endif
 
 /**
- * @brief   Time increments between SBDIX retries
+ * @brief   Time increments in seconds between SBDIX retries
  */
 #ifndef CONFIG_ISBD_SBDIX_TIME_INCREMENT
 #define CONFIG_ISBD_SBDIX_TIME_INCREMENT    (3U)
-#endif
-
-/**
- * @brief   If the test mode is enabled, all transmissions get redirected from the
- *          internal radio MO (TX) buffer to the MT (RX) buffer via the
- *          +SBDTC command (instead of +SBDIX). An TX event is then always followed
- *          by an RX event. No actual connection is established to the satellite
- *          network and therefore no fees will be charged.
- */
-#ifndef CONFIG_ISBD_TEST_MODE
-#define CONFIG_ISBD_TEST_MODE
 #endif
 /** @} */
 
@@ -185,7 +184,7 @@
 /**
  * @brief   Radio driver internal state machine states definition.
  */
-enum {
+typedef enum {
     ISBD_STATE_OFF,                 /**< Device is powered off */
     ISBD_STATE_STANDBY,             /**< Awake but not registered at the network.
                                          Waiting for AT commands */
@@ -195,7 +194,7 @@ enum {
                                          incoming AT commands */
     ISBD_STATE_TX,                  /**< Device is transmitting */
     ISBD_STATE_RX                   /**< Received a data packet, waiting to be read */
-};
+} isbd_states_t;
 
 /**
  * @brief   Named return values
@@ -271,14 +270,12 @@ typedef enum {
 typedef struct {
     uint8_t state;                          /**< Radio state */
     char uart_buf[CONFIG_ISBD_UART_BUF];    /**< UART buffer */
-    char resp_buf[CONFIG_ISBD_MAX_RX_BUF];  /**< Response buffer */
+    char resp_buf[CONFIG_ISBD_MAX_RX_LEN];  /**< Response buffer */
     xtimer_ticks32_t power_on_time;         /**< Timestamp of when the device
-                                             *   was turned on. Best practice
-                                             *   suggests waiting at least 2 sec
-                                             *   to turn off again  */
+                                             *   was turned on. */
     xtimer_t timeout_timer;                 /**< Timeout timer */
-    bool ring_alert_flag;                   /**< Alert flag, indicating a new msg is
-                                             *   available to be received */
+    bool ring_alert_flag;                   /**< Alert flag, indicating a new msg
+                                                 is available to be received */
     bool tx_pending;                        /**< Transmission pending */
     bool rx_pending;                        /**< Receive pending */
     bool rx_received;                       /**< Received a message in the tx response */
@@ -362,7 +359,7 @@ int isbd_init(isbd_t *dev);
  */
 int isbd_start_tx(isbd_t *dev);
 
-#if defined(DOXYGEN) || !ISBD_TEST_MODE
+#if defined(DOXYGEN) || !defined(CONFIG_ISBD_TEST_MODE)
 /**
  * @brief   Performs a manual network registration in order to use the Ring Alert.
  *          After a successful registration, the ring pin will be pulled low
@@ -404,7 +401,7 @@ uint8_t isbd_get_fw_version(const isbd_t *dev);
  * @param[in] dev             The ISBD device descriptor
  * @param[in] state           The new radio state
  */
-void isbd_set_state(isbd_t *dev, uint8_t state);
+void isbd_set_state(isbd_t *dev, isbd_states_t state);
 
 /**
  * @brief   Sets the device in off mode. If the @ref dev->params.sleep_pin is

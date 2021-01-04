@@ -4,27 +4,90 @@
 # General Public License v2.1. See the file LICENSE in the top level
 # directory for more details.
 #
-menuconfig KCONFIG_MODULE_ISBD
+menuconfig MODULE_ISBD
     bool "Configure Iridium SBD Sat Modem Driver"
-    depends on HAS_PERIPH_GPIO
-    depends on HAS_PERIPH_GPIO_IRQ
-    depends on HAS_PERIPH_UART
-    select MODULE_PERIPH_GPIO
-    select MODULE_PERIPH_GPIO_IRQ
-    select MODULE_PERIPH_UART
-    select MODULE_FMT
-    select MODULE_IOLIST
-    select MODULE_AT
+    default y
     help
         Configure the ISBD driver using Kconfig.
 
-if KCONFIG_USEMODULE_ISBD
+if MODULE_ISBD
 
 config ISBD_SBD_SESSION_TIMEOUT
     int "Default command timeout in sec"
-    default 15
+    default 300
     help
-        Default command timeout in sec in seconds to wait for a 
-        response of the AT+SBDIX[A] command.
+        Default command timeout in seconds to wait for a 
+        response of the AT+SBDIX[A] and SBDREG commands.
+        
+config ISBD_MAX_TX_LEN
+    int "Max TX payload size"
+    default 340
+    help
+        Maximum size of a TX payload supported by the modem
+        
+config ISBD_MAX_RX_LEN
+    int "Max RX packet size"
+    default 274
+    help
+        Maximum size of an ISBD response packet (RX).
+        Usually 270 Bytes + 4 Bytes length and checksum.
+        
+config ISBD_UART_BUF
+    int "Size of the UART buffer"
+    default 512
+    
+config ISBD_STARTUP_TIME
+    int "Time needed to wakeup from off state"
+    default 10
+    help
+        Startup time in sec for the capacitors to charge after a cold 
+        start/wake up. If your power supply is sufficiently powerful
+        the value can be decreased.
+        
+config ISBD_TIMEOUT_IF_NO_SIGNAL
+    int "Timeout if no network service available"
+    default 300
+    help
+        Timeout in sec until a transmission with no network service
+        gets canceled.
+        
+config ISBD_TX_RETRY_INTERVAL
+    int "Time interval between TX retries"
+    default 10
+    help
+        Interval time between a failed (TX/RX) and a retry.
+        Retrying to fast depletes the capacitors and if your VCC is not
+        providing enough power, the device will stop working till the
+        capacitors are sufficiently charged again. The value can be
+        decreased if the power supply is able to provide enough burst current.
 
-endif # KCONFIG_USEMODULE_ISBD
+config ISBD_MSSTM_RETRY_INTERVAL
+    int "Time interval between systems time request retries"
+    default 10
+    help
+        Interval time between system time requests (in case the system
+        time was not received on the first attempt)
+        
+config ISBD_SBDIX_RETRIES
+    int "Amount of TX/RX retries until failed"
+    default 10
+    help
+        Number of SBDIX retries (TX/RX) until a transmission is considered as failed
+        
+config ISBD_SBDIX_TIME_INCREMENT
+    int "Time increments between TX/RX retries"
+    default 10
+    help
+        Time increments in seconds between SBDIX retries
+
+config ISBD_TEST_MODE
+    bool "Enable Modem Test Mode"
+    default n
+    help
+        If the test mode is enabled, all transmissions get redirected from the
+        internal radio MO (TX) buffer to the MT (RX) buffer via the
+        +SBDTC command (instead of +SBDIX). An TX event is then always followed
+        by an RX event. No actual connection is established to the satellite
+        network and therefore no fees will be charged.
+ 
+endif # MODULE_ISBD

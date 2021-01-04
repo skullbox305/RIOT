@@ -179,15 +179,9 @@ int at_send_cmd(at_dev_t *dev, const char *command, uint32_t timeout)
             return -1;
         }
 
-#if IS_ACTIVE(AT_RECV_NO_EOL)
-        if (at_expect_bytes(dev, CONFIG_AT_SEND_EOL, timeout)) {
-            return -2;
-        }
-#else
         if (at_expect_bytes(dev, CONFIG_AT_SEND_EOL AT_RECV_EOL_1 AT_RECV_EOL_2, timeout)) {
             return -2;
 		}
-#endif
     }
 
     return 0;

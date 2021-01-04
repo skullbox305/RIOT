@@ -34,7 +34,7 @@
 #include "isbd_params.h"
 #include "isbd_internal.h"
 
-#define SHELL_BUFSIZE (256U)
+#define SHELL_BUFSIZE (512U)
 
 #define ISBD_STACKSIZE        (THREAD_STACKSIZE_DEFAULT)
 
@@ -43,7 +43,7 @@
 static char stack[ISBD_STACKSIZE];
 static kernel_pid_t _recv_pid;
 
-static char rx_buf[CONFIG_ISBD_MAX_RX_BUF];
+static char rx_buf[CONFIG_ISBD_MAX_RX_LEN];
 
 static isbd_t isbd_dev;
 
@@ -55,7 +55,7 @@ static int register_cmd(int argc, char **argv)
         puts("usage: regist");
         return -1;
     }
-#if !ISBD_TEST_MODE
+#ifndef CONFIG_ISBD_TEST_MODE
     isbd_start_network_registration(&isbd_dev);
 #endif
     return 0;
@@ -101,8 +101,6 @@ int cmd_send(int argc, char **argv)
         .iol_len = (strlen(argv[1]))
     };
 
-    isbd_set_standby(&isbd_dev);
-
     netdev_t *netdev = (netdev_t *)&isbd_dev;
     if (netdev->driver->send(netdev, &iolist) == -ENOTSUP) {
         puts("Cannot send: radio is still transmitting");
@@ -139,13 +137,13 @@ static void _event_cb(netdev_t *dev, netdev_event_t event)
         switch (event) {
         case NETDEV_EVENT_TX_MEDIUM_BUSY:
             printf(
-                "[sat radio] EVENT TX Busy: previous transmission still pending...\n");
+                "[isbd] EVENT TX Busy: previous transmission still pending...\n");
             break;
         case NETDEV_EVENT_TX_STARTED:
-            printf("[sat radio] EVENT: TX started...\n");
+            printf("[isbd] EVENT: TX started...\n");
             break;
         case NETDEV_EVENT_TX_COMPLETE:
-            printf("[sat radio] EVENT: TX completed...\n");
+            printf("[isbd] EVENT: TX completed...\n");
 
             /* If more messages are queued at the gateway,
              * do a send with no payload (mailbox check) to receive the
@@ -165,34 +163,32 @@ static void _event_cb(netdev_t *dev, netdev_event_t event)
             break;
         case NETDEV_EVENT_TX_TIMEOUT:
             if (isbd_dev._internal.tx_retries > 0) {
-                printf("[sat radio] EVENT TX Timeout after %d retries\n",
+                printf("[isbd] EVENT TX Timeout after %d retries\n",
                 		CONFIG_ISBD_SBDIX_RETRIES);
             }
             else {
-                printf("[sat radio] EVENT TX Timeout: no network signal\n");
+                printf("[isbd] EVENT TX Timeout: no network signal\n");
             }
             isbd_set_off(&isbd_dev);
             break;
         case NETDEV_EVENT_RX_COMPLETE:
-            printf("[sat radio] EVENT RX Completed...\n");
+            printf("[isbd] EVENT RX Completed...\n");
             len = dev->driver->recv(dev, NULL, 0, 0);
             dev->driver->recv(dev, rx_buf, len, NULL);
-            printf("[sat radio] Recv. msg: %s\n", rx_buf);
-
-            /* clear rx buffer, so the old message wont overlap with the new */
+            printf("[isbd] Recv. msg: %s\n", rx_buf);
             memset(rx_buf, 0, sizeof rx_buf);
             break;
         case NETDEV_EVENT_CRC_ERROR:
-            printf("[sat radio] EVENT: RX CRC Error\n");
+            printf("[isbd] EVENT: RX CRC Error\n");
             break;
         case NETDEV_EVENT_LINK_UP:
-            printf("[sat radio] EVENT: Signal available\n");
+            printf("[isbd] EVENT: Signal available\n");
             break;
         case NETDEV_EVENT_LINK_DOWN:
-            printf("[sat radio] EVENT: No Signal\n");
+            printf("[isbd] EVENT: No Signal\n");
             break;
         default:
-            printf("[sat radio] Unexpected netdev event received: %d\n",
+            printf("[isbd] Unexpected netdev event received: %d\n",
                    event);
             break;
         }
