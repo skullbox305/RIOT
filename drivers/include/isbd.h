@@ -136,7 +136,6 @@
  * @name    ISBD AT-Commands
  * @{
  */
-
 /** @brief Initiate an SBD Session Extended */
 #define ISBD_SBDIX                   ("at+sbdix")
 /** @brief Same as SBDIX, but as answer to a ring alert) */
@@ -158,7 +157,7 @@
 /** @brief Store Active Configuration */
 #define ISBD_STORE_CFG               ("at&w%d")
 /** @brief Default Reset Profile after power-up */
-#define ISBD_RST_PROFILE              ("at&y0")
+#define ISBD_RST_PROFILE              ("at&y%d")
 /** @brief Query the latest Iridium system time received from the network */
 #define ISBD_MSSTM                   ("at-msstm")
 /** @brief Flush the EEPROM */
@@ -168,7 +167,7 @@
 /** @brief Disable the Data Terminal Ready control signal */
 #define ISBD_DTR_OFF                 ("at&d0")
 /** @brief Enable the AT command echo.*/
-#define ISBD_AT_ECHO_ON              ("ate1")
+#define ISBD_AT_ECHO_ON              ("ate%d")
 /** @} */
 
 /**
@@ -251,8 +250,9 @@ enum {
     ISBD_ERR_SBDIX_RX_FAILED        = -33,  /**< An error occurred while attempting
                                              *   to perform a mailbox check or receive
                                              *   a message from the GSS. */
-    ISBD_ERR_SBDREG_TRY_LATER       = -34   /**< Try later, must wait 3 minutes
+    ISBD_ERR_SBDREG_TRY_LATER       = -34,  /**< Try later, must wait 3 minutes
                                              *   since last registration. */
+	ISBD_ERR_MSSTM_TIMEOUT          = -35,  /**< System time request timeout */
 };
 
 /**
@@ -278,7 +278,6 @@ typedef struct {
                                                  is available to be received */
     bool tx_pending;                        /**< Transmission pending */
     bool rx_pending;                        /**< Receive pending */
-    bool rx_received;                       /**< Received a message in the tx response */
     uint8_t rx_queued;                      /**< Amount of messages still queued
                                              *   in the Iridium gateway and ready
                                              *   to be downloaded */
@@ -328,8 +327,10 @@ typedef void (*isbd_timer_cb_t)(void *);
  *
  * @param[out] dev          ISBD device to initialize
  * @param[in]  params       parameters for device initialization
+ * @param[in]  index        Index of @p params in a global parameter struct array.
+ *                          If initialized manually, pass a unique identifier instead.
  */
-void isbd_setup(isbd_t *dev, const isbd_params_t *params);
+void isbd_setup(isbd_t *dev, const isbd_params_t *params, uint8_t index);
 
 /**
  * @brief   Initializes the isbd device
@@ -478,8 +479,9 @@ void isbd_set_dtr_off(isbd_t *dev);
  *          @note Not saved after power off!
  *
  * @param[in] dev             The ISBD device descriptor
+ * @param[in] enable          Enable/disable at echo
  */
-void isbd_set_at_echo(isbd_t *dev);
+void isbd_set_at_echo(isbd_t *dev, bool enable);
 
 /**
  * @brief   Store the active profile in non-volatile memory.

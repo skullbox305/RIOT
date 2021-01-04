@@ -38,11 +38,12 @@ static int _send(netdev_t *netdev, const iolist_t *iolist)
 {
     isbd_t *dev = (isbd_t *)netdev;
     uint8_t state = isbd_get_state(dev);
+    int res;
 
     if (state == ISBD_STATE_TX || state == ISBD_STATE_RX) {
-        DEBUG("[isbd] netdev: device still busy\n");
+        DEBUG("[isbd] netdev: device still busy with TX/RX\n");
         netdev->event_callback(netdev, NETDEV_EVENT_TX_MEDIUM_BUSY);
-        return -ENOTSUP;
+        return -EBUSY;
     }
 
     if(state == ISBD_STATE_OFF) {
@@ -50,13 +51,12 @@ static int _send(netdev_t *netdev, const iolist_t *iolist)
     }
 
     uint8_t size = iolist_size(iolist);
-//    isbd_set_flow_control_off(dev);
 
     /* Write payload to tx buf if size > 0, else it is a mailbox check with payload size 0.
      * Used for receiving queued rx messages */
     if (size > 0) {
-        if (isbd_write_tx_buf(dev, iolist->iol_base, iolist->iol_len) < 0) {
-            return -1;
+        if ((res = isbd_write_tx_buf(dev, iolist->iol_base, iolist->iol_len)) < 0) {
+            return res;
         }
         dev->_internal.tx_pending = true;
     }
@@ -64,8 +64,8 @@ static int _send(netdev_t *netdev, const iolist_t *iolist)
         dev->_internal.rx_pending = true;
     }
 
-    if (isbd_start_tx(dev) < 0) {
-        return -1;
+    if ((res = isbd_start_tx(dev)) < 0) {
+        return res;
     }
 
     return size;
@@ -150,6 +150,7 @@ static void _isr(netdev_t *netdev)
             isbd_set_state(dev, ISBD_STATE_STANDBY);
             dev->_internal.tx_retries = 0;
             dev->_internal.tx_pending = false;
+            dev->_internal.rx_pending = false; //vlt nicht?
             netdev->event_callback(netdev, NETDEV_EVENT_TX_TIMEOUT);
             break;
         default:
@@ -193,7 +194,6 @@ static int _set(netdev_t *netdev, netopt_t opt, const void *val, size_t len)
         case NETOPT_STATE:
             assert(len <= sizeof(netopt_state_t));
             return _set_state(dev, *((const netopt_state_t *)val));
-
         default:
             break;
     }
@@ -213,7 +213,7 @@ static int _set_state(isbd_t *dev, netopt_state_t state)
             break;
 
         case NETOPT_STATE_IDLE:
-
+        	isbd_set_idle(dev);
             break;
         default:
             return -ENOTSUP;
@@ -280,7 +280,7 @@ void _on_network_avail_irq(void *arg)
     if ((isbd_get_state(dev) == ISBD_STATE_TX) && signal_avail && (dev->_internal.is_sending == false)) {
         xtimer_remove(&dev->_internal.timeout_timer);
         dev->_internal.tx_retries++;
-        DEBUG("[isbd] netdev network avail, send, retries: %d\n", dev->_internal.tx_retries);
+        DEBUG("[isbd] network available, start send, retries: %d\n", dev->_internal.tx_retries);
         if (dev->_internal.tx_pending == true || dev->_internal.rx_pending == true) {
             isbd_start_tx(dev);
         }

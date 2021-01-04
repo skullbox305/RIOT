@@ -70,6 +70,8 @@ int isbd_read_rx_buf(isbd_t *dev);
  * @param[in] dev          The device descriptor
  *
  * @return                 ISBD_OK on success
+ * @return                 ISBD_ERR_AT when AT command failed
+ *
  */
 int isbd_tx(isbd_t *dev);
 
