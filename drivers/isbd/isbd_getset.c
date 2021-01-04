@@ -70,10 +70,8 @@ void isbd_set_off(isbd_t *dev)
         return;
     }
 
-#if false // recent research suggest this is not what you should do when just sleeping
     // Best Practices Guide suggests this before shutdown
     isbd_flush_eeprom(dev);
-#endif
 
     /* Best Practices Guide suggests waiting at least 2 seconds
      * before powering off again */
@@ -88,13 +86,6 @@ void isbd_set_off(isbd_t *dev)
 void isbd_set_standby(isbd_t *dev)
 {
     int8_t result = isbd_on(dev);
-
-    isbd_set_at_echo(dev);
-//    isbd_set_dtr_off(dev);
-//    isbd_set_flow_control_off(dev);
-
-    isbd_set_sbd_session_timeout(dev, CONFIG_ISBD_SBD_SESSION_TIMEOUT);
-//    isbd_set_ring_alert(dev, true);
 
     if (result == ISBD_ERR_GPIO_UNDEF) {
         /* no sleep pin defined, so device is already on. Put directly in stand-by mode */
@@ -119,15 +110,12 @@ void isbd_set_idle(isbd_t *dev)
 
 void isbd_set_ring_alert(isbd_t *dev, bool enable)
 {
-    if (isbd_get_state(dev) == ISBD_STATE_OFF) {
-        DEBUG("[isbd] ABORT: Device is in sleep mode\n");
-        return;
-    }
+    char command[13];
 
-    char command[12];
     snprintf(command, sizeof(command) - 1, ISBD_SBDMTA, enable);
 
-    if (at_send_cmd_get_resp(&dev->at_dev, "at+sbdmta=%d",
+    if (at_send_cmd_get_resp(&dev->at_dev, command,
+
                              dev->_internal.resp_buf,
                              sizeof(dev->_internal.resp_buf),
                              2 * US_PER_SEC) < 0) {
@@ -137,12 +125,8 @@ void isbd_set_ring_alert(isbd_t *dev, bool enable)
 
 void isbd_set_sbd_session_timeout(isbd_t *dev, uint16_t timeout_sec)
 {
-    if (isbd_get_state(dev) == ISBD_STATE_OFF) {
-        DEBUG("[isbd] ABORT: Device is in sleep mode\n");
-        return;
-    }
-
     char cmd[14];
+
     snprintf(cmd, sizeof(cmd) - 1, ISBD_SBDST, timeout_sec);
 
     if (at_send_cmd_get_resp(&dev->at_dev, cmd, dev->_internal.resp_buf,
@@ -167,9 +151,38 @@ void isbd_set_dtr_off(isbd_t *dev)
     }
 }
 
-void isbd_set_at_echo(isbd_t *dev)
+void isbd_set_at_echo(isbd_t *dev, bool enable)
 {
-    if (at_send_cmd_wait_ok(&dev->at_dev, ISBD_AT_ECHO_ON, 10 * US_PER_SEC) < 0) {
-        DEBUG("[isbd] init: Turning off DTR failed\n");
+    char cmd[6];
+
+    snprintf(cmd, sizeof(cmd) - 1, ISBD_AT_ECHO_ON, enable);
+
+    if (at_send_cmd_wait_ok(&dev->at_dev, cmd,
+                            10 * US_PER_SEC) < 0) {
+        DEBUG("[isbd] init: Turning off at echo failed\n");
+    }
+}
+
+void isbd_set_store_config(isbd_t *dev, uint8_t profile_nr)
+{
+    char cmd[7];
+
+    snprintf(cmd, sizeof(cmd) - 1, ISBD_STORE_CFG, profile_nr);
+
+    if (at_send_cmd_wait_ok(&dev->at_dev, cmd, 10 * US_PER_SEC) < 0) {
+        DEBUG("[isbd] init: Storing settings in profile %d failed\n",
+              profile_nr);
+    }
+}
+
+void isbd_set_default_reset_config(isbd_t *dev, uint8_t profile_nr)
+{
+    char cmd[7];
+
+    snprintf(cmd, sizeof(cmd) - 1, ISBD_RST_PROFILE, profile_nr);
+
+    if (at_send_cmd_wait_ok(&dev->at_dev, cmd, 10 * US_PER_SEC) < 0) {
+        DEBUG("[isbd] init: Setting default reset profile %d failed\n",
+              profile_nr);
     }
 }

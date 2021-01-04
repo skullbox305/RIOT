@@ -322,6 +322,7 @@ typedef enum {
     NETDEV_CC2420,
     NETDEV_ETHOS,
     NETDEV_SLIPDEV,
+	NETDEV_ISBD,
     /* add more if needed */
 } netdev_type_t;
 /** @} */

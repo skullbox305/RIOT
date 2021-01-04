@@ -31,117 +31,104 @@ static int _process_sbdix_tx_response(isbd_t *dev)
     switch (mo_status) {
     case 0:
         result = ISBD_OK;
-        DEBUG("[isbd] +sbdix tx: Successfully transferred.\n");
+        DEBUG("[isbd] tx: Successfully transferred.\n");
         break;
     case 1:
-        //result = ISBD_ERR_SBDIX_MT_OVERSZIZE;
-        result = ISBD_OK;
+        result = ISBD_ERR_SBDIX_MT_OVERSZIZE;
+//        result = ISBD_OK;
         DEBUG(
-            "[isbd] +sbdix tx: Successfully transferred, but MT msg to big.\n");
+            "[isbd] tx: Successfully transferred, but MT msg to big.\n");
         break;
     case 2:
-//            result = ISBD_ERR_SBDIX_LOCATION;
-        result = ISBD_OK;
+        result = ISBD_ERR_SBDIX_LOCATION;
+//        result = ISBD_OK;
         DEBUG(
-            "[isbd] +sbdix tx: Successfully transferred, but Location Update was not accepted\n");
+            "[isbd] tx: Successfully transferred, but Location Update was not accepted\n");
         break;
     case 10:
-//            result = ISBD_ERR_SBDIX_GSS_TIMEOUT;
+        result = ISBD_ERR_SBDIX_GSS_TIMEOUT;
         DEBUG(
-            "[isbd] +sbdix tx: transmission did not complete in the allowed time.\n");
+            "[isbd] tx err: transmission did not complete in the allowed time.\n");
         break;
     case 11:
-//            result = ISBD_ERR_SBDIX_MO_QUEUE_FULL;
-        DEBUG("[isbd] +sbdix tx: MO message queue at the GSS is full.\n");
+        result = ISBD_ERR_SBDIX_MO_QUEUE_FULL;
+        DEBUG("[isbd] tx err: MO message queue at the GSS is full.\n");
         break;
     case 12:
-//            result = ISBD_ERR_SBDIX_MO_SEGMENTS;
-        DEBUG("[isbd] +sbdix tx: MO message has too many segments.\n");
+        result = ISBD_ERR_SBDIX_MO_SEGMENTS;
+        DEBUG("[isbd] tx err: MO message has too many segments.\n");
         break;
     case 13:
-//            result = ISBD_ERR_SBDIX_INCOMPLETE_SESS;
+        result = ISBD_ERR_SBDIX_INCOMPLETE_SESS;
         DEBUG(
-            "[isbd] +sbdix tx: GSS reported that the session did not complete.\n");
+            "[isbd] tx err: GSS reported that the session did not complete.\n");
         break;
     case 14:
-//            result = ISBD_ERR_SBDIX_INVALID_SEG_SIZ;
-        DEBUG("[isbd] +sbdix tx: Invalid segment size.\n");
+        result = ISBD_ERR_SBDIX_INVALID_SEG_SIZ;
+        DEBUG("[isbd] tx err: Invalid segment size.\n");
         break;
     case 15:
-//            result = ISBD_ERR_SBDIX_ACCESS_DENIED;
-        DEBUG("[isbd] +sbdix tx: Access is denied.\n");
+        result = ISBD_ERR_SBDIX_ACCESS_DENIED;
+        DEBUG("[isbd] tx err: Access is denied.\n");
         break;
     case 16:
-//            result = ISBD_ERR_SBDIX_LOCKED;
-        DEBUG("[isbd] +sbdix tx: ISU locked the transmission.\n");
+        result = ISBD_ERR_SBDIX_LOCKED;
+        DEBUG("[isbd] tx err: ISU locked the transmission.\n");
         break;
     case 17:
-//            result = ISBD_ERR_SBDIX_TIMEOUT;
-        DEBUG("[isbd] +sbdix tx: Gateway not responding.\n");
+        result = ISBD_ERR_SBDIX_TIMEOUT;
+        DEBUG("[isbd] tx err: Gateway not responding.\n");
         break;
     case 18:
-//            result = ISBD_ERR_SBDIX_RF_DROP;
-        DEBUG("[isbd] +sbdix tx: Connection lost (RF drop).\n");
+        result = ISBD_ERR_SBDIX_RF_DROP;
+        DEBUG("[isbd] tx err: Connection lost (RF drop).\n");
         break;
     case 19:
-//            result = ISBD_ERR_SBDIX_LINK_FAILURE;
-        DEBUG("[isbd]] +sbdix tx: Link failure.\n");
+        result = ISBD_ERR_SBDIX_LINK_FAILURE;
+        DEBUG("[isbd]] tx err Link failure.\n");
         break;
     case 32:
         result = ISBD_ERR_NO_NETWORK;
-        DEBUG("[isbd] tx: No network service.\n");
+        DEBUG("[isbd] tx err: No network service.\n");
         break;
     case 33:
-//            result = ISBD_ERR_SBDIX_ANTENNA_FAULT;
-        DEBUG("[isbd] +sbdix tx: Antenna fault.\n");
+        result = ISBD_ERR_SBDIX_ANTENNA_FAULT;
+        DEBUG("[isbd] tx err: Antenna fault.\n");
         break;
     case 34:
-//            result = ISBD_ERR_SBDIX_RADIO_DISABLED;
-        DEBUG("[isbd] +sbdix tx: Radio is disabled.\n");
+        result = ISBD_ERR_SBDIX_RADIO_DISABLED;
+        DEBUG("[isbd] tx err: Radio is disabled.\n");
         break;
     case 35:
-//            result = ISBD_ERR_SBDIX_BUSY;
-        DEBUG("[isbd] +sbdix tx: ISU is busy, unable to initiate call.\n");
+        result = ISBD_ERR_SBDIX_BUSY;
+        DEBUG("[isbd] tx err: ISU is busy, unable to initiate call.\n");
         break;
     case 36:
-//            result = ISBD_ERR_SBDIX_WAIT
+        result = ISBD_ERR_SBDIX_WAIT;
         DEBUG(
-            "[isbd] +sbdix tx: Try later, must wait 3 minutes since last registration.\n");
+            "[isbd] tx err: Try later, must wait 3 minutes since last registration.\n");
         break;
     case 37:
-//            result = ISBD_ERR_SBDIX_SBD_SERVICE_OFF;
-        DEBUG("[isbd] +sbdix tx: SBD service is temporarily disabled.\n");
+        result = ISBD_ERR_SBDIX_SBD_SERVICE_OFF;
+        DEBUG("[isbd] tx err: SBD service is temporarily disabled.\n");
         break;
     case 38:
-//            result = ISBD_ERR_SBDIX_TRAFFIC_MANAG;
-        DEBUG("[isbd] +sbdix tx: Try later, traffic management period.\n");
+        result = ISBD_ERR_SBDIX_TRAFFIC_MANAG;
+        DEBUG("[isbd] tx err: Try later, traffic management period.\n");
         break;
     case 64:
-//            result = ISBD_ERR_SBDIX_BAND_VIOLATION;
-        DEBUG("[isbd] +sbdix tx: Band violation.\n");
+        result = ISBD_ERR_SBDIX_BAND_VIOLATION;
+        DEBUG("[isbd] tx err: Band violation.\n");
         break;
     case 65:
-//            result = ISBD_ERR_SBDIX_PLL_LOCK_FAIL;
-        DEBUG("[isbd] +sbdix tx: PLL lock failure.\n");
+        result = ISBD_ERR_SBDIX_PLL_LOCK_FAIL;
+        DEBUG("[isbd] tx err: PLL lock failure.\n");
         break;
     default:
-//            result = ISBD_ERR_AT;
-        DEBUG("[isbd] +sbdix tx: Command failed, unknowm error code: %d\n",
+        result = ISBD_ERR_AT;
+        DEBUG("[isbd] tx err: Command failed, unknowm error code: %d\n",
               mo_status);
         break;
-    }
-
-    if (result == ISBD_OK) {
-        dev->_internal.tx_retries = 0;
-
-        if (dev->_internal.tx_pending == true) {
-            dev->_internal.tx_pending = false;
-        }
-        else {
-            dev->_internal.rx_pending = false;
-        }
-
-        dev->_internal.ring_alert_flag = false;
     }
 
     return result;
@@ -153,6 +140,7 @@ static int _process_sbdix_rx_response(isbd_t *dev)
     int mt_status = 0;
     int mt_length = 0;
     char *response_code;
+    int res = ISBD_OK;
 
     /* strtok is already initialized in _process_sbdix_tx_response() */
     response_code = strtok(NULL, ",");
@@ -174,23 +162,17 @@ static int _process_sbdix_rx_response(isbd_t *dev)
     if (mt_status == 1 && mt_length > 0) {
         DEBUG("[isbd] rx: Message received. Still queued: %d\n",
               dev->_internal.rx_queued);
-        dev->_internal.rx_received = true;
     }
     else if (mt_status == 2) {
         DEBUG("[isbd] rx: Error on mailbox check or message reception!\n");
-        return ISBD_ERR_SBDIX_RX_FAILED;
+        res = ISBD_ERR_SBDIX_RX_FAILED;
     }
 
-    return ISBD_OK;
+    return res;
 }
 
 int isbd_tx(isbd_t *dev)
 {
-    if (isbd_get_state(dev) == ISBD_STATE_OFF) {
-        DEBUG("[isbd] ABORT: Device is in sleep mode\n");
-        return ISBD_ERR_SLEEP_MODE;
-    }
-
     int res;
     netdev_t *netdev = (netdev_t *)dev;
 
@@ -204,48 +186,55 @@ int isbd_tx(isbd_t *dev)
     dev->_internal.is_sending = true;
 
     /* blocking, till system time was received from the network */
-    isbd_request_sys_time(dev);
+    if (isbd_request_sys_time(dev) < 0) {
+        return ISBD_ERR_NO_NETWORK;
+    }
 
     char cmd[10];
 
     /* if alert flag is set, answer it with +sbdixa, instead of +sbdix */
-    if (dev->_internal.ring_alert_flag == true) {
+    if (dev->_internal.ring_alert_flag) {
         snprintf(cmd, sizeof(cmd), ISBD_SBDIXA);
     }
     else {
         snprintf(cmd, sizeof(cmd) - 1, ISBD_SBDIX);
     }
 
-    DEBUG("SBDIX start\n");
-//    LED2_ON;
     /* start transmission */
     if (at_send_cmd_get_resp(&dev->at_dev, cmd, dev->_internal.resp_buf,
                              sizeof(dev->_internal.resp_buf),
                              (CONFIG_ISBD_SBD_SESSION_TIMEOUT + 1) *
                              US_PER_SEC) < 0) {
         DEBUG("\nSBDIX timeout\n");
-//      LED2_OFF;
         return ISBD_ERR_AT;
     }
 
-//    LED2_OFF;
-    DEBUG("SBDIX done\n");
-
-    /* check the response of the transmission. Might fail, but we still could've received a msg */
     res = _process_sbdix_tx_response(dev);
 
-    /* check if a message was received in the response of the transmission */
-    _process_sbdix_rx_response(dev);
+    if ((res == ISBD_OK) ||
+        (res == ISBD_ERR_SBDIX_MT_OVERSZIZE) ||
+        (res == ISBD_ERR_SBDIX_LOCATION)) {
+        dev->_internal.tx_retries = 0;
 
-    /* sometimes a message is still received, even though the transmission failed */
-    if (dev->_internal.rx_received == true) {
+        if (dev->_internal.tx_pending == true) {
+            dev->_internal.tx_pending = false;
+        }
+        else {
+            dev->_internal.rx_pending = false;
+        }
+
+        dev->_internal.ring_alert_flag = false;
+    }
+
+    /* check if a message was received in the response of the transmission */
+    if ( _process_sbdix_rx_response(dev) == ISBD_OK) {
         isbd_set_state(dev, ISBD_STATE_RX);
         isbd_read_rx_buf(dev);
         dev->_internal.rx_pending = false;
-        dev->_internal.rx_received = false;
         netdev->event_callback(netdev, NETDEV_EVENT_RX_COMPLETE);
     }
 
+    /* transmission succeeded */
     if (dev->_internal.tx_pending == false &&
         dev->_internal.rx_pending == false) {
 
@@ -253,10 +242,8 @@ int isbd_tx(isbd_t *dev)
 
         /* set to idle state, because a successful transmission also automatically
          * performs a network registration.
-         * If the location update failed, the resulting state will be standby.
-         * TX is suppose to be followed by IDLE, but in this case it would be wrong.
-         * Perform another manual network registration if it failed to actually
-         * reach IDLE??? */
+         * If the location update failed, the modem is not registered at the
+         * gateway. So the resulting state will be standby. */
         if (res == ISBD_ERR_SBDIX_LOCATION) {
             isbd_set_state(dev, ISBD_STATE_STANDBY);
         }
@@ -308,28 +295,30 @@ int isbd_tx_test(isbd_t *dev)
 
 static int _process_sbdwb_response(isbd_t *dev)
 {
-    uint8_t ret = ISBD_OK;
+    uint8_t res = ISBD_OK;
     ssize_t len =
         at_recv_bytes(&dev->at_dev, dev->_internal.resp_buf, 3,
                       61 * US_PER_SEC);
 
     if (len == 0) {
-        ret = ISBD_ERR_AT;
+        res = ISBD_ERR_AT;
         DEBUG("[isbd] Write TX buf: Device didn't answer after writing bytes\n");
     }
     else if (dev->_internal.resp_buf[2] == '1') {
-        ret = ISBD_ERR_SBDWB_TIMEOUT;
+        res = ISBD_ERR_SBDWB_TIMEOUT;
         DEBUG(
             "[isbd] Write TX buf: Timeout - insufficient number of bytes transfered\n");
     }
     else if (dev->_internal.resp_buf[2] == '2') {
-        ret = ISBD_ERR_SBDWB_CHKSM;
+        res = ISBD_ERR_SBDWB_CHKSM;
         DEBUG("[isbd] Write TX buf: Wrong checksum transfered\n");
     }
+    else if (dev->_internal.resp_buf[2] == '3') {
+        res = ISBD_ERR_SBDWB_INCORRECT_LEN;
+        DEBUG("[isbd] Write TX buf: message size not correct.\n");
+    }
 
-//    DEBUG("[isbd] Write TX buf Response %c\n", dev->_internal.resp_buf[2]);
-
-    return ret;
+    return res;
 }
 
 static int _append_payload(isbd_t *dev, uint8_t *payload, uint16_t *payload_len)
@@ -345,11 +334,9 @@ static int _append_payload(isbd_t *dev, uint8_t *payload, uint16_t *payload_len)
         }
         else if (i == *payload_len) {
             cur_char = checksum >> 8;
-            //printf("checksum1: %d\n", cur_char);
         }
         else if (i == *payload_len + 1) {
             cur_char = checksum & 0xFF;
-            //printf("checksum2: %d\n", cur_char);
         }
         else if (i == *payload_len + 2) {
             cur_char = '\r';
@@ -362,11 +349,6 @@ static int _append_payload(isbd_t *dev, uint8_t *payload, uint16_t *payload_len)
 
 int isbd_write_tx_buf(isbd_t *dev, uint8_t *payload, uint16_t payload_len)
 {
-    if (isbd_get_state(dev) == ISBD_STATE_OFF) {
-        DEBUG("[isbd] ABORT: Device is in off mode\n");
-        return ISBD_ERR_SLEEP_MODE;
-    }
-
     if (payload_len == 0 || payload_len > CONFIG_ISBD_MAX_TX_LEN) {
         DEBUG("[isbd] write tx: Payload length should be > 0 and <= %d - "
               "but is: %d Bytes\n", CONFIG_ISBD_MAX_TX_LEN, payload_len);
@@ -376,9 +358,9 @@ int isbd_write_tx_buf(isbd_t *dev, uint8_t *payload, uint16_t payload_len)
     char command[14];
     uint8_t old_state = isbd_get_state(dev);
 
-    /* Initate a binary write */
     snprintf(command, sizeof(command) - 1, ISBD_SBDWB, payload_len);
 
+    /* Initate a binary write */
     at_send_cmd_get_resp(&dev->at_dev, command, dev->_internal.resp_buf,
                          sizeof(dev->_internal.resp_buf), 10 * US_PER_SEC);
 
@@ -445,10 +427,6 @@ int isbd_read_rx_buf(isbd_t *dev)
     return ISBD_OK;
 }
 
-/* Waiting for the ISBD modem to respond to a simple 'AT' command after
- * wake up. The internal super capacitors need time to charge.
- * Depending on the power supply this can take a couple seconds
- * (especially if they are completely depleted on a cold start). */
 int isbd_on(isbd_t *dev)
 {
     if (dev->params.sleep_pin == GPIO_UNDEF) {
@@ -466,9 +444,13 @@ int isbd_on(isbd_t *dev)
     at_dev_poweron(&dev->at_dev);
 
     /*  Best practice suggests waiting at least 2 sec to turn off again, so
-     *  save power on timestamp */
+     *  save timestamp of power on */
     dev->_internal.power_on_time = xtimer_now();
 
+    /* Waiting for the ISBD modem to respond to a simple 'AT' command after
+     * wake up. The internal super capacitors need time to charge.
+     * Depending on the power supply this can take a couple seconds
+     * (especially if they are completely depleted on a cold start). */
     while ((isbd_get_state(dev) != ISBD_STATE_STANDBY) &&
            xtimer_less(xtimer_diff(xtimer_now(), dev->_internal.power_on_time),
                        xtimer_ticks_from_usec(CONFIG_ISBD_STARTUP_TIME
@@ -512,6 +494,10 @@ int isbd_request_sys_time(isbd_t *dev)
 
         if (strcmp(dev->_internal.resp_buf,
                    "-MSSTM: no network service") == 0) {
+            if (retries == (CONFIG_ISBD_MSSTM_RETRIES - 1)) {
+                return ISBD_ERR_NO_NETWORK;
+            }
+
             DEBUG("[isbd] sys time: %s, waiting %d sec\n",
                   dev->_internal.resp_buf, CONFIG_ISBD_MSSTM_RETRY_INTERVAL);
             xtimer_sleep(CONFIG_ISBD_MSSTM_RETRY_INTERVAL);
@@ -521,5 +507,6 @@ int isbd_request_sys_time(isbd_t *dev)
             break;
         }
     }
+
     return res;
 }

@@ -47,7 +47,6 @@ static char rx_buf[CONFIG_ISBD_MAX_RX_LEN];
 
 static isbd_t isbd_dev;
 
-
 static int register_cmd(int argc, char **argv)
 {
     (void)argv;
@@ -93,6 +92,8 @@ int cmd_send(int argc, char **argv)
         return -1;
     }
 
+    int res;
+
     printf("sending \"%s\" payload (%u bytes)\n",
            argv[1], (unsigned)strlen(argv[1]));
 
@@ -102,14 +103,15 @@ int cmd_send(int argc, char **argv)
     };
 
     netdev_t *netdev = (netdev_t *)&isbd_dev;
-    if (netdev->driver->send(netdev, &iolist) == -ENOTSUP) {
+    res = netdev->driver->send(netdev, &iolist);
+    if (res == -EBUSY) {
         puts("Cannot send: radio is still transmitting");
+    } else if(res < 0){
+    	printf("Error during netdev send with code %d\n", res);
     }
 
     return 0;
 }
-
-
 
 static const shell_command_t shell_commands[] = {
     { "off", "Put device to sleep", off_cmd },
@@ -146,20 +148,14 @@ static void _event_cb(netdev_t *dev, netdev_event_t event)
             printf("[isbd] EVENT: TX completed...\n");
 
             /* If more messages are queued at the gateway,
-             * do a send with no payload (mailbox check) to receive the
-             * next message
+             * send new payload or do a send with no payload (mailbox check)
+             * to receive the next message
              */
             if (isbd_dev._internal.rx_queued > 0) {
-                if (dev->driver->send(dev, NULL) == -ENOTSUP) {
+                if (dev->driver->send(dev, NULL) == -EBUSY) {
                     puts("Cannot send: radio is busy");
                 }
             }
-//            else if (isbd_dev._internal.rx_queued == 0) {
-//                isbd_set_off(&isbd_dev);
-//            }
-//            if (isbd_get_state(&isbd_dev) == ISBD_STATE_IDLE) {
-//                isbd_set_off(&isbd_dev);
-//            }
             break;
         case NETDEV_EVENT_TX_TIMEOUT:
             if (isbd_dev._internal.tx_retries > 0) {
