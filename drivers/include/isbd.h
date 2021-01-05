@@ -92,6 +92,20 @@
 #endif
 
 /**
+ * @brief   Number of SBDIX retries until a transmission is considered as failed
+ */
+#ifndef CONFIG_ISBD_TX_RETRIES
+#define CONFIG_ISBD_TX_RETRIES           (6U)
+#endif
+
+/**
+ * @brief   Time increments in seconds between SBDIX retries
+ */
+#ifndef CONFIG_ISBD_TX_TIME_INCREMENT
+#define CONFIG_ISBD_TX_TIME_INCREMENT    (3U)
+#endif
+
+/**
  * @brief   Interval time between a failed (TX/RX) and a retry.
  *          Retrying to fast depletes the capacitors and if your VCC is not
  *          providing enough power, the device will stop working till the
@@ -103,7 +117,8 @@
 #endif
 
 /**
- * @brief   Number of MSSTM retries until the request is considered as failed
+ * @brief   Number of MSSTM retries until the system time request
+ *          is considered as failed
  */
 #ifndef CONFIG_ISBD_MSSTM_RETRIES
 #define CONFIG_ISBD_MSSTM_RETRIES           (3U)
@@ -115,20 +130,6 @@
  */
 #ifndef CONFIG_ISBD_MSSTM_RETRY_INTERVAL
 #define CONFIG_ISBD_MSSTM_RETRY_INTERVAL    (10U)
-#endif
-
-/**
- * @brief   Number of SBDIX retries until a transmission is considered as failed
- */
-#ifndef CONFIG_ISBD_SBDIX_RETRIES
-#define CONFIG_ISBD_SBDIX_RETRIES           (3U)
-#endif
-
-/**
- * @brief   Time increments in seconds between SBDIX retries
- */
-#ifndef CONFIG_ISBD_SBDIX_TIME_INCREMENT
-#define CONFIG_ISBD_SBDIX_TIME_INCREMENT    (3U)
 #endif
 /** @} */
 
@@ -253,6 +254,7 @@ enum {
     ISBD_ERR_SBDREG_TRY_LATER       = -34,  /**< Try later, must wait 3 minutes
                                              *   since last registration. */
 	ISBD_ERR_MSSTM_TIMEOUT          = -35,  /**< System time request timeout */
+	ISBD_ERR_SBDREG_TIMEOUT         = -36,  /**< Register at gateway timeout */
 };
 
 /**
@@ -283,7 +285,7 @@ typedef struct {
                                              *   to be downloaded */
     uint8_t tx_retries;                     /**< Number of attempts of retransmitting
                                              *   the TX buffer */
-
+    uint16_t adaptive_tx_retry_time;        /**< Current time between resends */
     bool is_sending;
 } isbd_internal_t;
 
