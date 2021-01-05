@@ -114,6 +114,10 @@ int isbd_init(isbd_t *dev)
     return ISBD_OK;
 }
 
+//static void _adaptive_retry_time() {
+//
+//}
+
 int isbd_start_tx(isbd_t *dev)
 {
     int res;
@@ -123,15 +127,18 @@ int isbd_start_tx(isbd_t *dev)
 #else
     if ((res = isbd_tx(dev)) < 0) {
         dev->_internal.is_sending = false;
-        if (dev->_internal.tx_retries < CONFIG_ISBD_SBDIX_RETRIES) {
+        if (dev->_internal.tx_retries < CONFIG_ISBD_TX_RETRIES) {
 
             /* Error is not due to no network, so start timer and try sending
              * again in isr. Also check if network avail pin is really
              * high = no signal. If network is still available, then try again. */
-            if (res != ISBD_ERR_NO_NETWORK ||
-                (res == ISBD_ERR_NO_NETWORK &&
-                 gpio_read(dev->params.network_avail_pin) > 0)) {
-                DEBUG("[isbd] sending failed with code: %d,"
+//            if (res != ISBD_ERR_NO_NETWORK ||
+//                (res == ISBD_ERR_NO_NETWORK &&
+//                 gpio_read(dev->params.network_avail_pin) > 0)) {
+
+            if (res != ISBD_ERR_NO_NETWORK) {
+
+                DEBUG("[isbd] sending failed with code: %d, "
                       "trying again in %d sec...\n",
                       res, CONFIG_ISBD_TX_RETRY_INTERVAL);
 
@@ -169,12 +176,21 @@ int isbd_start_network_registration(isbd_t *dev)
         return ISBD_ERR_SLEEP_MODE;
     }
 
+    if (dev->_internal.tx_retries == CONFIG_ISBD_TX_RETRIES) {
+        netdev_t *netdev = (netdev_t *)dev;
+        isbd_set_state(dev, ISBD_STATE_STANDBY);
+        netdev->event_callback(netdev, NETDEV_EVENT_TX_TIMEOUT);
+        dev->_internal.tx_retries = 0;
+        dev->_internal.tx_pending = false;
+        return ISBD_ERR_SBDREG_TIMEOUT;
+    }
+
     uint8_t status = 0;
     uint8_t reg_err = 0;
     netdev_t *netdev = (netdev_t *)dev;
-    isbd_set_flow_control_off(dev);
+    isbd_states_t state = isbd_get_state(dev);
 
-    if (dev->_internal.state != ISBD_STATE_TX) {
+    if ((state == ISBD_STATE_STANDBY) || (state == ISBD_STATE_IDLE)) {
         netdev->event_callback(netdev, NETDEV_EVENT_TX_STARTED);
         isbd_set_state(dev, ISBD_STATE_TX);
     }
@@ -211,8 +227,8 @@ int isbd_start_network_registration(isbd_t *dev)
             return ISBD_ERR_SBDREG_TRY_LATER;
         }
         else {
-            DEBUG("[isbd] registration failed with code: %d, "
-                  "trying again in %d sec...\n", reg_err,
+            DEBUG("[isbd] registration failed with code: %d,"
+                  " trying again in %d sec...\n", reg_err,
                   CONFIG_ISBD_TX_RETRY_INTERVAL);
 
             _start_timeout_timer(dev, CONFIG_ISBD_TX_RETRY_INTERVAL,
@@ -263,7 +279,6 @@ static void isbd_network_avail_isr(void *arg)
 
     if (isbd_get_state(dev) == ISBD_STATE_TX &&
         dev->_internal.is_sending == false) {
-        puts("net");
         isbd_on_isr(dev, ISBD_IRQ_NETWORK_AVAILABLE);
     }
 }

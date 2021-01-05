@@ -107,7 +107,7 @@ int cmd_send(int argc, char **argv)
     if (res == -EBUSY) {
         puts("Cannot send: radio is still transmitting");
     } else if(res < 0){
-    	printf("Error during netdev send with code %d\n", res);
+    	printf("Err netdev send with code %d\n", res);
     }
 
     return 0;
@@ -160,7 +160,7 @@ static void _event_cb(netdev_t *dev, netdev_event_t event)
         case NETDEV_EVENT_TX_TIMEOUT:
             if (isbd_dev._internal.tx_retries > 0) {
                 printf("[isbd] EVENT TX Timeout after %d retries\n",
-                		CONFIG_ISBD_SBDIX_RETRIES);
+                		CONFIG_ISBD_TX_RETRIES);
             }
             else {
                 printf("[isbd] EVENT TX Timeout: no network signal\n");

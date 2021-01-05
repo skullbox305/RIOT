@@ -7,6 +7,7 @@
 menuconfig MODULE_ISBD
     bool "Configure Iridium SBD Sat Modem Driver"
     default y
+    select USEMODULE_ISBD
     help
         Configure the ISBD driver using Kconfig.
 
@@ -55,11 +56,31 @@ config ISBD_TX_RETRY_INTERVAL
     int "Time interval between TX retries"
     default 10
     help
-        Interval time between a failed (TX/RX) and a retry.
+        Interval time between a failed (TX/RX) and the first 2 retries.
         Retrying to fast depletes the capacitors and if your VCC is not
         providing enough power, the device will stop working till the
-        capacitors are sufficiently charged again. The value can be
-        decreased if the power supply is able to provide enough burst current.
+        capacitors are sufficiently charged again.After the second retry the
+        adaptive retry will start increasing the time randomly between
+        0-30 seconds.
+
+config ISBD_TX_RETRIES
+    int "Amount of TX/RX retries until failed"
+    default 6
+    help
+        Number of SBDIX retries (TX/RX) until a transmission is considered as failed
+
+config ISBD_TX_TIME_INCREMENT
+    int "Time increments between TX/RX retries"
+    default 10
+    help
+        Time increments in seconds between SBDIX (TX/RX) retries
+        
+config ISBD_MSSTM_BEFORE_TX
+    bool "Get sytem time before TX"
+    default y
+    help
+        Get system time before a transmission to check if the modem has a
+        proper signal
 
 config ISBD_MSSTM_RETRY_INTERVAL
     int "Time interval between systems time request retries"
@@ -67,18 +88,13 @@ config ISBD_MSSTM_RETRY_INTERVAL
     help
         Interval time between system time requests (in case the system
         time was not received on the first attempt)
-        
-config ISBD_SBDIX_RETRIES
-    int "Amount of TX/RX retries until failed"
-    default 10
+
+config ISBD_MSSTM_RETRIES
+    int "Number of systems time request retries"
+    default 3
     help
-        Number of SBDIX retries (TX/RX) until a transmission is considered as failed
-        
-config ISBD_SBDIX_TIME_INCREMENT
-    int "Time increments between TX/RX retries"
-    default 10
-    help
-        Time increments in seconds between SBDIX retries
+         Number of MSSTM retries until the system time request 
+         is considered as failed
 
 config ISBD_TEST_MODE
     bool "Enable Modem Test Mode"

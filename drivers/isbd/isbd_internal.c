@@ -164,7 +164,7 @@ static int _process_sbdix_rx_response(isbd_t *dev)
               dev->_internal.rx_queued);
     }
     else if (mt_status == 2) {
-        DEBUG("[isbd] rx: Error on mailbox check or message reception!\n");
+        DEBUG("[isbd] rx err: Error on mailbox check or message reception!\n");
         res = ISBD_ERR_SBDIX_RX_FAILED;
     }
 
@@ -175,8 +175,9 @@ int isbd_tx(isbd_t *dev)
 {
     int res;
     netdev_t *netdev = (netdev_t *)dev;
+    isbd_states_t state = isbd_get_state(dev);
 
-    if (isbd_get_state(dev) != ISBD_STATE_TX) {
+    if ((state == ISBD_STATE_STANDBY) || (state == ISBD_STATE_IDLE)) {
         netdev->event_callback(netdev, NETDEV_EVENT_TX_STARTED);
         isbd_set_state(dev, ISBD_STATE_TX);
     }
@@ -185,10 +186,12 @@ int isbd_tx(isbd_t *dev)
      * new transmission, as long as this tranmission is not done */
     dev->_internal.is_sending = true;
 
+#ifdef CONFIG_ISBD_MSSTM_BEFORE_TX
     /* blocking, till system time was received from the network */
     if (isbd_request_sys_time(dev) < 0) {
         return ISBD_ERR_NO_NETWORK;
     }
+#endif
 
     char cmd[10];
 
@@ -203,7 +206,7 @@ int isbd_tx(isbd_t *dev)
     /* start transmission */
     if (at_send_cmd_get_resp(&dev->at_dev, cmd, dev->_internal.resp_buf,
                              sizeof(dev->_internal.resp_buf),
-                             (CONFIG_ISBD_SBD_SESSION_TIMEOUT + 1) *
+                             (CONFIG_ISBD_SBD_SESSION_TIMEOUT + 5) *
                              US_PER_SEC) < 0) {
         DEBUG("\nSBDIX timeout\n");
         return ISBD_ERR_AT;
@@ -227,7 +230,7 @@ int isbd_tx(isbd_t *dev)
     }
 
     /* check if a message was received in the response of the transmission */
-    if ( _process_sbdix_rx_response(dev) == ISBD_OK) {
+    if (_process_sbdix_rx_response(dev) == ISBD_OK) {
         isbd_set_state(dev, ISBD_STATE_RX);
         isbd_read_rx_buf(dev);
         dev->_internal.rx_pending = false;
@@ -250,6 +253,8 @@ int isbd_tx(isbd_t *dev)
         else {
             isbd_set_state(dev, ISBD_STATE_IDLE);
         }
+        dev->_internal.is_sending = false;
+
         /* We drop the previous error, if any, from "_process_sbdix_tx_response"
          * in case it was an rx only transmission (netdev->send with payload 0),
          * which still successfully received a message. Therefore no need to handle
@@ -486,7 +491,8 @@ int isbd_request_sys_time(isbd_t *dev)
         if (at_send_cmd_get_resp(&dev->at_dev, ISBD_MSSTM,
                                  dev->_internal.resp_buf,
                                  sizeof(dev->_internal.resp_buf),
-                                 10 * US_PER_SEC) < 0) {
+								 CONFIG_ISBD_MSSTM_RETRY_INTERVAL * US_PER_SEC) <
+            0) {
             DEBUG("[isbd] msstm: System time request failed\n");
             res = ISBD_ERR_AT;
             break;
