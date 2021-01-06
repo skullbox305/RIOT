@@ -209,9 +209,9 @@ int isbd_start_network_registration(isbd_t *dev)
     // status == 1 and reg_err == 2 is apparently successful too, further tests needed
     // also do msstm
     // count retries here or in parent function isbd_idle
-    if (status != 2 || reg_err != 0) {
+    if (status != 2 || reg_err > 2) {
 
-        if (reg_err == 32 && gpio_read(dev->params.network_avail_pin) == 0) {
+        if (reg_err == 32 /*&& gpio_read(dev->params.network_avail_pin) == 0*/) {
 
             DEBUG("[isbd] waiting %d sec for network signal...\n",
                   CONFIG_ISBD_TIMEOUT_IF_NO_SIGNAL);
@@ -227,8 +227,8 @@ int isbd_start_network_registration(isbd_t *dev)
             return ISBD_ERR_SBDREG_TRY_LATER;
         }
         else {
-            DEBUG("[isbd] registration failed with code: %d,"
-                  " trying again in %d sec...\n", reg_err,
+            DEBUG("[isbd] registration failed with status: %d and reg error: %d,"
+                  " trying again in %d sec...\n", status, reg_err,
                   CONFIG_ISBD_TX_RETRY_INTERVAL);
 
             _start_timeout_timer(dev, CONFIG_ISBD_TX_RETRY_INTERVAL,
@@ -301,7 +301,7 @@ static void isbd_new_msg_isr(void *arg)
     }
 
     if (isbd_get_state(dev) == ISBD_STATE_IDLE) {
-        dev->_internal.ring_alert_flag = false;
+        dev->_internal.ring_alert_flag = true;
         isbd_on_isr(dev, ISBD_IRQ_NEW_MSG);
     }
 }

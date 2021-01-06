@@ -176,10 +176,12 @@ int at_send_cmd(at_dev_t *dev, const char *command, uint32_t timeout)
 
     if (AT_SEND_ECHO) {
         if (at_expect_bytes(dev, command, timeout)) {
+        	printf("1 timeout\n");
             return -1;
         }
 
         if (at_expect_bytes(dev, CONFIG_AT_SEND_EOL AT_RECV_EOL_1 AT_RECV_EOL_2, timeout)) {
+        	printf("2 timeout\n");
             return -2;
 		}
     }
@@ -219,10 +221,18 @@ ssize_t at_send_cmd_get_resp(at_dev_t *dev, const char *command,
     }
 
     res = at_readline(dev, resp_buf, len, false, timeout);
+
+    if(res == -ETIMEDOUT) {
+    	printf("3 timeout\n");
+    }
     if (res == 0) {
         /* skip possible empty line */
         res = at_readline(dev, resp_buf, len, false, timeout);
     }
+
+    if(res == -ETIMEDOUT) {
+       	printf("4 timeout\n");
+       }
 
 out:
     return res;
