@@ -280,6 +280,7 @@ typedef struct {
                                                  is available to be received */
     bool tx_pending;                        /**< Transmission pending */
     bool rx_pending;                        /**< Receive pending */
+    bool rx_received;                       /**< Received a msg, ready to be read */
     uint8_t rx_queued;                      /**< Amount of messages still queued
                                              *   in the Iridium gateway and ready
                                              *   to be downloaded */
@@ -364,14 +365,18 @@ int isbd_start_tx(isbd_t *dev);
 
 #if defined(DOXYGEN) || !defined(CONFIG_ISBD_TEST_MODE)
 /**
- * @brief   Performs a manual network registration in order to use the Ring Alert.
+ * @brief   Performs a manual network registration without charging you fees in
+ *          order to use the Ring Alert.
  *          After a successful registration, the ring pin will be pulled low
  *          if any incoming messages arrive at the gateway.
- *          This way no random mailbox checks need to be performed and therefore
- *          no unnecessary fees will be charged.
- *          Alerts will only be send for messages which were send after
- *          the device has registered. You wont get notified for messages which
- *          were queued before the registration. (AT+SBDREG)
+ *          This way no random mailbox checks need to be performed and no
+ *          unnecessary fees will be charged. Alerts will only be send for
+ *          messages which were send after the device has registered.
+ *          You wont get notified for messages which were queued before the
+ *          registration (AT+SBDREG).
+ *
+ *          The AT+SBDIX (TX/RX) also automatically performs a network
+ *          registration, but will charge fees.
  *
  * @param[in] dev          The device descriptor
  *

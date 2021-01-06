@@ -162,6 +162,7 @@ static int _process_sbdix_rx_response(isbd_t *dev)
     if (mt_status == 1 && mt_length > 0) {
         DEBUG("[isbd] rx: Message received. Still queued: %d\n",
               dev->_internal.rx_queued);
+              dev->_internal.recv_msg = true;
     }
     else if (mt_status == 2) {
         DEBUG("[isbd] rx err: Error on mailbox check or message reception!\n");
@@ -196,8 +197,10 @@ int isbd_tx(isbd_t *dev)
     char cmd[10];
 
     /* if alert flag is set, answer it with +sbdixa, instead of +sbdix */
-    if (dev->_internal.ring_alert_flag) {
+    if (dev->_internal.ring_alert_flag == true) {
         snprintf(cmd, sizeof(cmd), ISBD_SBDIXA);
+        dev->_internal.ring_alert_flag = false;
+        printf("sbdixa\n");
     }
     else {
         snprintf(cmd, sizeof(cmd) - 1, ISBD_SBDIX);
@@ -230,9 +233,11 @@ int isbd_tx(isbd_t *dev)
     }
 
     /* check if a message was received in the response of the transmission */
-    if (_process_sbdix_rx_response(dev) == ISBD_OK) {
+    _process_sbdix_rx_response(dev);
+    if (dev->_internal.rx_received) {
         isbd_set_state(dev, ISBD_STATE_RX);
         isbd_read_rx_buf(dev);
+        dev->_internal.recv_msg = false;
         dev->_internal.rx_pending = false;
         netdev->event_callback(netdev, NETDEV_EVENT_RX_COMPLETE);
     }
